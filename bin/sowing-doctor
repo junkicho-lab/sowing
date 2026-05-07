@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Sowing 진단 도구.
+# 환경 정보, 볼트 무결성, 인덱스 일관성 등을 점검.
+
+require "bundler/setup"
+require_relative "../config/application"
+
+puts "🔍 Sowing Doctor — 진단 시작"
+puts "─" * 60
+
+# 1. 환경
+puts "\n[환경]"
+puts "  Ruby:        #{RUBY_VERSION} (#{RUBY_PLATFORM})"
+puts "  Sowing:      #{Sowing::VERSION}"
+puts "  SOWING_ENV:  #{Sowing.env}"
+
+# 2. 경로
+puts "\n[경로]"
+puts "  데이터 디렉토리: #{Sowing::Infrastructure::Paths.data_dir}"
+puts "  볼트:           #{Sowing::Infrastructure::Paths.vault_dir}"
+puts "  DB:             #{Sowing::Infrastructure::Paths.db_path}"
+
+# 3. 디렉토리 존재
+puts "\n[디렉토리 상태]"
+[
+  ["데이터", Sowing::Infrastructure::Paths.data_dir],
+  ["볼트", Sowing::Infrastructure::Paths.vault_dir]
+].each do |label, path|
+  if File.directory?(path)
+    puts "  ✅ #{label}: 존재"
+  else
+    puts "  ⚠  #{label}: 없음 — bin/sowing dev 실행 시 자동 생성됨"
+  end
+end
+
+# 4. DB 연결
+puts "\n[DB]"
+begin
+  db = Sowing::Infrastructure::DB.connection
+  tables = db.tables
+  puts "  ✅ 연결 성공 (테이블 #{tables.size}개)"
+  if tables.empty?
+    puts "  ⚠  마이그레이션 미실행 — bundle exec rake db:migrate 필요"
+  end
+rescue => e
+  puts "  ❌ 연결 실패: #{e.message}"
+end
+
+# 5. 볼트 무결성 (Phase 2에서 강화)
+puts "\n[볼트 무결성]"
+md_count = Dir.glob(File.join(Sowing::Infrastructure::Paths.vault_dir, "**/*.md")).size
+puts "  마크다운 파일 수: #{md_count}"
+
+puts "\n─" * 60
+puts "✅ 진단 완료"

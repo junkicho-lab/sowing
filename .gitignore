@@ -1,0 +1,66 @@
+# Bundler
+/.bundle/
+/vendor/bundle/
+/lib/bundler/man/
+
+# Ruby
+*.gem
+*.rbc
+/.config
+/InstalledFiles
+/pkg/
+/spec/reports/
+/spec/examples.txt
+/test/tmp/
+/test/version_tmp/
+/tmp/
+
+# RSpec
+.rspec_status
+
+# Coverage
+/coverage/
+
+# DB / 사용자 데이터 (절대 커밋 금지)
+/db/*.sqlite3
+/db/*.sqlite3-journal
+/db/*.sqlite3-wal
+/db/*.sqlite3-shm
+*.sqlite3
+*.sqlite3-*
+
+# 로컬 볼트 (개발자별)
+/SowingDevVault/
+.sowing/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 로그
+*.log
+/log/
+/logs/
+
+# 패키징 산출물
+/dist/
+/build/
+*.dmg
+*.exe
+*.AppImage
+
+# 환경 변수
+.env
+.env.local
+.env.*.local
+
+# Tebako 빌드 캐시
+/.tebako/
+
+# Claude Code 워크트리 메타 (별도 git 워크트리)
+/.claude/

@@ -1,0 +1,72 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Sowing CLI 진입점.
+# 서브커맨드: dev, start, memo, doctor
+
+require "bundler/setup"
+
+ROOT = File.expand_path("..", __dir__)
+$LOAD_PATH.unshift(File.join(ROOT, "lib"))
+
+command = ARGV.shift || "help"
+
+case command
+when "dev"
+  # 개발 서버 (자동 재시작)
+  exec "bundle exec rerun --dir lib,config,views,public,templates -- bundle exec rackup -p 48723 -o 127.0.0.1"
+
+when "start"
+  # 프로덕션 서버
+  exec "bundle exec puma -C config/puma.rb config.ru"
+
+when "memo"
+  # CLI에서 메모 작성: bin/sowing memo "내용"
+  body = ARGV.join(" ")
+  if body.strip.empty?
+    warn "사용법: bin/sowing memo \"메모 내용\""
+    exit 1
+  end
+
+  require_relative "../config/application"
+  result = Sowing::UseCases::CreateMemo.new(
+    vault_repo: Sowing::Repositories::VaultRepo.new,
+    index_repo: Sowing::Repositories::IndexRepo.new
+  ).call(body: body)
+
+  if result.success?
+    memo = result.value!
+    puts "✅ 메모 저장 완료: #{memo.id}"
+  else
+    warn "❌ 메모 저장 실패: #{result.failure}"
+    exit 1
+  end
+
+when "doctor"
+  # 진단: 환경, 볼트, 인덱스 상태 점검
+  require_relative "sowing-doctor"
+
+when "version", "--version", "-v"
+  require_relative "../lib/sowing/version"
+  puts "Sowing #{Sowing::VERSION}"
+
+else
+  puts <<~HELP
+    Sowing 🌱 — 교사를 위한 일상 기록 앱
+
+    사용법: bin/sowing <command> [args]
+
+    명령어:
+      dev              개발 서버 시작 (자동 재시작)
+      start            프로덕션 서버 시작
+      memo "내용"       CLI에서 빠른 메모 작성
+      doctor           환경·볼트·인덱스 진단
+      version          버전 출력
+      help             본 도움말
+
+    환경변수:
+      SOWING_ENV       development | test | production (기본: development)
+      SOWING_VAULT     볼트 디렉토리 (기본: ~/Documents/SowingVault)
+      SOWING_PORT      서버 포트 (기본: 48723)
+  HELP
+end
