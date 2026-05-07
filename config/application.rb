@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+# 한국어·옵시디언 마크다운 호환성을 위해 외부 인코딩을 UTF-8로 강제 (ADR-012).
+# 시스템 locale이 C/POSIX인 환경(Tebako 패키징, Docker, 일부 CI)에서도 일관성 보장.
+# default_internal은 의도적으로 nil 유지 — 입력 자동 변환 비활성화로 비-UTF-8 외부 파일을
+# 만났을 때 즉시 raise 하지 않고 permissive 처리.
+Encoding.default_external = Encoding::UTF_8
+
 require "bundler/setup"
 require "zeitwerk"
 require "sinatra/base"
