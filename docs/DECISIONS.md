@@ -326,6 +326,47 @@ i18n 구조는 처음부터 r18n으로 설계하되 출시는 한국어만. Phas
 
 ---
 
+## ADR-011: Ruby 4.0.x 지원을 위한 부트스트랩 의존성 핀 상향
+
+**상태**: Accepted (2026-05-07)
+
+**컨텍스트**
+
+W1-T01 환경 검증 단계에서 사용자의 mise 글로벌 Ruby가 4.0.3으로 업데이트된 상태였고, 사용자 지시로 현재 설치된 Ruby(4.0.3)를 그대로 사용하기로 함. 그러나 Gemfile의 일부 핀이 Ruby 4.x 미지원이었음:
+
+- `r18n-core ~> 5.0` — gemspec이 `Ruby >= 2.5, < 4` 제약
+- `commonmarker ~> 1.1` — Ruby 4.0 환경에서 C 확장 빌드 실패 (사전 빌드 바이너리 없음)
+
+**결정**
+
+다음 핀을 상향한다 (외부 gem 교체 없이 같은 패밀리의 더 새로운 메이저 버전 사용):
+
+- `r18n-core ~> 5.0` → `~> 6.0`
+- `commonmarker ~> 1.1` → `~> 2.8`
+- `Gemfile`의 `ruby "3.3.0"` → `ruby ">= 3.3.0"`
+- `.ruby-version` `3.3.0` → `4.0.3`
+
+**근거**
+
+- r18n-core 6.0.0은 동일 API 패밀리, Ruby 4.x 호환. ADR-010의 r18n 선택은 유지됨.
+- commonmarker 2.8.1은 arm64-darwin/x86_64-darwin 사전 빌드 바이너리 제공 → 컴파일러 의존성 제거.
+- 대안(Ruby 3.3.0 재설치)은 사용자 환경에서 거부됨 (사용자 지시).
+- 대안(다른 i18n gem 교체)은 ADR-010 결정 자체를 뒤집는 더 큰 변경.
+
+**결과**
+
+- ✅ Ruby 4.0.3 환경에서 `bundle install` 성공 (101 gems).
+- ✅ ADR-010(r18n 선택), ADR-008(Hotwire), ADR-007(Sequel) 등 핵심 스택 결정 유지.
+- ⚠ commonmarker 1.x → 2.x는 메이저 점프이며 API 변경 가능성. W1-T06(VaultRepo: markdown serializer/parser) 구현 시 commonmarker 2.x API에 맞춰 작성 필요.
+- ⚠ r18n-core 5.x → 6.x도 메이저 점프이며 W2 이후 i18n 코드 작성 시 6.x 변경점 확인 필요.
+
+**구현 메모**
+
+- W1-T06 진입 시 `Commonmarker.to_html` 등 새 API 점검 (`docs/SPEC.md` §9 마크다운 처리 항목 갱신 권장).
+- `Gemfile.lock`은 본 ADR과 함께 커밋되어 있음.
+
+---
+
 ## 새 ADR 추가 가이드
 
 새 결정을 기록할 때:

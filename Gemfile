@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 source "https://rubygems.org"
-ruby "3.3.0"
+ruby ">= 3.3.0"
 
 # === Core Web ===
 gem "sinatra", "~> 4.0"
@@ -15,7 +15,7 @@ gem "sequel", "~> 5.80"
 gem "sqlite3", "~> 2.0"
 
 # === Markdown / Files ===
-gem "commonmarker", "~> 1.1"
+gem "commonmarker", "~> 2.8"
 gem "front_matter_parser", "~> 1.0"
 gem "listen", "~> 3.9"
 
@@ -24,7 +24,7 @@ gem "tilt", "~> 2.4"
 gem "erubi", "~> 1.13"
 
 # === i18n ===
-gem "r18n-core", "~> 5.0"
+gem "r18n-core", "~> 6.0"
 
 # === Utilities ===
 gem "dry-validation", "~> 1.10"

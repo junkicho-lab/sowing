@@ -34,7 +34,8 @@ module Sowing
       @loader.inflector.inflect(
         "ulid" => "Ulid",
         "fts_query" => "FtsQuery",
-        "db" => "DB"
+        "db" => "DB",
+        "version" => "VERSION"
       )
 
       @loader.setup
