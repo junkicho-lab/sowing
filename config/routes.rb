@@ -16,6 +16,6 @@ class Sowing::Application
 
   get "/health" do
     content_type :json
-    { status: "ok", env: Sowing.env, time: Time.now.iso8601 }.to_json
+    {status: "ok", env: Sowing.env, time: Time.now.iso8601}.to_json
   end
 end
