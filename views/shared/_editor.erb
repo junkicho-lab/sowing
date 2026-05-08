@@ -1,0 +1,20 @@
+<%#
+  CodeMirror 6 마크다운 에디터 partial.
+
+  Locals:
+    id       — textarea id (예: "note_body")
+    name     — textarea name (예: "body")
+    value    — 초기 내용
+    rows     — 기본 14
+    required — true이면 textarea에 required 속성 (JS 활성화 시 controller가 제거)
+
+  서버 입장에서는 일반 <textarea>이라 검증·이전 폼 에코·POST 동작 변경 없음.
+%>
+<div data-controller="editor" class="editor-host">
+  <textarea
+    id="<%= h(id) %>"
+    name="<%= h(name) %>"
+    rows="<%= h(rows || 14) %>"
+    data-editor-target="textarea"
+    <%= "required" if required %>><%= h(value) %></textarea>
+</div>

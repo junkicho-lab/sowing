@@ -37,7 +37,7 @@
 
   <div class="field">
     <label for="note_body">본문 <span class="required">*</span></label>
-    <textarea id="note_body" name="body" rows="14" required><%= h(form[:body]) %></textarea>
+    <%= erb :"shared/_editor", layout: false, locals: {id: "note_body", name: "body", value: form[:body], rows: 14, required: true} %>
   </div>
 
   <div class="field">

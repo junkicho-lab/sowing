@@ -300,6 +300,39 @@ pre code {
   border: 1px solid rgba(220, 53, 69, 0.2);
 }
 
+/* CodeMirror 6 host (editor partial) */
+
+.cm-host {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: white;
+}
+
+.cm-host .cm-editor {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+}
+
+.cm-host .cm-editor.cm-focused {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -1px;
+}
+
+.cm-host .cm-content {
+  padding: var(--space-2);
+  min-height: 14rem;
+  caret-color: var(--color-primary);
+}
+
+.cm-host .cm-line { line-height: 1.6; }
+
+.cm-host .cm-gutters {
+  background: var(--color-code-bg);
+  color: var(--color-muted);
+  border-right: 1px solid var(--color-border);
+}
+
 /* Filter tabs */
 
 .filter-tabs {

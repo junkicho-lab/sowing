@@ -18,7 +18,10 @@
     "imports": {
       "@hotwired/turbo": "https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-esm.js",
       "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js",
-      "controllers/quick_memo": "/js/controllers/quick_memo_controller.js"
+      "controllers/quick_memo": "/js/controllers/quick_memo_controller.js",
+      "controllers/editor": "/js/controllers/editor_controller.js",
+      "codemirror": "https://esm.sh/codemirror@6.0.1",
+      "@codemirror/lang-markdown": "https://esm.sh/@codemirror/lang-markdown@6.2.5"
     }
   }
   </script>
@@ -26,9 +29,11 @@
     import "@hotwired/turbo"
     import { Application } from "@hotwired/stimulus"
     import QuickMemoController from "controllers/quick_memo"
+    import EditorController from "controllers/editor"
 
     const stimulus = Application.start()
     stimulus.register("quick-memo", QuickMemoController)
+    stimulus.register("editor", EditorController)
     window.Stimulus = stimulus
   </script>
 </head>
