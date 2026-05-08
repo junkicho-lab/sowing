@@ -29,11 +29,13 @@ module Sowing
       def initialize(vault_dir:,
         safe_writer: Infrastructure::Filesystem::SafeWriter.new,
         parser: Infrastructure::Markdown::Parser.new,
-        serializer: Infrastructure::Markdown::Serializer.new)
+        serializer: Infrastructure::Markdown::Serializer.new,
+        self_write_registry: Infrastructure::Filesystem::SelfWriteRegistry.instance)
         @vault_dir = Pathname.new(vault_dir.to_s).expand_path
         @safe_writer = safe_writer
         @parser = parser
         @serializer = serializer
+        @self_write_registry = self_write_registry
       end
 
       # 도메인 객체를 마크다운 파일로 저장. 충돌 시 카운터 suffix.
@@ -96,6 +98,8 @@ module Sowing
         target = @vault_dir.join(".sowing/trash", rel)
         FileUtils.mkdir_p(target.dirname)
         target = avoid_collision(target)
+        # FileWatcher가 자기 자신의 mv(:removed)를 외부 변경으로 오인하지 않도록.
+        @self_write_registry.register(abs)
         FileUtils.mv(abs.to_s, target.to_s)
         target
       end

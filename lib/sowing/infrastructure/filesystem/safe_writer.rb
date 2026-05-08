@@ -18,6 +18,10 @@ module Sowing
       #   - 실패 시 tempfile은 정리된다 (ensure 블록).
       #   - 디스크에 fsync 수행 후 rename → 파워 컷에도 데이터 보존성 향상.
       class SafeWriter
+        def initialize(registry: SelfWriteRegistry.instance)
+          @registry = registry
+        end
+
         # 파일을 원자적으로 쓴다.
         #
         # @param path    [String, Pathname] 대상 경로 (절대 경로 권장)
@@ -34,6 +38,8 @@ module Sowing
           begin
             write_and_sync(tmp_path, content)
             File.chmod(mode, tmp_path)
+            # FileWatcher가 자기 자신의 쓰기를 무시하도록 — rename 직전 등록 (race 방지).
+            @registry.register(path)
             File.rename(tmp_path, path)
             fsync_directory(path.dirname)
           ensure
