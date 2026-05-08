@@ -68,7 +68,29 @@ rescue => e
   puts "  ❌ 연결 실패: #{e.message}"
 end
 
-# 5. 볼트 무결성 (Phase 2에서 강화)
+# 5. 웹 (컨트롤러·라우트 카운트 — 부팅 직후 모든 컨트롤러가 로드되었는지 확인)
+puts "\n[웹]"
+begin
+  # 사용자 향 sub-controller만 (ApplicationController는 base이므로 제외)
+  sub_controllers = Sowing::Controllers.constants
+    .map { |c| Sowing::Controllers.const_get(c) }
+    .select { |c| c.is_a?(Class) && c < Sowing::Controllers::ApplicationController }
+
+  puts "  컨트롤러: #{sub_controllers.size}개 (#{sub_controllers.map { |c| c.name.split("::").last }.sort.join(", ")})"
+
+  all_classes = sub_controllers + [Sowing::Application]
+  by_verb = Hash.new(0)
+  all_classes.each do |klass|
+    klass.routes.each { |verb, list| by_verb[verb] += list.size }
+  end
+  total_routes = by_verb.values.sum
+  verbs_summary = by_verb.sort.map { |v, c| "#{v} #{c}" }.join(", ")
+  puts "  라우트: #{total_routes}개 (#{verbs_summary})"
+rescue => e
+  puts "  ❌ 라우팅 진단 실패: #{e.message}"
+end
+
+# 6. 볼트 무결성 (Phase 2에서 강화)
 puts "\n[볼트 무결성]"
 vault = Sowing::Infrastructure::Paths.vault_dir
 md_count = Dir.glob(File.join(vault, "**/*.md")).size
@@ -87,7 +109,7 @@ trash_dir = File.join(vault, ".sowing/trash")
 trash_count = File.directory?(trash_dir) ? Dir.glob(File.join(trash_dir, "**/*.md")).size : 0
 puts "  휴지통 (.sowing/trash/): #{trash_count}건"
 
-# 6. 인덱스 ↔ 파일 정합성 (간단)
+# 7. 인덱스 ↔ 파일 정합성 (간단)
 if defined?(db) && db.tables.include?(:entries)
   indexed = db[:entries].count
   diff = md_count - indexed

@@ -36,36 +36,73 @@
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
-## 구현 현황 (Week 1 완료)
+## 구현 현황 (Week 2 완료)
 
 ### ✅ 동작하는 기능
 
-- **CLI에서 메모 작성**: `bin/sowing memo "내용"` → `00_Inbox/YYYY-MM-DD_HHmmss.md` 생성 + SQLite 인덱스 갱신
-- **개발 서버**: `bin/sowing dev` → `http://127.0.0.1:48723`
-- **진단 도구**: `bin/sowing-doctor`
-- **테스트**: `bundle exec rspec` (192건 통과)
+- **웹 UI** (`bin/sowing dev` → `http://127.0.0.1:48723`)
+  - 한국어 대시보드: 최근 메모 5건 + 빈 상태 안내
+  - 빠른 메모 모달: `Cmd/Ctrl+Shift+M` 호출, `Cmd/Ctrl+Enter` 저장, Turbo Stream으로 즉시 반영
+  - 메모 목록 (`/memos`): 페이지네이션 30건/page, 100건 < 200ms
+  - 필기 CRUD (`/notes`): 카테고리 4종(수업/연수/도서/회의) + 출처 필수 + 편집 시 path 이동(휴지통 보존)
+  - 기록 CRUD (`/records`): 자유 카테고리 + datalist + `30_Records/{YYYY}/{category}/` + promoted_from
+  - 마크다운 에디터: CodeMirror 6 (line wrapping, syntax highlight, basicSetup)
+  - 라이브 프리뷰: 좌-우 split, Turbo Stream + 300ms 디바운스, 서버 응답 ~2ms
+- **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`
+- **테스트**: `bundle exec rspec` (387건 통과)
 
 ### 구현된 컴포넌트
 
-| 계층 | 모듈 | 설명 |
-|------|------|------|
-| Domain | `Sowing::Domain::ValueObjects::{Ulid, TagSet}` | 불변 Value Object, frozen, 한국어 정렬 |
-| Domain | `Sowing::Domain::{Memo, Note, Record}` + `Entry` mixin | 메모/필기/기록 3종, `to_frontmatter`/`to_markdown` |
-| Infrastructure | `Filesystem::SafeWriter` | 원자적 쓰기 (tempfile + rename), NFC 정규화 |
-| Infrastructure | `Markdown::{Parser, Serializer, ParsedDocument}` | front_matter_parser 래핑, 양방향 round-trip 검증 |
-| Repository | `Repositories::VaultRepo` | 마크다운 파일 시스템 (write/read/list/delete=trash) |
-| Repository | `Repositories::IndexRepo` + `IndexedEntry` | SQLite 인덱스 CRUD + 태그·날짜 검색 |
-| Use Case | `UseCases::CreateMemo` | 도메인 + 두 Repo 조립, Dry::Monads Result |
-| Infrastructure | `Paths`, `DB` | OS별 경로 결정, Sequel + SQLite 연결 |
+#### Domain (외부 의존 0)
+| 모듈 | 설명 |
+|------|------|
+| `Domain::ValueObjects::{Ulid, TagSet}` | 불변 Value Object, frozen, 한국어 정렬 |
+| `Domain::{Memo, Note, Record}` + `Entry` mixin | 3종 도메인, `to_frontmatter`/`to_markdown` |
 
-### 미구현 (Week 2 이후)
+#### Infrastructure
+| 모듈 | 설명 |
+|------|------|
+| `Filesystem::SafeWriter` | 원자적 쓰기 (tempfile + rename), NFC 정규화, chaos test 통과 |
+| `Markdown::{Parser, Serializer, ParsedDocument}` | front_matter_parser 래핑, round-trip 검증 |
+| `Paths`, `DB` | OS별 경로, Sequel + SQLite 연결 (PRAGMA WAL/foreign_keys) |
 
-- 웹 UI (메모/필기/기록 작성·조회 — Sinatra 컨트롤러 + Hotwire)
-- 마크다운 에디터 (CodeMirror 6)
-- 위키링크 `[[link]]` 파서·자동완성·그래프
-- 전문 검색 (FTS5, 한국어 토큰화)
-- 옵시디언 ↔ 본 앱 동기화 (파일 watcher)
-- 패키징 (Tebako 단일 실행파일)
+#### Repository (단방향 의존 — Domain → Repo → Infra)
+| 모듈 | 설명 |
+|------|------|
+| `Repositories::VaultRepo` | `write/read/list/delete(→trash)/update(path 이동)` |
+| `Repositories::IndexRepo` + `IndexedEntry` | CRUD + tags 정규화 + category·date 검색 + paging + distinct categories |
+
+#### Use Case (Dry::Monads Result)
+| 모듈 | 설명 |
+|------|------|
+| `UseCases::Persistence` | 공통 mixin: `persist!` / `repersist!` / `update_index!` |
+| `UseCases::{Create,Update}{Memo,Note,Record}` | 5개 Use Case (Memo는 Update 미구현) |
+
+#### Web (Sinatra modular)
+| 모듈 | 라우트 |
+|------|------|
+| `Controllers::ApplicationController` | base — views/public/helpers (markdown, escape, 한국어 날짜) |
+| `Controllers::DashboardController` | `GET /` |
+| `Controllers::MemosController` | `GET/POST /memos`, `POST` Turbo Stream |
+| `Controllers::NotesController` | 6 actions (`index/new/create/show/edit/update`) |
+| `Controllers::RecordsController` | 6 actions |
+| `Controllers::PreviewController` | `POST /preview` Turbo Stream |
+
+#### Frontend (Hotwire — 빌드 도구 0)
+| 컨트롤러 | 역할 |
+|------|------|
+| `quick_memo_controller.js` (Stimulus) | 모달 + 단축키 + Turbo 제출 hook |
+| `editor_controller.js` (Stimulus) | CodeMirror 6 + textarea sync + `editor:input` event dispatch |
+| `preview_controller.js` (Stimulus) | 디바운스 + fetch + `Turbo.renderStreamMessage` |
+
+### 미구현 (Week 3 이후)
+
+- 위키링크 `[[link]]`·`[[link\|alias]]` 파서·렌더러·그래프 (W3-T01~02)
+- 위키링크 자동완성 (W3-T03~04)
+- 태그 페이지 + 메모 → 필기/기록 승격 UI (W3-T05~07)
+- 전문 검색 (FTS5, 한국어 토큰화 — W4)
+- 옵시디언 ↔ 본 앱 동기화 (파일 watcher — W5+)
+- 패키징 (Tebako 단일 실행파일 — W8)
 
 상세 일정은 [ROADMAP.md](ROADMAP.md) 참조.
 

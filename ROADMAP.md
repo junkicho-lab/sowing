@@ -128,7 +128,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 
 ## Week 2: 핵심 도메인 + 웹 UI 골격
 
-### [ ] W2-T01: Sinatra 라우트·뷰 구조 정립
+### [x] W2-T01: Sinatra 라우트·뷰 구조 정립 — 완료 (2026-05-08, 커밋 32a172d)
 - **출력**:
   - `lib/sowing/controllers/application_controller.rb` (Sinatra::Base)
   - `lib/sowing/controllers/dashboard_controller.rb`
@@ -138,7 +138,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: 브라우저에서 한국어 대시보드 표시
 - **선행**: W1 전체
 
-### [ ] W2-T02: 글로벌 단축키 + 빠른 메모 모달
+### [x] W2-T02: 글로벌 단축키 + 빠른 메모 모달 — 완료 (2026-05-08, 커밋 ae77e2b)
 - **출력**:
   - `views/memos/_quick_modal.erb`
   - `public/js/controllers/quick_memo_controller.js` (Stimulus)
@@ -149,7 +149,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - 대시보드에 즉시 반영 (Turbo Stream)
 - **선행**: W2-T01, W1-T08
 
-### [ ] W2-T03: 메모 목록 화면
+### [x] W2-T03: 메모 목록 화면 — 완료 (2026-05-08, 커밋 33c8c4e)
 - **출력**:
   - `MemosController#index`
   - `views/memos/index.erb`
@@ -157,7 +157,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: 100건 이상에서도 < 200ms 응답
 - **선행**: W2-T01
 
-### [ ] W2-T04: 필기(Note) CRUD
+### [x] W2-T04: 필기(Note) CRUD — 완료 (2026-05-08, 커밋 6891167 / 1bdd551 / fbad0c0 — 3분할)
 - **출력**:
   - `lib/sowing/use_cases/create_note.rb`, `update_note.rb`
   - `NotesController` (index, new, create, edit, update, show)
@@ -167,12 +167,12 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: CRUD 전체 흐름 + 카테고리 필터 동작
 - **선행**: W2-T01
 
-### [ ] W2-T05: 기록(Record) CRUD
+### [x] W2-T05: 기록(Record) CRUD — 완료 (2026-05-08, 커밋 c9d8f78)
 - **출력**: 위와 동일한 구조로 RecordsController
 - **검증**: CRUD 전체 흐름
 - **선행**: W2-T01
 
-### [ ] W2-T06: 마크다운 에디터 통합 (CodeMirror 6)
+### [x] W2-T06: 마크다운 에디터 통합 (CodeMirror 6) — 완료 (2026-05-08, 커밋 7f99b8b)
 - **출력**:
   - `public/js/controllers/editor_controller.js`
   - CDN 로드 + Markdown 모드
@@ -180,7 +180,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: 필기·기록 작성 시 CodeMirror 표시, 저장 시 텍스트 정상 전송
 - **선행**: W2-T04, W2-T05
 
-### [ ] W2-T07: 마크다운 실시간 프리뷰
+### [x] W2-T07: 마크다운 실시간 프리뷰 — 완료 (2026-05-08, 커밋 3b814f1) **🎯 W2 마일스톤 달성**
 - **출력**:
   - 좌측 에디터 / 우측 프리뷰 분할 뷰
   - 서버측 Commonmarker 렌더 + Turbo Stream으로 디바운스 갱신 (300ms)
