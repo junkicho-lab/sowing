@@ -1,0 +1,87 @@
+<%
+  # SPEC §10.4 색상 팔레트 사용. 외부 라이브러리 0 — 인라인 SVG.
+  soil = "#8B6F47"
+  soil_dark = "#6B5436"
+  trunk = "#5C3A21"
+  leaf_light = "#A3C57A"
+  leaf = "#7A9D5F"
+  leaf_dark = "#4F7942"
+%>
+<section class="growth" aria-labelledby="growth_heading">
+  <header class="growth__header">
+    <h2 id="growth_heading"><%= h(@growth.label) %></h2>
+    <p class="growth__message"><%= h(@growth.message) %></p>
+  </header>
+
+  <div class="growth__visual" role="img" aria-label="<%= h(@growth.label) %> — 누적 <%= @growth.total %>건">
+    <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+      <!-- 흙 (모든 단계 공통) -->
+      <ellipse cx="120" cy="142" rx="110" ry="14" fill="<%= soil_dark %>"/>
+      <rect x="10" y="135" width="220" height="18" fill="<%= soil %>" rx="3"/>
+
+      <% case @growth.key %>
+      <% when :empty %>
+        <!-- 빈 흙만. 작은 균열 표시로 "심을 자리" 암시 -->
+        <line x1="115" y1="138" x2="125" y2="146" stroke="<%= soil_dark %>" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="118" y1="142" x2="122" y2="138" stroke="<%= soil_dark %>" stroke-width="1.5" stroke-linecap="round"/>
+
+      <% when :seed %>
+        <!-- 흙 위에 살짝 묻힌 씨앗 -->
+        <ellipse cx="120" cy="135" rx="6" ry="5" fill="<%= trunk %>"/>
+        <path d="M120 130 Q121 125 119 122" stroke="<%= leaf %>" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+      <% when :sprout %>
+        <!-- 새싹: 줄기 + 두 잎 -->
+        <line x1="120" y1="135" x2="120" y2="100" stroke="<%= trunk %>" stroke-width="2.5" stroke-linecap="round"/>
+        <ellipse cx="108" cy="105" rx="13" ry="7" fill="<%= leaf_light %>" transform="rotate(-30 108 105)"/>
+        <ellipse cx="132" cy="100" rx="14" ry="7.5" fill="<%= leaf %>" transform="rotate(35 132 100)"/>
+
+      <% when :tree %>
+        <!-- 한 그루 나무: 두꺼운 줄기 + 캐노피 3개 원 -->
+        <rect x="113" y="80" width="14" height="58" fill="<%= trunk %>" rx="2"/>
+        <circle cx="120" cy="68" r="32" fill="<%= leaf_dark %>"/>
+        <circle cx="100" cy="78" r="22" fill="<%= leaf %>"/>
+        <circle cx="142" cy="76" r="24" fill="<%= leaf_light %>"/>
+        <circle cx="120" cy="58" r="20" fill="<%= leaf %>"/>
+
+      <% when :forest %>
+        <!-- 작은 나무 + 큰 나무 + 작은 나무 — 깊이감 -->
+        <!-- 뒷줄 작은 나무 -->
+        <rect x="42" y="92" width="8" height="46" fill="<%= trunk %>" rx="1.5"/>
+        <circle cx="46" cy="86" r="18" fill="<%= leaf_dark %>"/>
+        <circle cx="36" cy="92" r="13" fill="<%= leaf %>"/>
+        <circle cx="56" cy="90" r="14" fill="<%= leaf %>"/>
+
+        <rect x="200" y="98" width="7" height="40" fill="<%= trunk %>" rx="1.5"/>
+        <circle cx="203" cy="92" r="15" fill="<%= leaf %>"/>
+        <circle cx="195" cy="96" r="11" fill="<%= leaf_dark %>"/>
+        <circle cx="212" cy="95" r="12" fill="<%= leaf_light %>"/>
+
+        <!-- 가운데 큰 나무 -->
+        <rect x="113" y="74" width="14" height="64" fill="<%= trunk %>" rx="2"/>
+        <circle cx="120" cy="62" r="34" fill="<%= leaf_dark %>"/>
+        <circle cx="98" cy="74" r="22" fill="<%= leaf %>"/>
+        <circle cx="144" cy="72" r="25" fill="<%= leaf_light %>"/>
+        <circle cx="120" cy="50" r="20" fill="<%= leaf %>"/>
+
+        <!-- 작은 풀잎(데코) -->
+        <path d="M80 138 Q82 130 84 138" stroke="<%= leaf %>" stroke-width="2" fill="none"/>
+        <path d="M170 138 Q172 130 174 138" stroke="<%= leaf %>" stroke-width="2" fill="none"/>
+      <% end %>
+    </svg>
+  </div>
+
+  <footer class="growth__footer">
+    <% if @growth.next_threshold %>
+      <p class="growth__progress-text">
+        누적 <strong><%= @growth.total %></strong>건 ·
+        다음 단계까지 <strong><%= @growth.remaining_to_next %></strong>건
+      </p>
+      <progress class="growth__progress" value="<%= @growth.progress_ratio %>" max="1.0"></progress>
+    <% else %>
+      <p class="growth__progress-text">
+        누적 <strong><%= @growth.total %></strong>건 — 가장 풍성한 단계입니다 🎉
+      </p>
+    <% end %>
+  </footer>
+</section>

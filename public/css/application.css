@@ -1367,3 +1367,70 @@ pre code {
   font-size: 0.8rem;
   color: var(--color-muted);
 }
+
+/* Growth visualization (W6-T03) */
+
+.growth {
+  margin-bottom: var(--space-5);
+  background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(247,243,234,0.4) 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  text-align: center;
+}
+
+.growth__header { margin-bottom: var(--space-2); }
+.growth__header h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+  color: var(--color-primary);
+}
+.growth__message {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}
+
+.growth__visual {
+  max-width: 24rem;
+  margin: 0 auto var(--space-2);
+}
+.growth__visual svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.growth__footer { margin-top: var(--space-2); }
+.growth__progress-text {
+  margin: 0 0 0.4rem;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+.growth__progress-text strong {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.growth__progress {
+  width: min(20rem, 100%);
+  height: 8px;
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+.growth__progress::-webkit-progress-bar {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 999px;
+}
+.growth__progress::-webkit-progress-value {
+  background: var(--color-primary);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.growth__progress::-moz-progress-bar {
+  background: var(--color-primary);
+  border-radius: 999px;
+}

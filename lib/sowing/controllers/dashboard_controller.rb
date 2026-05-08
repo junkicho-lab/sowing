@@ -45,6 +45,7 @@ module Sowing
         @week_count = stats_repo.this_week
         @month_count = stats_repo.this_month
         @streak = stats_repo.current_streak
+        @growth = Domain::ValueObjects::GrowthStage.new(stats_repo.total_all_time)
         erb :"dashboard/show", layout: :"layouts/application"
       end
     end

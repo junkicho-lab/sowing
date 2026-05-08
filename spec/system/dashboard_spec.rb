@@ -87,6 +87,43 @@ RSpec.describe "Dashboard 라우트", type: :request do
     end
   end
 
+  describe "씨앗-숲 시각화 (W6-T03)" do
+    let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+
+    before do
+      FileUtils.rm_rf(vault_dir.join("00_Inbox"))
+      FileUtils.rm_rf(vault_dir.join("20_Notes"))
+      FileUtils.rm_rf(vault_dir.join("30_Records"))
+    end
+
+    it "0건 — 시작 전 단계 표시 + SVG inline" do
+      get "/"
+      expect(last_response.body).to include("시작 전")
+      expect(last_response.body).to include("<svg")
+      expect(last_response.body).to include('class="growth"')
+    end
+
+    it "메모 1건 → 씨앗 단계 + 다음 단계까지 9건 안내" do
+      post "/memos", body: "씨앗 1"
+      get "/"
+      expect(last_response.body).to include("씨앗")
+      expect(last_response.body).to match(/다음 단계까지.*?<strong>9</)
+    end
+
+    it "외부 라이브러리 없이 inline SVG로만 렌더링 (CDN/img 불필요)" do
+      get "/"
+      growth_section = last_response.body[/<section class="growth"[\s\S]*?<\/section>/]
+      expect(growth_section).to include("<svg")
+      expect(growth_section).not_to include("<img")
+      expect(growth_section).not_to include("https://")
+    end
+
+    it "progress bar 요소 포함" do
+      get "/"
+      expect(last_response.body).to include('<progress class="growth__progress"')
+    end
+  end
+
   describe "Hotwire 로딩" do
     before { get "/" }
 

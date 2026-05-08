@@ -49,6 +49,11 @@ module Sowing
         streak
       end
 
+      # 누적 전체 entry 수 (씨앗-숲 시각화의 입력값, W6-T03).
+      def total_all_time
+        @db[:daily_stats].sum(:total_count).to_i
+      end
+
       # @param date [Date]
       # @return [Daily]
       def for_date(date)
