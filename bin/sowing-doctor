@@ -217,5 +217,50 @@ rescue => e
   puts "  ❌ 템플릿 조회 실패: #{e.message}"
 end
 
+# 11. 온보딩 / 학습 (W7)
+puts "\n[온보딩 / 학습]"
+begin
+  user_settings = Sowing::Infrastructure::Settings.load
+  if user_settings["onboarding_completed"]
+    completed_at = user_settings["completed_at"]&.slice(0, 10) || "?"
+    name = user_settings["user_name"] || "(미설정)"
+    puts "  ✅ 온보딩 완료 — #{completed_at}, 사용자: #{name}"
+  else
+    puts "  ⏳ 온보딩 미완료 — bin/sowing dev 진입 시 마법사 자동 표시"
+  end
+
+  if user_settings["tutorial_completed_at"]
+    puts "  ✅ 튜토리얼 완료 — #{user_settings["tutorial_completed_at"].slice(0, 10)}"
+  else
+    step = user_settings["tutorial_step"].to_i
+    puts "  ⏳ 튜토리얼 진행 중 — step #{step}/4"
+  end
+
+  if defined?(db) && db.tables.include?(:entries)
+    sample_count = Sowing::Repositories::IndexRepo.new.find_samples.size
+    if sample_count > 0
+      puts "  📦 시드된 샘플 #{sample_count}건 — /settings 에서 일괄 삭제 가능"
+    end
+  end
+rescue => e
+  puts "  ❌ 학습 상태 조회 실패: #{e.message}"
+end
+
+# 12. 가이드 (W7-T05)
+puts "\n[동기화 가이드]"
+begin
+  guides_dir = File.join(Sowing.root, "templates/guides")
+  expected = %w[sync_icloud sync_onedrive sync_dropbox sync_syncthing]
+  found = expected.select { |s| File.exist?(File.join(guides_dir, "#{s}.md")) }
+  if found.size == expected.size
+    puts "  ✅ 4종 모두 존재 (iCloud / OneDrive / Dropbox / Syncthing)"
+  else
+    missing = expected - found
+    puts "  ⚠  누락된 가이드: #{missing.join(", ")}"
+  end
+rescue => e
+  puts "  ❌ 가이드 조회 실패: #{e.message}"
+end
+
 puts "\n#{"─" * 60}"
 puts "✅ 진단 완료"

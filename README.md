@@ -36,7 +36,7 @@
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
-## 구현 현황 (Week 6 완료)
+## 구현 현황 (Week 7 완료)
 
 ### ✅ 동작하는 기능
 
@@ -59,8 +59,13 @@
   - **대시보드 통계**: 오늘/주(7일)/월 카운트, 모드별 분해(💭/📝/📖), 🔥 연속 작성일(streak — 오늘 비면 0), 진입마다 자동 재집계
   - **씨앗-숲 시각화**: 누적 entry 수에 따라 5단계(빈 흙→씨앗→새싹→나무→숲), 인라인 SVG(외부 라이브러리 0), 다음 단계까지 native progress bar
   - **템플릿 시스템** (`/templates`): vault 기반 마크다운 SoT, 시스템 12종 + 사용자 정의 override, 단순 `{{key}}` 치환 (date/time/date_korean/year/month/day 자동 채움)
-- **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`
-- **테스트**: `bundle exec rspec` (784건 통과)
+  - **첫 실행 마법사** (`/onboarding`): 4단계 (welcome → vault → profile → samples) 후 자동 완료 마킹, 미완료 시 자동 redirect
+  - **샘플 콘텐츠** (12건, `templates/samples/`): 메모 4 + 필기 4 + 기록 4 — 협동학습 한 주 스토리, 위키링크 그래프 시연용. `bundle exec rake vault:seed` 또는 온보딩에서 동의
+  - **인터랙티브 튜토리얼** (`/tutorial`): 3분 4단계 가이드 (메모 → 필기 승격 → 기록 승격 → 완료), IndexRepo 카운트로 자동 진행 감지
+  - **동기화 가이드** (`/guides`): iCloud / OneDrive / Dropbox / Syncthing — OS 매트릭스 + 설정 명령
+  - **설정** (`/settings`): 프로필·데이터 위치·단축키 표시·백업/동기화 진입점·샘플 일괄 삭제(휴지통)·온보딩/튜토리얼 재실행
+- **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`, `rake vault:seed`, `rake vault:reindex`
+- **테스트**: `bundle exec rspec` (855건 통과)
 
 ### 구현된 컴포넌트
 
@@ -74,6 +79,7 @@
 #### Infrastructure
 | 모듈 | 설명 |
 |------|------|
+| `Settings` | data_dir/settings.json — onboarding/tutorial 진행 상태, user_name 등 사용자 환경 영속화 |
 | `Filesystem::SafeWriter` | 원자적 쓰기 (tempfile + rename), NFC 정규화, chaos test 통과 + self-write 등록 |
 | `Filesystem::SelfWriteRegistry` | TTL 2초 thread-safe 레지스트리 (macOS realpath + NFC 정규화) — watcher 자체 쓰기 무시 |
 | `Filesystem::FileWatcher` | Listen gem 래퍼 — `.md` only, `.sowing/` ignore, 500ms latency, force_polling 옵션 |
@@ -89,6 +95,7 @@
 | `Repositories::IndexRepo` + `IndexedEntry` | CRUD + tags 정규화 + category·date 검색 + paging + distinct categories + 위키링크 그래프 (outbound·inbound·broken·자동 re-link) + tag_cloud + complete/complete_tags + `search_with_filters` (FTS5↔LIKE 자동 라우팅, 한글 비율 ≥ 30% → LIKE) + `find_by_path`/`all_paths` |
 | `Repositories::StatsRepo` | daily_stats 조회 — today/this_week/this_month + current_streak + total_all_time |
 | `Repositories::TemplateRepo` | system(`templates/`) ∪ user(`vault/templates/`) 두 계층 + `{{key}}` 치환 (default_context: date/time/date_korean/year/month/day) |
+| `Repositories::IndexRepo#find_samples` | ULID prefix `01KR1SAMP` 로 시드된 샘플 entry만 조회 (W7-T06 일괄 삭제) |
 
 #### Use Case (Dry::Monads Result)
 | 모듈 | 설명 |
@@ -99,6 +106,8 @@
 | `UseCases::ReindexEntry` | 외부 변경(:added/:modified/:removed) → 인덱스 동기화, mtime+hash 비교로 unchanged 단축 |
 | `UseCases::AdoptOrphan` | frontmatter 없는 외부 파일 → path 기반 mode 추론 + ULID 부여 + in-place frontmatter 기록 |
 | `UseCases::AggregateDailyStats` | entries → daily_stats 트랜잭션 재계산 (멱등, KST 고정) |
+| `UseCases::SeedSamples` | `templates/samples/*.md` 12개 → vault, ULID 중복 자동 skip |
+| `UseCases::DeleteSamples` | ULID prefix `01KR1SAMP` 매칭 entry 휴지통 이동 (사용자 entry 보존) |
 | `Sync::Coordinator` | watcher → ReindexEntry → AdoptOrphan 폴백 파이프라인 + subscribe broadcast hook |
 | `Sync::ConsistencyCheck` | 부팅 시 볼트 ↔ 인덱스 비교 → handle_event 합성 (wipe 후 재구축 검증됨) |
 
@@ -113,6 +122,10 @@
 | `Controllers::TagsController` | `GET /tags`, `GET /tags/:name` |
 | `Controllers::SearchController` | `GET /search` — q/mode/category/tag/from/to/page (AND 결합) |
 | `Controllers::TemplatesController` | `GET /templates`(목록), `GET /templates/new`, `POST /templates`, `GET /templates/:slug`(미리보기) |
+| `Controllers::OnboardingController` | `/onboarding/*` 5단계 마법사 (welcome/vault/profile/samples/done) — Settings 영속 진행 |
+| `Controllers::TutorialController` | `/tutorial` 4단계 학습 — IndexRepo 카운트로 자동 감지·진행 |
+| `Controllers::GuidesController` | `/guides` 동기화 가이드 4종 (iCloud/OneDrive/Dropbox/Syncthing) 마크다운 → HTML 렌더 |
+| `Controllers::SettingsController` | `/settings` — 프로필 / 경로·단축키 안내 / 백업 / 샘플 일괄 삭제 / 온보딩·튜토리얼 재실행 |
 | `Controllers::PreviewController` | `POST /preview` Turbo Stream |
 | `Controllers::ApiController` | `GET /api/wiki_complete`, `GET /api/tag_complete`, `GET /api/quick_search` (JSON) |
 
@@ -124,10 +137,10 @@
 | `editor_controller.js` (Stimulus) | CodeMirror 6 + textarea sync + `editor:input` event dispatch + 자동완성 (위키링크 + 태그) |
 | `preview_controller.js` (Stimulus) | 디바운스 + fetch + `Turbo.renderStreamMessage` |
 
-### 미구현 (Week 7 이후)
+### 미구현 (Week 8)
 
-- 온보딩 + 샘플 콘텐츠 + 동기화 가이드 (W7)
 - 패키징 (Tebako 단일 실행파일 — W8)
+- QA · 베타 (W8)
 
 상세 일정은 [ROADMAP.md](ROADMAP.md) 참조.
 
