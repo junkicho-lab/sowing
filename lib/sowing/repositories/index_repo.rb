@@ -24,7 +24,8 @@ module Sowing
       end
 
       # 도메인 Entry + 파일 메타로 인덱스 갱신 (멱등).
-      # 같은 id가 있으면 모든 컬럼을 덮어쓰고, 태그 매핑도 새로 갱신.
+      # 같은 id가 있으면 모든 컬럼을 덮어쓰고, 태그·링크 매핑도 새로 갱신.
+      # 트랜잭션으로 entries + entry_tags + tags + links 원자적 갱신.
       # @return [IndexedEntry]
       def upsert(entry, path:, file_mtime:, file_hash:, word_count: 0)
         row = build_row(entry, path: path, file_mtime: file_mtime, file_hash: file_hash, word_count: word_count)
@@ -32,6 +33,9 @@ module Sowing
         @db.transaction do
           @db[:entries].insert_conflict(target: :id, update: row).insert(row)
           sync_tags(entry.id.to_s, entry.tags.to_a)
+          sync_outbound_links(entry)
+          nullify_stale_inbound_links(entry)
+          relink_broken_to(entry)
         end
 
         find(entry.id)
@@ -78,6 +82,29 @@ module Sowing
       def distinct_categories(mode:)
         validate_mode!(mode)
         @db[:entries].where(mode: mode.to_s).exclude(category: nil).distinct.select_order_map(:category)
+      end
+
+      # ──────────────────────────────────────────
+      # 위키링크 그래프 (SPEC §8.3 links 테이블)
+      # ──────────────────────────────────────────
+
+      # 특정 entry가 가진 outbound 링크 목록.
+      # @param source_id [String, Sowing::Domain::ValueObjects::Ulid]
+      # @return [Array<Hash>] {source_id, target_id, target_text} (target_text 오름차순)
+      def links_from(source_id)
+        @db[:links].where(source_id: source_id.to_s).order(:target_text).all
+      end
+
+      # 특정 entry로 들어오는 inbound 링크 (backlinks).
+      # @return [Array<Hash>]
+      def links_to(target_id)
+        @db[:links].where(target_id: target_id.to_s).order(:source_id).all
+      end
+
+      # 깨진 링크 (target_id IS NULL) — 아직 매칭되는 entry가 없는 위키링크.
+      # @return [Array<Hash>]
+      def broken_links
+        @db[:links].where(target_id: nil).order(:source_id, :target_text).all
       end
 
       # @param id [Sowing::Domain::ValueObjects::Ulid, String]
@@ -183,6 +210,50 @@ module Sowing
           .where(Sequel[:entry_tags][:entry_id] => entry_id)
           .order(:name)
           .map { |r| r[:name] }
+      end
+
+      # ── 위키링크 그래프 동기화 ─────────────────────
+
+      # entry.body에서 위키링크 target을 추출하여 links 테이블에 동기화.
+      # 기존 source의 모든 row를 제거하고 새로 insert (멱등).
+      # title 정확 일치로 target_id 매칭 — 일치 안 되면 NULL (broken).
+      def sync_outbound_links(entry)
+        source_id = entry.id.to_s
+        @db[:links].where(source_id: source_id).delete
+
+        targets = Infrastructure::Markdown::WikiLink.extract(entry.body).map(&:target).uniq
+        targets.each do |target_text|
+          target_id = lookup_target_id_by_title(target_text)
+          @db[:links].insert(
+            source_id: source_id,
+            target_id: target_id,
+            target_text: target_text
+          )
+        end
+      end
+
+      # entry의 title이 변경되면 옛 title로 가리키던 inbound link들은 broken으로 강등.
+      # 그 다음 relink_broken_to가 새 title과 매칭되는 broken을 다시 fix.
+      def nullify_stale_inbound_links(entry)
+        return unless entry.title
+
+        @db[:links]
+          .where(target_id: entry.id.to_s)
+          .exclude(target_text: entry.title)
+          .update(target_id: nil)
+      end
+
+      # 새 entry/갱신된 title과 일치하는 broken link들을 자동 fix.
+      def relink_broken_to(entry)
+        return unless entry.title
+
+        @db[:links]
+          .where(target_id: nil, target_text: entry.title)
+          .update(target_id: entry.id.to_s)
+      end
+
+      def lookup_target_id_by_title(title)
+        @db[:entries].where(title: title).get(:id)
       end
 
       def validate_mode!(mode)
