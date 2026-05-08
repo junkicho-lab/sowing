@@ -16,11 +16,14 @@ module Sowing
         vault_repo: nil,
         index_repo: nil,
         watcher_factory: nil,
-        logger: nil)
+        logger: nil,
+        adoption_enabled: true)
         @vault_dir = vault_dir
         @vault_repo = vault_repo || Repositories::VaultRepo.new(vault_dir: vault_dir)
         @index_repo = index_repo || Repositories::IndexRepo.new
         @reindex = UseCases::ReindexEntry.new(vault_repo: @vault_repo, index_repo: @index_repo)
+        @adopt = UseCases::AdoptOrphan.new(vault_repo: @vault_repo, index_repo: @index_repo)
+        @adoption_enabled = adoption_enabled
         @watcher_factory = watcher_factory || method(:default_watcher)
         @logger = logger
         @subscribers = []
@@ -58,8 +61,10 @@ module Sowing
       end
 
       # 외부에서 직접 호출 가능 — 부팅 시 일관성 검증(W5-T04)에서도 사용.
+      # frontmatter 누락 파일은 adoption_enabled일 때 AdoptOrphan으로 fallback (W5-T03).
       def handle_event(event)
         result = @reindex.call(event)
+        result = adopt_if_orphan(event, result) if should_attempt_adoption?(result)
         notify(event: event, result: result)
         result
       rescue => e
@@ -68,6 +73,18 @@ module Sowing
       end
 
       private
+
+      def should_attempt_adoption?(result)
+        @adoption_enabled &&
+          result.failure? &&
+          result.failure.is_a?(Array) &&
+          result.failure.first == :invalid_frontmatter
+      end
+
+      def adopt_if_orphan(event, reindex_result)
+        adopt_result = @adopt.call(event)
+        adopt_result.success? ? Dry::Monads::Success(:adopted) : reindex_result
+      end
 
       def default_watcher(vault_dir, on_change)
         Infrastructure::Filesystem::FileWatcher.new(vault_dir: vault_dir, on_change: on_change)
