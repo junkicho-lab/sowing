@@ -1,0 +1,14 @@
+<section class="guide-show">
+  <header class="guide-show__header">
+    <p class="guide-show__crumb"><a href="/guides">← 가이드 목록</a></p>
+    <h1>
+      <span class="guide-show__icon"><%= @guide[:icon] %></span>
+      <%= h(@guide[:label]) %>
+    </h1>
+    <p class="guide-show__os">지원 OS: <%= h(@guide[:os]) %></p>
+  </header>
+
+  <article class="guide-show__body markdown-body">
+    <%= @body_html %>
+  </article>
+</section>

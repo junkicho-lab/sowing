@@ -1,0 +1,28 @@
+<section class="guides">
+  <header class="guides__header">
+    <h1>클라우드 동기화 가이드</h1>
+    <p class="guides__lede">
+      Sowing은 모든 데이터를 표준 마크다운으로 저장하므로 어떤 동기화 서비스든 쓸 수 있어요.
+      아래 중 본인 환경에 맞는 가이드를 선택하세요.
+    </p>
+  </header>
+
+  <ul class="guides__list">
+    <% @guides.each do |guide| %>
+      <li class="guides__item">
+        <a href="/guides/<%= h(guide[:slug]) %>" class="guides__link">
+          <span class="guides__icon"><%= guide[:icon] %></span>
+          <span class="guides__meta">
+            <strong class="guides__name"><%= h(guide[:label]) %></strong>
+            <span class="guides__os">지원 OS: <%= h(guide[:os]) %></span>
+          </span>
+        </a>
+      </li>
+    <% end %>
+  </ul>
+
+  <p class="guides__note">
+    💡 클라우드를 쓰지 않고 로컬에만 보관해도 충분합니다.
+    데이터는 <code><%= h(Sowing::Infrastructure::Paths.vault_dir) %></code> 에서 직접 백업·복사할 수 있어요.
+  </p>
+</section>
