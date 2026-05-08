@@ -179,5 +179,43 @@ else
   puts "  watcher: 미가동 (boot_sync! 호출 시 자동 시작)"
 end
 
+# 9. 통계 / 성장 (W6)
+puts "\n[통계 / 성장]"
+begin
+  if defined?(db) && db.tables.include?(:daily_stats)
+    Sowing::UseCases::AggregateDailyStats.new.call # 최신화
+    stats = Sowing::Repositories::StatsRepo.new
+    growth = Sowing::Domain::ValueObjects::GrowthStage.new(stats.total_all_time)
+
+    puts "  오늘:     #{stats.today.total_count}건 (💭 #{stats.today.memos_count} · 📝 #{stats.today.notes_count} · 📖 #{stats.today.records_count})"
+    puts "  이번 주:  #{stats.this_week}건 (지난 7일)"
+    puts "  이번 달:  #{stats.this_month}건"
+    puts "  연속:     🔥 #{stats.current_streak}일"
+    if growth.next_threshold
+      puts "  성장:     #{growth.label} (누적 #{growth.total}건 / 다음 #{growth.next_threshold}건까지 #{growth.remaining_to_next}건)"
+    else
+      puts "  성장:     #{growth.label} (누적 #{growth.total}건 — 최고 단계)"
+    end
+  else
+    puts "  ⚠  daily_stats 테이블 없음 — bundle exec rake db:setup 필요"
+  end
+rescue => e
+  puts "  ❌ 통계 조회 실패: #{e.message}"
+end
+
+# 10. 템플릿 (W6)
+puts "\n[템플릿]"
+begin
+  template_repo = Sowing::Repositories::TemplateRepo.new(vault_dir: Sowing::Infrastructure::Paths.vault_dir)
+  templates = template_repo.list
+  by_source = templates.group_by(&:source).transform_values(&:size)
+  puts "  총 #{templates.size}개 (시스템 #{by_source[:system] || 0} + 사용자 #{by_source[:user] || 0})"
+  if templates.size < 12
+    puts "  ⚠  시스템 템플릿이 12개 미만 — 프로젝트 templates/ 누락 가능"
+  end
+rescue => e
+  puts "  ❌ 템플릿 조회 실패: #{e.message}"
+end
+
 puts "\n#{"─" * 60}"
 puts "✅ 진단 완료"
