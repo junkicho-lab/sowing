@@ -36,6 +36,7 @@ module Sowing
           sync_outbound_links(entry)
           nullify_stale_inbound_links(entry)
           relink_broken_to(entry)
+          sync_fts(entry)
         end
 
         find(entry.id)
@@ -132,6 +133,32 @@ module Sowing
       end
 
       # ──────────────────────────────────────────
+      # 전문 검색 (FTS5 trigram, W4-T01)
+      # ──────────────────────────────────────────
+
+      # entries_fts에서 q를 매칭하는 entries 반환 (created_at desc).
+      # trigram 한계: 3글자 이상 query만 정확 매칭. 한국어 2글자는 W4-T02 LIKE 폴백.
+      # @param q [String]
+      # @param limit [Integer]
+      # @return [Array<IndexedEntry>]
+      def search_full_text(q:, limit: 50)
+        q = q.to_s.strip
+        return [] if q.empty?
+
+        ids = @db[:entries_fts]
+          .where(Sequel.lit("entries_fts MATCH ?", q))
+          .limit(limit)
+          .select_map(:id)
+        return [] if ids.empty?
+
+        rows = @db[:entries]
+          .where(id: ids)
+          .order(Sequel.desc(:created_at), Sequel.desc(:id))
+          .all
+        rows.map { |row| to_indexed_entry(row) }
+      end
+
+      # ──────────────────────────────────────────
       # 위키링크 그래프 (SPEC §8.3 links 테이블)
       # ──────────────────────────────────────────
 
@@ -155,9 +182,16 @@ module Sowing
       end
 
       # @param id [Sowing::Domain::ValueObjects::Ulid, String]
-      # @return [Boolean] 삭제 여부
+      # @return [Boolean] 삭제 여부 (entries 행이 실제로 있었는지)
+      # entries_fts는 entries와 별도 테이블이므로 명시 정리 (FK CASCADE 미적용).
       def delete(id)
-        @db[:entries].where(id: id.to_s).delete > 0
+        id_str = id.to_s
+        deleted = false
+        @db.transaction do
+          @db[:entries_fts].where(id: id_str).delete
+          deleted = @db[:entries].where(id: id_str).delete > 0
+        end
+        deleted
       end
 
       # 태그 이름으로 검색 (case-insensitive, COLLATE NOCASE).
@@ -306,6 +340,20 @@ module Sowing
 
       def lookup_target_id_by_title(title)
         @db[:entries].where(title: title).get(:id)
+      end
+
+      # ── FTS5 동기화 ────────────────────────────
+
+      # entries_fts에 entry의 title·body를 동기화 (delete + insert 패턴).
+      # FTS5의 UPDATE는 까다로우므로 안전하게 행 교체.
+      def sync_fts(entry)
+        id = entry.id.to_s
+        @db[:entries_fts].where(id: id).delete
+        @db[:entries_fts].insert(
+          id: id,
+          title: entry.title,
+          body: entry.body
+        )
       end
 
       def validate_mode!(mode)
