@@ -17,14 +17,19 @@
   {
     "imports": {
       "@hotwired/turbo": "https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-esm.js",
-      "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js"
+      "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js",
+      "controllers/quick_memo": "/js/controllers/quick_memo_controller.js"
     }
   }
   </script>
   <script type="module">
     import "@hotwired/turbo"
     import { Application } from "@hotwired/stimulus"
-    window.Stimulus = Application.start()
+    import QuickMemoController from "controllers/quick_memo"
+
+    const stimulus = Application.start()
+    stimulus.register("quick-memo", QuickMemoController)
+    window.Stimulus = stimulus
   </script>
 </head>
 <body>
@@ -38,5 +43,7 @@
     </nav>
   </header>
   <main><%= yield %></main>
+
+  <%= erb :"memos/_quick_modal", layout: false %>
 </body>
 </html>

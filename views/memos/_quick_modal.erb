@@ -1,0 +1,37 @@
+<dialog id="quick_modal"
+        class="quick-modal"
+        data-controller="quick-memo"
+        data-quick-memo-target="dialog"
+        aria-labelledby="quick_modal_title">
+  <form id="quick_modal_form"
+        action="/memos"
+        method="post"
+        data-quick-memo-target="form"
+        data-action="turbo:submit-end->quick-memo#onSubmitEnd">
+    <header class="quick-modal__header">
+      <h2 id="quick_modal_title">💭 빠른 메모</h2>
+      <button type="button"
+              class="quick-modal__close"
+              aria-label="닫기"
+              data-action="click->quick-memo#close">✕</button>
+    </header>
+
+    <textarea name="body"
+              class="quick-modal__textarea"
+              data-quick-memo-target="textarea"
+              data-action="keydown->quick-memo#onTextareaKeydown"
+              placeholder="지금 떠오른 생각을 적어주세요..."
+              rows="5"
+              required
+              autocomplete="off"></textarea>
+
+    <div id="quick_modal_error" class="quick-modal__error" data-quick-memo-target="error"></div>
+
+    <footer class="quick-modal__footer">
+      <span class="quick-modal__hint">
+        <kbd>Esc</kbd> 취소 · <kbd>⌘/Ctrl</kbd> + <kbd>Enter</kbd> 저장
+      </span>
+      <button type="submit" class="quick-modal__submit">저장</button>
+    </footer>
+  </form>
+</dialog>

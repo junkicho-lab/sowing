@@ -1,0 +1,6 @@
+<turbo-stream action="update" target="quick_modal_error">
+  <template>
+    <% case failure
+       when :empty_body %>본문을 입력해 주세요.<% else %>저장 실패: <%= failure %><% end %>
+  </template>
+</turbo-stream>

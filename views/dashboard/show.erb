@@ -2,11 +2,25 @@
   <h1>안녕하세요 👋</h1>
   <p class="dashboard__date">오늘은 <%= korean_today %>입니다.</p>
 
-  <div class="empty-state">
-    <h2>아직 기록이 없습니다</h2>
-    <p>지금 떠오른 생각을 1~2문장으로 적어두는 것부터 시작해 보세요.</p>
-    <p class="empty-state__hint">현재는 CLI에서 메모를 작성할 수 있습니다 (웹 작성 화면은 W2-T02에서 추가):</p>
-    <pre><code>bin/sowing memo "오늘 1교시 수업이 활기찼다"</code></pre>
-    <p class="empty-state__hint">작성한 메모는 옵시디언으로 그대로 열어볼 수 있습니다.</p>
-  </div>
+  <section class="recent-memos" aria-labelledby="recent_memos_heading">
+    <h2 id="recent_memos_heading">최근 메모</h2>
+
+    <ul id="recent_memos_list" class="memo-list">
+      <% @recent_memos.each do |memo| %>
+        <%= erb :"memos/_card", layout: false, locals: {memo: memo} %>
+      <% end %>
+    </ul>
+
+    <% if @recent_memos.empty? %>
+      <div class="empty-state empty-state--inline">
+        <p>아직 작성된 메모가 없습니다.</p>
+        <p class="empty-state__hint">
+          <kbd>⌘/Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> 으로 빠른 메모를 시작해 보세요.
+        </p>
+        <p class="empty-state__hint">
+          또는 CLI에서: <code>bin/sowing memo "오늘 1교시 수업이 활기찼다"</code>
+        </p>
+      </div>
+    <% end %>
+  </section>
 </section>

@@ -24,6 +24,31 @@ module Sowing
         def page_title
           @page_title ? "#{@page_title} | Sowing" : "Sowing"
         end
+
+        # 메모 카드 시간 라벨 — 오늘은 HH:MM, 어제는 "어제", 그 외는 M/D.
+        def memo_time_label(time)
+          today = Date.today
+          date = time.to_date
+          if date == today
+            time.strftime("%H:%M")
+          elsif date == today - 1
+            "어제"
+          else
+            "#{date.month}/#{date.day}"
+          end
+        end
+
+        # 본문 발췌 (한 줄, 길면 말줄임표).
+        def memo_excerpt(body, limit = 80)
+          stripped = body.to_s.strip
+          (stripped.length > limit) ? "#{stripped[0, limit]}…" : stripped
+        end
+
+        # HTML escape — Sinatra의 escape_html은 sinatra/contrib에 있고 자식 컨트롤러에도 노출됨.
+        # 본 헬퍼는 데모용 — 실제 ERB는 자동 escape를 위해 <%= h(...) %> 또는 erb -%> 사용.
+        def h(text)
+          Rack::Utils.escape_html(text.to_s)
+        end
       end
     end
   end

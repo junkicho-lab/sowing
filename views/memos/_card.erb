@@ -1,0 +1,6 @@
+<li class="memo-card" id="memo_<%= h(memo.id) %>">
+  <time class="memo-card__time" datetime="<%= h(memo.created_at.iso8601) %>">
+    <%= h(memo_time_label(memo.created_at)) %>
+  </time>
+  <p class="memo-card__body"><%= h(memo_excerpt(memo.body)) %></p>
+</li>
