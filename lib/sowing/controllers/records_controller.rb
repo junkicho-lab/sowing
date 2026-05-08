@@ -75,6 +75,14 @@ module Sowing
           @message = message
           halt erb(:"errors/404", layout: :"layouts/application")
         end
+
+        def conflict?(result)
+          result.failure? && result.failure.is_a?(Array) && result.failure.first == :conflict
+        end
+
+        def truthy?(value)
+          %w[1 true on yes].include?(value.to_s.downcase)
+        end
       end
 
       get "/records" do
@@ -112,6 +120,7 @@ module Sowing
         @page_title = "기록 편집"
         @form = record_to_form(@record)
         @categories = index_repo.distinct_categories(mode: :record)
+        @expected_file_hash = vault_repo.file_hash(index_repo.find(@record.id).path)
         @error = nil
         erb :"records/edit", layout: :"layouts/application"
       end
@@ -138,17 +147,27 @@ module Sowing
       end
 
       patch "/records/:id" do
+        force = truthy?(params["force"])
         result = update_record_use_case.call(
           id: params["id"],
           title: params["title"].to_s,
           body: params["body"].to_s,
           category: params["category"].to_s,
           tags: parse_tags(params["tags"]),
-          promoted_from: blank?(params["promoted_from"]) ? nil : params["promoted_from"]
+          promoted_from: blank?(params["promoted_from"]) ? nil : params["promoted_from"],
+          expected_file_hash: params["expected_file_hash"],
+          force: force
         )
 
         if result.success?
           redirect "/records/#{result.value!.id}"
+        elsif conflict?(result)
+          @record = find_record(params["id"])
+          @page_title = "충돌 감지"
+          @conflict = result.failure[1]
+          @kind = :record
+          status 409
+          erb :"shared/_conflict", layout: :"layouts/application"
         elsif [:not_found, :file_missing].include?(result.failure)
           halt_with_404(ERROR_MESSAGES[result.failure])
         else
@@ -156,6 +175,7 @@ module Sowing
           @page_title = "기록 편집"
           @form = form_from_params
           @categories = index_repo.distinct_categories(mode: :record)
+          @expected_file_hash = params["expected_file_hash"]
           @error = error_message(result.failure)
           status 422
           erb :"records/edit", layout: :"layouts/application"

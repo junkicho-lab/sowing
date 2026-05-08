@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "digest"
 require "fileutils"
 require "pathname"
 require "time"
@@ -83,6 +84,30 @@ module Sowing
         dir = directory_for(mode)
         return [] unless dir.exist?
         Dir.glob(dir.join("**/*.md")).sort.map { |p| Pathname.new(p) }
+      end
+
+      # 파일의 현재 디스크 해시 (16-hex prefix of SHA-256). 충돌 감지(W5-T05)와 인덱스 일관성에 사용.
+      # @param path [String, Pathname]
+      # @return [String, nil] 파일 없으면 nil
+      def file_hash(path)
+        abs = absolute(path)
+        return nil unless abs.exist?
+        Digest::SHA256.hexdigest(abs.binread)[0, 16]
+      end
+
+      # 충돌 백업 — 외부에서 수정된 파일을 .sowing/conflicts/ 로 보존하고 원본은 그대로.
+      # 사용자가 "Keep Mine"으로 덮어쓰기 전에 호출되어야 데이터 손실 방지.
+      # @param path [String, Pathname]
+      # @return [Pathname] 백업 파일의 절대 경로
+      def backup_conflict(path)
+        abs = absolute(path)
+        rel = abs.relative_path_from(@vault_dir)
+        ts = Time.now.strftime("%Y%m%d-%H%M%S")
+        backup_dir = @vault_dir.join(".sowing/conflicts", rel.dirname)
+        FileUtils.mkdir_p(backup_dir)
+        target = avoid_collision(backup_dir.join("#{rel.basename(".md")}.#{ts}.md"))
+        FileUtils.cp(abs.to_s, target.to_s)
+        target
       end
 
       # 파일을 휴지통으로 이동. 영구 삭제 금지 (CLAUDE.md 원칙 5).

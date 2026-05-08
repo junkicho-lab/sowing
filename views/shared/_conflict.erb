@@ -1,0 +1,66 @@
+<%
+  entry = (@kind == :note) ? @note : @record
+  action_path = (@kind == :note) ? "/notes/#{entry.id}" : "/records/#{entry.id}"
+  edit_path = (@kind == :note) ? "/notes/#{entry.id}/edit" : "/records/#{entry.id}/edit"
+  show_path = (@kind == :note) ? "/notes/#{entry.id}" : "/records/#{entry.id}"
+  kind_label = (@kind == :note) ? "필기" : "기록"
+%>
+<section class="conflict">
+  <header class="conflict__header">
+    <h1>⚠️ 충돌 감지</h1>
+    <p class="conflict__hint">
+      이 <%= h(kind_label) %>은 다른 곳(옵시디언 등 외부 에디터)에서 수정되었습니다.
+      어떻게 처리할까요?
+    </p>
+  </header>
+
+  <div class="conflict__compare">
+    <article class="conflict__pane conflict__pane--mine">
+      <h2>📝 내 편집 (저장 시도)</h2>
+      <dl class="conflict__meta">
+        <dt>제목</dt><dd><%= h(@conflict[:mine_title]) %></dd>
+        <dt>카테고리</dt><dd><%= h(@conflict[:mine_category]) %></dd>
+        <% if @kind == :note %>
+          <dt>출처</dt><dd><%= h(@conflict[:mine_source]) %></dd>
+        <% end %>
+      </dl>
+      <pre class="conflict__body"><%= h(@conflict[:mine_body]) %></pre>
+    </article>
+
+    <article class="conflict__pane conflict__pane--theirs">
+      <h2>📂 디스크 (외부 수정본)</h2>
+      <dl class="conflict__meta">
+        <dt>제목</dt><dd><%= h(@conflict[:their_title]) %></dd>
+        <dt>카테고리</dt><dd><%= h(@conflict[:their_category]) %></dd>
+        <% if @kind == :note %>
+          <dt>출처</dt><dd><%= h(@conflict[:their_source]) %></dd>
+        <% end %>
+      </dl>
+      <pre class="conflict__body"><%= h(@conflict[:their_body]) %></pre>
+    </article>
+  </div>
+
+  <div class="conflict__actions">
+    <form action="<%= h(action_path) %>" method="post" class="conflict__form">
+      <input type="hidden" name="_method" value="patch">
+      <input type="hidden" name="force" value="1">
+      <input type="hidden" name="title" value="<%= h(@conflict[:mine_title]) %>">
+      <input type="hidden" name="body" value="<%= h(@conflict[:mine_body]) %>">
+      <input type="hidden" name="category" value="<%= h(@conflict[:mine_category]) %>">
+      <% if @kind == :note %>
+        <input type="hidden" name="source" value="<%= h(@conflict[:mine_source]) %>">
+      <% end %>
+      <input type="hidden" name="tags" value="<%= h(Array(@conflict[:mine_tags]).join(", ")) %>">
+      <button type="submit" class="button button--primary">
+        내 편집으로 덮어쓰기 (Keep Mine)
+      </button>
+      <span class="conflict__note">외부 수정본은 <code>.sowing/conflicts/</code>에 백업됩니다.</span>
+    </form>
+
+    <a href="<%= h(edit_path) %>" class="button button--secondary">
+      파일 내용으로 다시 시작 (Keep Theirs)
+    </a>
+
+    <a href="<%= h(show_path) %>" class="button button--secondary">취소</a>
+  </div>
+</section>

@@ -98,6 +98,14 @@ module Sowing
           @message = message
           halt erb(:"errors/404", layout: :"layouts/application")
         end
+
+        def conflict?(result)
+          result.failure? && result.failure.is_a?(Array) && result.failure.first == :conflict
+        end
+
+        def truthy?(value)
+          %w[1 true on yes].include?(value.to_s.downcase)
+        end
       end
 
       get "/notes" do
@@ -133,22 +141,33 @@ module Sowing
 
         @page_title = "필기 편집"
         @form = note_to_form(@note)
+        @expected_file_hash = vault_repo.file_hash(index_repo.find(@note.id).path)
         @error = nil
         erb :"notes/edit", layout: :"layouts/application"
       end
 
       patch "/notes/:id" do
+        force = truthy?(params["force"])
         result = update_note_use_case.call(
           id: params["id"],
           title: params["title"].to_s,
           body: params["body"].to_s,
           category: params["category"].to_s,
           source: params["source"].to_s,
-          tags: parse_tags(params["tags"])
+          tags: parse_tags(params["tags"]),
+          expected_file_hash: params["expected_file_hash"],
+          force: force
         )
 
         if result.success?
           redirect "/notes/#{result.value!.id}"
+        elsif conflict?(result)
+          @note = find_note(params["id"])
+          @page_title = "충돌 감지"
+          @conflict = result.failure[1]
+          @kind = :note
+          status 409
+          erb :"shared/_conflict", layout: :"layouts/application"
         elsif [:not_found, :file_missing].include?(result.failure)
           halt_with_404("필기를 찾을 수 없습니다.")
         else
@@ -161,6 +180,7 @@ module Sowing
             source: params["source"],
             tags: params["tags"]
           }
+          @expected_file_hash = params["expected_file_hash"]
           @error = error_message(result.failure)
           status 422
           erb :"notes/edit", layout: :"layouts/application"

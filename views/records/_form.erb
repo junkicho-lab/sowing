@@ -2,6 +2,9 @@
   <% if defined?(method_override) && method_override %>
     <input type="hidden" name="_method" value="<%= h(method_override) %>">
   <% end %>
+  <% if defined?(@expected_file_hash) && @expected_file_hash %>
+    <input type="hidden" name="expected_file_hash" value="<%= h(@expected_file_hash) %>">
+  <% end %>
 
   <div class="field">
     <label for="record_title">제목 <span class="required">*</span></label>
