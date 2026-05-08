@@ -50,6 +50,15 @@ module Sowing
         to_indexed_entry(row)
       end
 
+      # 파일 경로(vault 기준 상대 경로)로 entry 조회 — 외부 변경 동기화에 사용 (W5-T02).
+      # @param path [String, Pathname]
+      # @return [IndexedEntry, nil]
+      def find_by_path(path)
+        row = @db[:entries].where(path: path.to_s).first
+        return nil unless row
+        to_indexed_entry(row)
+      end
+
       # @param mode     [Symbol] :memo, :note, :record
       # @param category [String, nil] category 컬럼 정확 일치 필터
       # @param limit    [Integer, nil] 가져올 최대 행 수
