@@ -76,7 +76,10 @@ module Sowing
           onboarding_completed: true,
           completed_at: Time.now.iso8601
         )
-        # 실제 시드는 W7-T03 SeedSamples Use Case에서 처리 — 본 단계는 동의만 기록.
+        # W7-T03: 동의 시 SeedSamples 즉시 실행. 중복 ULID는 Use Case가 자동 skip.
+        @seed_summary = consent ? UseCases::SeedSamples.new.call.value_or({}) : {}
+        # 결과는 session 또는 query로 전달 가능 — 단순화를 위해 session.
+        session[:seed_summary] = @seed_summary
         redirect "/onboarding/done"
       end
 
@@ -86,6 +89,7 @@ module Sowing
         @step_total = STEPS.size - 1
         @user_name = user_settings.load["user_name"]
         @sample_consent = user_settings.load["sample_consent"]
+        @seed_summary = session.delete(:seed_summary) || {}
         erb :"onboarding/done", layout: :"layouts/onboarding"
       end
 

@@ -76,20 +76,39 @@ RSpec.describe "온보딩 마법사 (W7-T01)", type: :request do
   end
 
   describe "단계 4: samples" do
-    it "동의 (sample_consent=1) → completed 마킹 + done 페이지로" do
+    let(:db) { Sowing::Infrastructure::DB.connection }
+
+    before do
+      # 시드 결과 검증을 위해 entries 비움
+      db[:entries_fts].delete
+      db[:links].delete
+      db[:entry_tags].delete
+      db[:tags].delete
+      db[:entries].delete
+      vault_dir = Sowing::Infrastructure::Paths.vault_dir
+      FileUtils.rm_rf(vault_dir.join("00_Inbox"))
+      FileUtils.rm_rf(vault_dir.join("20_Notes"))
+      FileUtils.rm_rf(vault_dir.join("30_Records"))
+    end
+
+    it "동의 (sample_consent=1) → completed 마킹 + done 페이지로 + SeedSamples 실행 (W7-T03)" do
       post "/onboarding/samples", "sample_consent" => "1"
       settings = Sowing::Infrastructure::Settings.load
       expect(settings["sample_consent"]).to be true
       expect(settings["onboarding_completed"]).to be true
       expect(settings["completed_at"]).to match(/\A\d{4}-\d{2}-\d{2}T/)
       expect(last_response["Location"]).to end_with("/onboarding/done")
+
+      # 12건 시드 — 인덱스에 등록됨
+      expect(db[:entries].count).to eq(12)
     end
 
-    it "건너뛰기 (sample_consent=0) → consent=false지만 completed 마킹" do
+    it "건너뛰기 (sample_consent=0) → consent=false지만 completed 마킹 + 시드 안 함" do
       post "/onboarding/samples", "sample_consent" => "0"
       settings = Sowing::Infrastructure::Settings.load
       expect(settings["sample_consent"]).to be false
       expect(settings["onboarding_completed"]).to be true
+      expect(db[:entries].count).to eq(0)
     end
   end
 

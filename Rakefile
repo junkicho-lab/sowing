@@ -51,21 +51,28 @@ namespace :db do
 end
 
 namespace :vault do
-  desc "전체 볼트 재인덱싱"
+  desc "전체 볼트 재인덱싱 (ConsistencyCheck 활용 — 인덱스 wipe 후 재구축)"
   task :reindex do
     Sowing.boot!
-    Sowing::UseCases::ReindexVault.new.call
-    puts "✅ 재인덱싱 완료"
+    coordinator = Sowing::Sync::Coordinator.new(vault_dir: Sowing::Infrastructure::Paths.vault_dir)
+    summary = Sowing::Sync::ConsistencyCheck.new(
+      vault_dir: Sowing::Infrastructure::Paths.vault_dir,
+      index_repo: Sowing::Repositories::IndexRepo.new,
+      coordinator: coordinator
+    ).run
+    puts "✅ 재인덱싱 완료 — unchanged #{summary.unchanged} / reindexed #{summary.reindexed} / added #{summary.added} / adopted #{summary.adopted} / removed #{summary.removed} / errors #{summary.errors.size}"
   end
 
-  desc "샘플 콘텐츠 시드"
+  desc "샘플 콘텐츠 12종 시드 (templates/samples/ → vault). 중복은 자동 스킵."
   task :seed do
     Sowing.boot!
     result = Sowing::UseCases::SeedSamples.new.call
     if result.success?
-      puts "🌱 샘플 #{result.value!.size}건 추가 완료"
+      data = result.value!
+      puts "🌱 샘플 시드 — 신규 #{data[:seeded]}건 / 중복 스킵 #{data[:skipped]}건 / 전체 #{data[:total]}건"
     else
       puts "⚠ 시드 실패: #{result.failure}"
+      exit 1
     end
   end
 end

@@ -18,9 +18,15 @@
     </li>
   </ul>
 
-  <% if @sample_consent %>
+  <% if @sample_consent && @seed_summary[:seeded].to_i > 0 %>
     <div class="alert alert--info">
-      샘플 콘텐츠 생성은 <code>bundle exec rake vault:seed</code> 로 곧 추가됩니다 (W7-T03).
+      샘플 콘텐츠 <strong><%= @seed_summary[:seeded] %>건</strong>이 추가되었습니다.
+      메모·필기·기록 메뉴에서 바로 확인하세요.
+      나중에 삭제하려면 설정 메뉴에서 일괄 삭제 가능합니다.
+    </div>
+  <% elsif @sample_consent && @seed_summary[:skipped].to_i > 0 %>
+    <div class="alert alert--info">
+      이미 시드된 샘플이 있어 <strong><%= @seed_summary[:skipped] %>건 중복은 건너뛰었습니다</strong>.
     </div>
   <% end %>
 
