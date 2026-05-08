@@ -2,6 +2,38 @@
   <h1>안녕하세요 👋</h1>
   <p class="dashboard__date">오늘은 <%= korean_today %>입니다.</p>
 
+  <section class="stats" aria-labelledby="stats_heading">
+    <h2 id="stats_heading" class="visually-hidden">기록 통계</h2>
+    <ul class="stats__grid">
+      <li class="stats__card">
+        <span class="stats__label">오늘</span>
+        <span class="stats__value"><%= @today_stats.total_count %></span>
+        <span class="stats__breakdown">
+          💭 <%= @today_stats.memos_count %>
+          · 📝 <%= @today_stats.notes_count %>
+          · 📖 <%= @today_stats.records_count %>
+        </span>
+      </li>
+      <li class="stats__card">
+        <span class="stats__label">이번 주 (지난 7일)</span>
+        <span class="stats__value"><%= @week_count %></span>
+      </li>
+      <li class="stats__card">
+        <span class="stats__label">이번 달</span>
+        <span class="stats__value"><%= @month_count %></span>
+      </li>
+      <li class="stats__card stats__card--streak">
+        <span class="stats__label">연속 기록</span>
+        <span class="stats__value">
+          🔥 <%= @streak %><span class="stats__unit">일</span>
+        </span>
+        <% if @streak == 0 %>
+          <span class="stats__breakdown">오늘부터 시작!</span>
+        <% end %>
+      </li>
+    </ul>
+  </section>
+
   <section class="recent-memos" aria-labelledby="recent_memos_heading">
     <h2 id="recent_memos_heading">최근 메모</h2>
 

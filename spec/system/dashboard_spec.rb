@@ -15,9 +15,12 @@ RSpec.describe "Dashboard 라우트", type: :request do
     header "Host", "127.0.0.1"
     # 다른 spec이 entries를 남기면 빈 상태 CTA 검증이 깨지므로 정리.
     db = Sowing::Infrastructure::DB.connection
+    db[:entries_fts].delete
+    db[:links].delete
     db[:entry_tags].delete
     db[:tags].delete
     db[:entries].delete
+    db[:daily_stats].delete
   end
 
   describe "GET /" do
@@ -46,6 +49,41 @@ RSpec.describe "Dashboard 라우트", type: :request do
 
     it "빈 화면 금지 원칙에 따라 다음 행동(CLI 메모) CTA를 보여준다" do
       expect(last_response.body).to include("bin/sowing memo")
+    end
+  end
+
+  describe "통계 위젯 (W6-T02)" do
+    let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+
+    before do
+      FileUtils.rm_rf(vault_dir.join("00_Inbox"))
+      FileUtils.rm_rf(vault_dir.join("20_Notes"))
+      FileUtils.rm_rf(vault_dir.join("30_Records"))
+    end
+
+    it "빈 상태 — 모든 카운트가 0, streak도 0 ('오늘부터 시작!' 표시)" do
+      get "/"
+      expect(last_response.body).to include("오늘부터 시작!")
+      expect(last_response.body).to include("연속 기록")
+    end
+
+    it "오늘 메모 2건 + 필기 1건 작성 후 → 오늘 카운트 = 3, 분해 표시" do
+      post "/memos", body: "오늘 메모 1"
+      post "/memos", body: "오늘 메모 2"
+      post "/notes",
+        "title" => "오늘 필기", "body" => "본문",
+        "category" => "lessons", "source" => "교과서"
+
+      get "/"
+      expect(last_response.body).to match(/오늘.*?<span class="stats__value">3</m)
+      expect(last_response.body).to include("💭 2")
+      expect(last_response.body).to include("📝 1")
+    end
+
+    it "streak 1 — 오늘 메모 1건 작성 시" do
+      post "/memos", body: "오늘 시작"
+      get "/"
+      expect(last_response.body).to match(/🔥 1/)
     end
   end
 

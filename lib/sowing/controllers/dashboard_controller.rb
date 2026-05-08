@@ -16,6 +16,14 @@ module Sowing
           @index_repo ||= Repositories::IndexRepo.new
         end
 
+        def stats_repo
+          @stats_repo ||= Repositories::StatsRepo.new
+        end
+
+        def aggregate_stats_use_case
+          UseCases::AggregateDailyStats.new
+        end
+
         # 최근 메모 N건. 인덱스로 빠르게 정렬·페이징, body는 마크다운 파일에서 로드.
         # 파일이 누락된 인덱스 row는 건너뜀 (정합성 깨진 경우 graceful).
         def recent_memos(limit: RECENT_LIMIT)
@@ -29,7 +37,14 @@ module Sowing
 
       get "/" do
         @page_title = "대시보드"
+        # 페이지 진입마다 통계 재집계 — 적은 데이터(수만 건 미만)에서 충분히 빠르고,
+        # 별도 cron·SSE 없이도 항상 최신값 보장. 비용 커지면 W7+ 백그라운드 잡으로 이전.
+        aggregate_stats_use_case.call
         @recent_memos = recent_memos
+        @today_stats = stats_repo.today
+        @week_count = stats_repo.this_week
+        @month_count = stats_repo.this_month
+        @streak = stats_repo.current_streak
         erb :"dashboard/show", layout: :"layouts/application"
       end
     end

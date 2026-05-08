@@ -1311,3 +1311,59 @@ pre code {
 }
 .conflict__form { display: inline-flex; align-items: center; gap: var(--space-2); margin: 0; }
 .conflict__note { color: var(--color-muted); font-size: 0.85rem; }
+
+/* Dashboard stats (W6-T02) */
+
+.stats {
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.stats__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+
+@media (max-width: 720px) {
+  .stats__grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.stats__card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.stats__card--streak { border-left: 4px solid #D4A574; }
+
+.stats__label {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.stats__value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats__unit {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-muted);
+  margin-left: 0.15em;
+}
+
+.stats__breakdown {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
