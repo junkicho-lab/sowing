@@ -1,0 +1,32 @@
+<section class="templates">
+  <header class="templates__header">
+    <h1>템플릿</h1>
+    <p class="templates__hint">
+      <code>vault/templates/*.md</code> — 옵시디언으로 직접 편집해도 인식됩니다.
+      본문에 <code>{{date}}</code>, <code>{{time}}</code>, <code>{{date_korean}}</code> 같은 placeholder를 사용하세요.
+    </p>
+    <p>
+      <a href="/templates/new" class="button button--primary">+ 새 템플릿</a>
+    </p>
+  </header>
+
+  <% if @templates.empty? %>
+    <div class="empty-state">
+      <h2>아직 템플릿이 없습니다</h2>
+      <p class="empty-state__hint">
+        자주 쓰는 형식(수업 회고, 학생 관찰 노트 등)을 템플릿으로 만들어 두세요.
+      </p>
+    </div>
+  <% else %>
+    <ul class="templates__list">
+      <% @templates.each do |template| %>
+        <li class="templates__item">
+          <a href="/templates/<%= h(Rack::Utils.escape(template.slug)) %>" class="templates__link">
+            <span class="templates__name"><%= h(template.name) %></span>
+            <span class="templates__meta"><%= template.content.lines.first&.strip&.slice(0, 60) %></span>
+          </a>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</section>

@@ -1,0 +1,41 @@
+<section class="templates-new">
+  <header class="templates__header">
+    <h1>새 템플릿</h1>
+    <p class="templates__hint">
+      이름은 한글/영문/숫자/하이픈/언더스코어만 가능합니다.
+      본문에는 다음 placeholder를 사용할 수 있습니다:
+    </p>
+    <ul class="templates__placeholders">
+      <li><code>{{date}}</code> · <code>{{date_korean}}</code> · <code>{{time}}</code> · <code>{{datetime}}</code></li>
+      <li><code>{{year}}</code> · <code>{{month}}</code> · <code>{{day}}</code></li>
+    </ul>
+  </header>
+
+  <% if @error %>
+    <div class="alert alert--error" role="alert"><%= h(@error) %></div>
+  <% end %>
+
+  <form action="/templates" method="post" class="note-form">
+    <div class="field">
+      <label for="template_slug">이름 <span class="required">*</span></label>
+      <input type="text"
+             id="template_slug"
+             name="slug"
+             value="<%= h(@form[:slug]) %>"
+             placeholder="예: 수업회고, lesson-reflection"
+             required
+             autofocus
+             autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="template_content">본문 <span class="required">*</span></label>
+      <textarea id="template_content" name="content" rows="14" required><%= h(@form[:content]) %></textarea>
+    </div>
+
+    <div class="form-actions">
+      <a href="/templates" class="button button--secondary">취소</a>
+      <button type="submit" class="button button--primary">저장</button>
+    </div>
+  </form>
+</section>

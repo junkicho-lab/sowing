@@ -1,0 +1,21 @@
+<section class="template-show">
+  <header class="templates__header">
+    <h1><%= h(@template.name) %></h1>
+    <p class="templates__hint">
+      파일: <code><%= h(@template.path.relative_path_from(Sowing::Infrastructure::Paths.vault_dir)) %></code>
+    </p>
+    <p>
+      <a href="/templates" class="button button--secondary">← 목록</a>
+    </p>
+  </header>
+
+  <article class="template-show__pane">
+    <h2>원본 (placeholder 포함)</h2>
+    <pre class="template-show__source"><%= h(@template.content) %></pre>
+  </article>
+
+  <article class="template-show__pane">
+    <h2>미리보기 (현재 시각으로 치환)</h2>
+    <pre class="template-show__rendered"><%= h(@rendered) %></pre>
+  </article>
+</section>
