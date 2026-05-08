@@ -143,6 +143,51 @@ RSpec.describe Sowing::Repositories::IndexRepo do
     it "지원하지 않는 mode면 ArgumentError" do
       expect { repo.list(mode: :alien) }.to raise_error(ArgumentError, /mode/)
     end
+
+    context "limit·offset" do
+      before do
+        5.times do |i|
+          upsert_meta(
+            build_memo(id: Sowing::Domain::ValueObjects::Ulid.generate,
+              created_at: Time.new(2026, 5, i + 1, 0, 0, 0, "+09:00")),
+            path: "00_Inbox/#{i}.md"
+          )
+        end
+      end
+
+      it "limit으로 행 수를 제한한다" do
+        expect(repo.list(mode: :memo, limit: 2).size).to eq(2)
+      end
+
+      it "offset으로 행을 건너뛴다" do
+        all = repo.list(mode: :memo)
+        rest = repo.list(mode: :memo, offset: 2)
+        expect(rest).to eq(all.drop(2))
+      end
+
+      it "limit + offset 조합으로 페이징이 가능하다" do
+        page1 = repo.list(mode: :memo, limit: 2, offset: 0)
+        page2 = repo.list(mode: :memo, limit: 2, offset: 2)
+        page3 = repo.list(mode: :memo, limit: 2, offset: 4)
+        expect(page1.size).to eq(2)
+        expect(page2.size).to eq(2)
+        expect(page3.size).to eq(1)
+        expect((page1 + page2 + page3).map(&:id).uniq.size).to eq(5)
+      end
+    end
+  end
+
+  describe "#count" do
+    it "해당 모드의 row 수를 반환한다" do
+      upsert_meta(build_memo(id: ulid))
+      upsert_meta(build_memo(id: other_ulid), path: "00_Inbox/b.md")
+      expect(repo.count(mode: :memo)).to eq(2)
+      expect(repo.count(mode: :note)).to eq(0)
+    end
+
+    it "지원하지 않는 mode면 ArgumentError" do
+      expect { repo.count(mode: :alien) }.to raise_error(ArgumentError, /mode/)
+    end
   end
 
   describe "#delete" do

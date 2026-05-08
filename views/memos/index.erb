@@ -1,0 +1,44 @@
+<section class="memos-index" aria-labelledby="memos_index_heading">
+  <header class="memos-index__header">
+    <h1 id="memos_index_heading">메모</h1>
+    <p class="memos-index__count">총 <%= @total %>건</p>
+  </header>
+
+  <% if @memos.empty? %>
+    <div class="empty-state empty-state--inline">
+      <% if @total.zero? %>
+        <p>아직 작성된 메모가 없습니다.</p>
+        <p class="empty-state__hint">
+          <kbd>⌘/Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> 으로 빠른 메모를 시작해 보세요.
+        </p>
+      <% else %>
+        <p>이 페이지에 메모가 없습니다.</p>
+        <p class="empty-state__hint"><a href="/memos">첫 페이지로</a></p>
+      <% end %>
+    </div>
+  <% else %>
+    <ul class="memo-list">
+      <% @memos.each do |memo| %>
+        <%= erb :"memos/_card", layout: false, locals: {memo: memo} %>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <% if @total_pages > 1 %>
+    <nav class="pagination" aria-label="페이지 이동">
+      <% if @page > 1 %>
+        <a class="pagination__link" href="/memos?page=<%= @page - 1 %>" rel="prev">← 이전</a>
+      <% else %>
+        <span class="pagination__link pagination__link--disabled" aria-disabled="true">← 이전</span>
+      <% end %>
+
+      <span class="pagination__info"><%= @page %> / <%= @total_pages %></span>
+
+      <% if @page < @total_pages %>
+        <a class="pagination__link" href="/memos?page=<%= @page + 1 %>" rel="next">다음 →</a>
+      <% else %>
+        <span class="pagination__link pagination__link--disabled" aria-disabled="true">다음 →</span>
+      <% end %>
+    </nav>
+  <% end %>
+</section>
