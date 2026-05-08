@@ -45,25 +45,31 @@ module Sowing
         to_indexed_entry(row)
       end
 
-      # @param mode [Symbol] :memo, :note, :record
-      # @param limit  [Integer, nil] 가져올 최대 행 수
-      # @param offset [Integer, nil] 건너뛸 행 수
+      # @param mode     [Symbol] :memo, :note, :record
+      # @param category [String, nil] category 컬럼 정확 일치 필터
+      # @param limit    [Integer, nil] 가져올 최대 행 수
+      # @param offset   [Integer, nil] 건너뛸 행 수
       # @return [Array<IndexedEntry>] created_at 내림차순
-      def list(mode:, limit: nil, offset: nil)
+      def list(mode:, category: nil, limit: nil, offset: nil)
         validate_mode!(mode)
         # 같은 초에 다수 entry가 생성되면 created_at만으로는 ordering이 불안정.
         # ULID id는 lexicographically time-monotonic이므로 보조 정렬로 안정성 확보.
-        ds = @db[:entries].where(mode: mode.to_s).order(Sequel.desc(:created_at), Sequel.desc(:id))
+        ds = @db[:entries].where(mode: mode.to_s)
+        ds = ds.where(category: category) if category
+        ds = ds.order(Sequel.desc(:created_at), Sequel.desc(:id))
         ds = ds.limit(limit) if limit
         ds = ds.offset(offset) if offset
         ds.map { |row| to_indexed_entry(row) }
       end
 
-      # @param mode [Symbol]
+      # @param mode     [Symbol]
+      # @param category [String, nil] 동일 필터를 적용한 후 행 수
       # @return [Integer] 해당 모드 row 수
-      def count(mode:)
+      def count(mode:, category: nil)
         validate_mode!(mode)
-        @db[:entries].where(mode: mode.to_s).count
+        ds = @db[:entries].where(mode: mode.to_s)
+        ds = ds.where(category: category) if category
+        ds.count
       end
 
       # @param id [Sowing::Domain::ValueObjects::Ulid, String]

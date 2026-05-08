@@ -1,0 +1,53 @@
+<form action="<%= h(action) %>" method="post" class="note-form">
+  <div class="field">
+    <label for="note_title">제목 <span class="required">*</span></label>
+    <input type="text"
+           id="note_title"
+           name="title"
+           value="<%= h(form[:title]) %>"
+           required
+           autofocus
+           autocomplete="off">
+  </div>
+
+  <div class="field">
+    <label for="note_category">카테고리 <span class="required">*</span></label>
+    <select id="note_category" name="category" required>
+      <option value="">선택…</option>
+      <% categories.each do |key, label| %>
+        <option value="<%= h(key) %>" <%= 'selected' if form[:category] == key %>><%= h(label) %></option>
+      <% end %>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="note_source">출처 <span class="required">*</span></label>
+    <input type="text"
+           id="note_source"
+           name="source"
+           value="<%= h(form[:source]) %>"
+           placeholder="예: 책 제목, 연수 이름, 교재 단원..."
+           required
+           autocomplete="off">
+  </div>
+
+  <div class="field">
+    <label for="note_body">본문 <span class="required">*</span></label>
+    <textarea id="note_body" name="body" rows="14" required><%= h(form[:body]) %></textarea>
+  </div>
+
+  <div class="field">
+    <label for="note_tags">태그</label>
+    <input type="text"
+           id="note_tags"
+           name="tags"
+           value="<%= h(form[:tags]) %>"
+           placeholder="공백 또는 쉼표로 구분 (선택)"
+           autocomplete="off">
+  </div>
+
+  <div class="form-actions">
+    <a href="/notes" class="button button--secondary">취소</a>
+    <button type="submit" class="button button--primary">저장</button>
+  </div>
+</form>

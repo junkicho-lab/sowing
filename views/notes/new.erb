@@ -1,0 +1,12 @@
+<section class="notes-new">
+  <header class="notes-new__header">
+    <h1>필기 작성</h1>
+    <p class="notes-new__hint">외부 자료(책·연수·수업·회의)를 자기 언어로 다시 정리해 보세요.</p>
+  </header>
+
+  <% if @error %>
+    <div class="alert alert--error" role="alert"><%= h(@error) %></div>
+  <% end %>
+
+  <%= erb :"notes/_form", layout: false, locals: {form: @form, action: "/notes"} %>
+</section>

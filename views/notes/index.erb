@@ -1,0 +1,56 @@
+<section class="notes-index" aria-labelledby="notes_index_heading">
+  <header class="notes-index__header">
+    <h1 id="notes_index_heading">필기</h1>
+    <p class="notes-index__count">총 <%= @total %>건<%= " · #{h(category_label(@category))}" if @category %></p>
+    <a href="/notes/new" class="button button--primary notes-index__new">+ 새 필기</a>
+  </header>
+
+  <nav class="filter-tabs" aria-label="카테고리 필터">
+    <a href="/notes" class="filter-tabs__link <%= 'filter-tabs__link--active' if @category.nil? %>">전체</a>
+    <% categories.each do |key, label| %>
+      <a href="/notes?category=<%= h(key) %>"
+         class="filter-tabs__link <%= 'filter-tabs__link--active' if @category == key %>"><%= h(label) %></a>
+    <% end %>
+  </nav>
+
+  <% if @notes.empty? %>
+    <div class="empty-state empty-state--inline">
+      <% if @total.zero? %>
+        <p>
+          <% if @category %>
+            "<%= h(category_label(@category)) %>" 카테고리에 아직 필기가 없습니다.
+          <% else %>
+            아직 작성된 필기가 없습니다.
+          <% end %>
+        </p>
+        <p class="empty-state__hint"><a href="/notes/new">+ 첫 필기 작성하기</a></p>
+      <% else %>
+        <p>이 페이지에 필기가 없습니다.</p>
+        <p class="empty-state__hint"><a href="/notes<%= "?category=#{h(@category)}" if @category %>">첫 페이지로</a></p>
+      <% end %>
+    </div>
+  <% else %>
+    <ul class="note-list">
+      <% @notes.each do |note| %>
+        <%= erb :"notes/_card", layout: false, locals: {note: note} %>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <% if @total_pages > 1 %>
+    <% category_q = @category ? "&category=#{@category}" : "" %>
+    <nav class="pagination" aria-label="페이지 이동">
+      <% if @page > 1 %>
+        <a class="pagination__link" href="/notes?page=<%= @page - 1 %><%= category_q %>" rel="prev">← 이전</a>
+      <% else %>
+        <span class="pagination__link pagination__link--disabled" aria-disabled="true">← 이전</span>
+      <% end %>
+      <span class="pagination__info"><%= @page %> / <%= @total_pages %></span>
+      <% if @page < @total_pages %>
+        <a class="pagination__link" href="/notes?page=<%= @page + 1 %><%= category_q %>" rel="next">다음 →</a>
+      <% else %>
+        <span class="pagination__link pagination__link--disabled" aria-disabled="true">다음 →</span>
+      <% end %>
+    </nav>
+  <% end %>
+</section>
