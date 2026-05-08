@@ -176,7 +176,8 @@ module Sowing
         when :note
           Domain::Note.new(**common.merge(
             category: frontmatter["category"],
-            source: frontmatter["source"]
+            source: frontmatter["source"],
+            promoted_from: frontmatter["promoted_from"]
           ))
         when :record
           Domain::Record.new(**common.merge(

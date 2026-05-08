@@ -1,0 +1,65 @@
+<section class="notes-new">
+  <header class="notes-new__header">
+    <h1>필기로 승격</h1>
+    <p class="notes-new__hint">메모를 필기로 키웁니다 — 같은 ID·작성 시각·본문은 그대로, 카테고리·제목·출처를 부여합니다. 옛 메모는 휴지통으로 이동.</p>
+  </header>
+
+  <% if @error %>
+    <div class="alert alert--error" role="alert"><%= h(@error) %></div>
+  <% end %>
+
+  <details class="promote-source">
+    <summary>원본 메모 본문 보기</summary>
+    <pre class="promote-source__body"><%= h(@memo.body) %></pre>
+    <p class="promote-source__path">위치: <code><%= h(@memo.created_at.strftime("%Y-%m-%d %H:%M:%S")) %></code></p>
+  </details>
+
+  <form action="/memos/<%= h(@memo.id) %>/promote_to_note" method="post" class="note-form">
+    <div class="field">
+      <label for="note_title">제목 <span class="required">*</span></label>
+      <input type="text"
+             id="note_title"
+             name="title"
+             value="<%= h(@form[:title]) %>"
+             required
+             autofocus
+             autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="note_category">카테고리 <span class="required">*</span></label>
+      <select id="note_category" name="category" required>
+        <option value="">선택…</option>
+        <% Sowing::Controllers::NotesController::CATEGORIES.each do |key, label| %>
+          <option value="<%= h(key) %>" <%= 'selected' if @form[:category] == key %>><%= h(label) %></option>
+        <% end %>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="note_source">출처 <span class="required">*</span></label>
+      <input type="text"
+             id="note_source"
+             name="source"
+             value="<%= h(@form[:source]) %>"
+             placeholder="예: 책 제목, 연수 이름, 교재 단원..."
+             required
+             autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="note_tags">태그 (메모의 태그가 미리 채워짐)</label>
+      <input type="text"
+             id="note_tags"
+             name="tags"
+             value="<%= h(@form[:tags]) %>"
+             placeholder="공백 또는 쉼표로 구분"
+             autocomplete="off">
+    </div>
+
+    <div class="form-actions">
+      <a href="/memos" class="button button--secondary">취소</a>
+      <button type="submit" class="button button--primary">필기로 승격</button>
+    </div>
+  </form>
+</section>

@@ -9,9 +9,25 @@ module Sowing
       PER_PAGE = 30
       MAX_PAGE = 10_000
 
+      NOTE_CATEGORIES = UseCases::CreateNote::CATEGORIES
+
+      ERROR_MESSAGES = {
+        empty_title: "제목을 입력해 주세요.",
+        empty_category: "카테고리를 선택해 주세요.",
+        invalid_category: "유효하지 않은 카테고리입니다.",
+        empty_source: "출처를 입력해 주세요.",
+        not_found: "메모를 찾을 수 없습니다.",
+        not_a_memo: "이 항목은 메모가 아닙니다.",
+        file_missing: "메모 파일이 존재하지 않습니다."
+      }.freeze
+
       helpers do
         def create_memo_use_case
           UseCases::CreateMemo.new(vault_repo: vault_repo, index_repo: index_repo)
+        end
+
+        def promote_to_note_use_case
+          UseCases::PromoteToNote.new(vault_repo: vault_repo, index_repo: index_repo)
         end
 
         def vault_repo
@@ -30,6 +46,33 @@ module Sowing
           rescue Errno::ENOENT
             nil
           end
+        end
+
+        def find_memo(id)
+          indexed = index_repo.find(id)
+          return nil if indexed.nil? || indexed.mode != :memo
+          vault_repo.read(indexed.path)
+        rescue Errno::ENOENT
+          nil
+        end
+
+        def note_categories
+          NotesController::CATEGORIES
+        end
+
+        def parse_tags(raw)
+          raw.to_s.split(/[\s,]+/).reject(&:empty?)
+        end
+
+        def memo_error_message(failure)
+          ERROR_MESSAGES.fetch(failure, "처리 실패: #{failure}")
+        end
+
+        def halt_with_404(message)
+          status 404
+          @page_title = "찾을 수 없음"
+          @message = message
+          halt erb(:"errors/404", layout: :"layouts/application")
         end
       end
 
@@ -55,6 +98,49 @@ module Sowing
           status 422
           content_type TURBO_STREAM_TYPE
           erb :"memos/error.turbo_stream", layout: false, locals: {failure: result.failure}
+        end
+      end
+
+      get "/memos/:id/promote_to_note" do
+        @memo = find_memo(params["id"])
+        halt_with_404(ERROR_MESSAGES[:not_found]) if @memo.nil?
+
+        @page_title = "필기로 승격"
+        @form = {
+          title: nil,
+          category: nil,
+          source: nil,
+          tags: @memo.tags.to_a.join(", ")
+        }
+        @error = nil
+        erb :"memos/promote_to_note", layout: :"layouts/application"
+      end
+
+      post "/memos/:id/promote_to_note" do
+        result = promote_to_note_use_case.call(
+          id: params["id"],
+          title: params["title"].to_s,
+          category: params["category"].to_s,
+          source: params["source"].to_s,
+          tags: parse_tags(params["tags"])
+        )
+
+        if result.success?
+          redirect "/notes/#{result.value!.id}"
+        elsif [:not_found, :not_a_memo, :file_missing].include?(result.failure)
+          halt_with_404(memo_error_message(result.failure))
+        else
+          @memo = find_memo(params["id"]) || halt_with_404(ERROR_MESSAGES[:not_found])
+          @page_title = "필기로 승격"
+          @form = {
+            title: params["title"],
+            category: params["category"],
+            source: params["source"],
+            tags: params["tags"]
+          }
+          @error = memo_error_message(result.failure)
+          status 422
+          erb :"memos/promote_to_note", layout: :"layouts/application"
         end
       end
     end
