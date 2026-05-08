@@ -71,6 +71,10 @@ module Sowing
     set :port, ENV.fetch("SOWING_PORT", "48723").to_i
     set :show_exceptions, :after_handler if development?
 
+    # HTML form은 GET·POST만 보낼 수 있으므로 _method=patch/delete hidden 필드로 모듈러 매칭.
+    # Rack::MethodOverride 미들웨어가 자동 추가됨 (sub-controller에도 효과 적용).
+    set :method_override, true
+
     enable :sessions
     set :session_secret, ENV.fetch("SOWING_SESSION_SECRET") {
       # 개발 환경에서는 데이터 디렉토리에 자동 생성·보관

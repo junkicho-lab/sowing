@@ -205,6 +205,63 @@ RSpec.describe Sowing::Repositories::VaultRepo do
     end
   end
 
+  describe "#update" do
+    let(:original) { build_note(title: "원본", category: "lessons") }
+    let(:original_path) { repo.write(original) }
+
+    context "같은 path (title·category 모두 동일)" do
+      it "atomic 덮어쓰기로 동일 경로에 쓴다 (-2 suffix 없음)" do
+        original_path # 생성
+
+        revised = build_note(title: "원본", category: "lessons", body: "수정됨")
+        new_path = repo.update(revised, old_path: original_path)
+
+        expect(new_path).to eq(original_path)
+        expect(File.read(new_path)).to include("수정됨")
+        expect(repo.list(mode: :note).size).to eq(1)
+      end
+    end
+
+    context "title 변경으로 path가 바뀔 때" do
+      it "새 path에 쓰고 옛 파일을 휴지통으로 옮긴다" do
+        original_path # 생성
+
+        revised = build_note(title: "수정된 제목", category: "lessons", body: "본문")
+        new_path = repo.update(revised, old_path: original_path)
+
+        expect(new_path).to eq(vault_dir.join("20_Notes/lessons/수정된 제목.md"))
+        expect(new_path).to exist
+        expect(original_path).not_to exist
+        expect(vault_dir.join(".sowing/trash/20_Notes/lessons/원본.md")).to exist
+      end
+    end
+
+    context "category 변경으로 path가 바뀔 때" do
+      it "새 카테고리 디렉토리에 쓰고 옛 디렉토리 파일은 휴지통으로" do
+        original_path
+
+        revised = build_note(title: "원본", category: "trainings", body: "본문")
+        new_path = repo.update(revised, old_path: original_path)
+
+        expect(new_path.to_s).to include("/20_Notes/trainings/원본.md")
+        expect(new_path).to exist
+        expect(original_path).not_to exist
+        expect(vault_dir.join(".sowing/trash/20_Notes/lessons/원본.md")).to exist
+      end
+    end
+
+    context "old_path 파일이 누락된 경우 (인덱스 정합성 깨진 채 update)" do
+      it "새 path에 쓰기는 성공하고 옛 trash 시도는 graceful" do
+        # 옛 파일을 강제로 삭제 (trash 안 거치고)
+        FileUtils.rm(original_path)
+
+        revised = build_note(title: "원본", category: "lessons", body: "본문")
+        expect { repo.update(revised, old_path: original_path) }.not_to raise_error
+        expect(File.exist?(original_path)).to be true # 새 파일이 같은 위치에 다시 생성됨
+      end
+    end
+  end
+
   describe "round-trip 정합성" do
     it "write → read 후 도메인 속성이 모두 일치한다" do
       original = build_memo(

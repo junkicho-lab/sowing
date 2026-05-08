@@ -36,6 +36,10 @@ module Sowing
           UseCases::CreateNote.new(vault_repo: vault_repo, index_repo: index_repo)
         end
 
+        def update_note_use_case
+          UseCases::UpdateNote.new(vault_repo: vault_repo, index_repo: index_repo)
+        end
+
         def categories
           CATEGORIES
         end
@@ -69,6 +73,24 @@ module Sowing
         rescue Errno::ENOENT
           nil
         end
+
+        # Note → 폼 상태 Hash (edit 페이지 prefill에 사용).
+        def note_to_form(note)
+          {
+            title: note.title,
+            body: note.body,
+            category: note.category,
+            source: note.source,
+            tags: note.tags.to_a.join(", ")
+          }
+        end
+
+        def halt_with_404(message)
+          status 404
+          @page_title = "찾을 수 없음"
+          @message = message
+          halt erb(:"errors/404", layout: :"layouts/application")
+        end
       end
 
       get "/notes" do
@@ -92,15 +114,50 @@ module Sowing
 
       get "/notes/:id" do
         @note = find_note(params["id"])
-        if @note.nil?
-          status 404
-          @page_title = "찾을 수 없음"
-          @message = "필기를 찾을 수 없습니다."
-          halt erb(:"errors/404", layout: :"layouts/application")
-        end
+        halt_with_404("필기를 찾을 수 없습니다.") if @note.nil?
 
         @page_title = @note.title
         erb :"notes/show", layout: :"layouts/application"
+      end
+
+      get "/notes/:id/edit" do
+        @note = find_note(params["id"])
+        halt_with_404("필기를 찾을 수 없습니다.") if @note.nil?
+
+        @page_title = "필기 편집"
+        @form = note_to_form(@note)
+        @error = nil
+        erb :"notes/edit", layout: :"layouts/application"
+      end
+
+      patch "/notes/:id" do
+        result = update_note_use_case.call(
+          id: params["id"],
+          title: params["title"].to_s,
+          body: params["body"].to_s,
+          category: params["category"].to_s,
+          source: params["source"].to_s,
+          tags: parse_tags(params["tags"])
+        )
+
+        if result.success?
+          redirect "/notes/#{result.value!.id}"
+        elsif [:not_found, :file_missing].include?(result.failure)
+          halt_with_404("필기를 찾을 수 없습니다.")
+        else
+          @note = find_note(params["id"])
+          @page_title = "필기 편집"
+          @form = {
+            title: params["title"],
+            body: params["body"],
+            category: params["category"],
+            source: params["source"],
+            tags: params["tags"]
+          }
+          @error = error_message(result.failure)
+          status 422
+          erb :"notes/edit", layout: :"layouts/application"
+        end
       end
 
       post "/notes" do

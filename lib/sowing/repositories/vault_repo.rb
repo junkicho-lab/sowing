@@ -44,6 +44,26 @@ module Sowing
         @safe_writer.atomic_write(target, @serializer.serialize(entry))
       end
 
+      # 기존 entry를 갱신. path가 바뀌면(예: title·category 변경) 옛 파일은 휴지통으로,
+      # 새 path에 새 파일을 쓴다. path가 같으면 SafeWriter의 원자적 교체로 덮어쓰기.
+      #
+      # @param entry [Sowing::Domain::*]
+      # @param old_path [String, Pathname] 기존 파일의 vault-기준 상대 경로 또는 절대 경로
+      # @return [Pathname] 실제 저장된 절대 경로
+      def update(entry, old_path:)
+        new_target = resolve_path(entry)
+        old_abs = absolute(old_path)
+
+        if old_abs == new_target
+          @safe_writer.atomic_write(new_target, @serializer.serialize(entry))
+        else
+          new_target = avoid_collision(new_target)
+          written = @safe_writer.atomic_write(new_target, @serializer.serialize(entry))
+          delete(old_abs) if old_abs.exist?
+          written
+        end
+      end
+
       # 마크다운 파일에서 도메인 객체 복원.
       # @param path [String, Pathname] 절대 경로 또는 vault 기준 상대 경로
       # @return [Sowing::Domain::Memo, Note, Record]

@@ -11,7 +11,14 @@ RSpec.describe "Dashboard 라우트", type: :request do
 
   # Sinatra 4의 host_authorization은 Rack::Test 기본 Host("example.org")를 거부.
   # Sowing은 로컬 우선이라 production에서 127.0.0.1만 허용 — test에서도 동일 호스트 사용.
-  before { header "Host", "127.0.0.1" }
+  before do
+    header "Host", "127.0.0.1"
+    # 다른 spec이 entries를 남기면 빈 상태 CTA 검증이 깨지므로 정리.
+    db = Sowing::Infrastructure::DB.connection
+    db[:entry_tags].delete
+    db[:tags].delete
+    db[:entries].delete
+  end
 
   describe "GET /" do
     before { get "/" }

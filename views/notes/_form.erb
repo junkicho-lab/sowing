@@ -1,4 +1,8 @@
 <form action="<%= h(action) %>" method="post" class="note-form">
+  <% if defined?(method_override) && method_override %>
+    <input type="hidden" name="_method" value="<%= h(method_override) %>">
+  <% end %>
+
   <div class="field">
     <label for="note_title">제목 <span class="required">*</span></label>
     <input type="text"
