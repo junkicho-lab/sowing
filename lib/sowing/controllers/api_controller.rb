@@ -38,6 +38,14 @@ module Sowing
         {results: results}.to_json
       end
 
+      # 본문 #태그 자동완성. 응답: {"tags": ["수업", "1학년", ...]}
+      get "/api/tag_complete" do
+        content_type :json
+        q = params["q"].to_s.strip
+        tags = index_repo.complete_tags(q: q, limit: LIMIT)
+        {tags: tags}.to_json
+      end
+
       private
 
       # ADR-004: memo는 title이 없으므로 본문 첫 60자를 "(메모) ..." 형식으로 표시.

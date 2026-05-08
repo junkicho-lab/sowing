@@ -1,0 +1,29 @@
+<section class="tags-show" aria-labelledby="tag_show_heading">
+  <header class="tags-show__header">
+    <p class="tags-show__back"><a href="/tags">← 모든 태그</a></p>
+    <h1 id="tag_show_heading"><span class="tag-cloud__hash">#</span><%= h(@tag) %></h1>
+    <p class="tags-show__count">총 <%= @entries.size %>건</p>
+  </header>
+
+  <% if @entries.empty? %>
+    <div class="empty-state empty-state--inline">
+      <p>이 태그를 가진 항목이 없습니다.</p>
+    </div>
+  <% else %>
+    <ul class="tag-entries">
+      <% @entries.each do |e| %>
+        <li class="tag-entry">
+          <span class="tag-entry__icon" aria-label="<%= h(mode_label(e.mode)) %>"><%= mode_icon(e.mode) %></span>
+          <div class="tag-entry__body">
+            <a href="<%= h(entry_link_for(e)) %>" class="tag-entry__link">
+              <%= h(e.title || e.path) %>
+            </a>
+            <span class="tag-entry__meta">
+              <%= h(mode_label(e.mode)) %> · <%= h(e.created_at.strftime("%Y-%m-%d")) %>
+            </span>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</section>

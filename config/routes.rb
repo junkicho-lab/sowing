@@ -9,6 +9,7 @@ class Sowing::Application
   use Sowing::Controllers::MemosController
   use Sowing::Controllers::NotesController
   use Sowing::Controllers::RecordsController
+  use Sowing::Controllers::TagsController
   use Sowing::Controllers::PreviewController
   use Sowing::Controllers::ApiController
 

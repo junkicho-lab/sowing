@@ -1,0 +1,26 @@
+<section class="tags-index" aria-labelledby="tags_index_heading">
+  <header class="tags-index__header">
+    <h1 id="tags_index_heading">태그</h1>
+    <p class="tags-index__count">총 <%= @tag_cloud.size %>개</p>
+  </header>
+
+  <% if @tag_cloud.empty? %>
+    <div class="empty-state empty-state--inline">
+      <p>아직 사용된 태그가 없습니다.</p>
+      <p class="empty-state__hint">
+        본문에 <code>#태그</code> 또는 frontmatter에 <code>tags: [수업, 1학년]</code> 형태로 작성하면 자동 인덱싱됩니다.
+      </p>
+    </div>
+  <% else %>
+    <ul class="tag-cloud">
+      <% @tag_cloud.each do |row| %>
+        <li class="tag-cloud__item">
+          <a href="/tags/<%= h(row[:name]) %>" class="tag-cloud__link">
+            <span class="tag-cloud__hash">#</span><%= h(row[:name]) %>
+          </a>
+          <span class="tag-cloud__count"><%= row[:count] %></span>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</section>

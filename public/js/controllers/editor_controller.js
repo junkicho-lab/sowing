@@ -3,6 +3,36 @@ import { EditorView, basicSetup } from "codemirror"
 import { markdown } from "@codemirror/lang-markdown"
 import { autocompletion } from "@codemirror/autocomplete"
 
+// 본문 #태그 자동완성 source (W3-T05).
+// "#" 직후 letter/digit/_/-/`/` 매칭. 이미 사용된 distinct 태그 목록 반환.
+async function hashtagSource(context) {
+  const before = context.matchBefore(/(?<![\p{L}\p{N}_])#([\p{L}\p{N}_/-]*)$/u)
+  if (!before) return null
+
+  const query = before.text.slice(1) // "#xxx" → "xxx"
+
+  try {
+    const response = await fetch(
+      `/api/tag_complete?q=${encodeURIComponent(query)}`,
+      { headers: { Accept: "application/json" } }
+    )
+    if (!response.ok) return null
+    const data = await response.json()
+
+    return {
+      from: before.from + 1, // # 다음부터
+      options: (data.tags || []).map((t) => ({
+        label: t,
+        type: "tag",
+        apply: t
+      })),
+      validFor: /^[\p{L}\p{N}_/-]*$/u
+    }
+  } catch {
+    return null
+  }
+}
+
 // 위키링크 자동완성 source (W3-T04).
 // [[ 입력 시 cursor 직전 패턴을 매칭, /api/wiki_complete?q=… 호출.
 // validFor: cursor 뒤 ] · | · \n이 들어오면 query 무효화 → 새 source 호출.
@@ -60,8 +90,9 @@ export default class extends Controller {
         markdown(),
         EditorView.lineWrapping,
         // [[ 입력 시 200ms 후 자동완성 팝업 — 위키링크 source만 노출 (override).
+        // [[ 또는 # 입력 시 200ms 후 자동완성. 패턴 다르므로 두 source 공존 가능.
         autocompletion({
-          override: [wikiLinkSource],
+          override: [wikiLinkSource, hashtagSource],
           activateOnTypingDelay: 200
         }),
         EditorView.updateListener.of((update) => {

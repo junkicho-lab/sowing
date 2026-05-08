@@ -32,7 +32,7 @@ module Sowing
 
         @db.transaction do
           @db[:entries].insert_conflict(target: :id, update: row).insert(row)
-          sync_tags(entry.id.to_s, entry.tags.to_a)
+          sync_tags(entry.id.to_s, frontmatter_tags: entry.tags.to_a, body: entry.body)
           sync_outbound_links(entry)
           nullify_stale_inbound_links(entry)
           relink_broken_to(entry)
@@ -86,6 +86,25 @@ module Sowing
 
       MODE_PRIORITY = {"record" => 1, "note" => 2, "memo" => 3}.freeze
       private_constant :MODE_PRIORITY
+
+      # 태그 클라우드 — 모든 tags를 사용 횟수 desc + 이름 asc로.
+      # @return [Array<Hash>] {name, count}
+      def tag_cloud
+        @db[:tags]
+          .left_join(:entry_tags, tag_id: :id)
+          .group_and_count(Sequel[:tags][:name])
+          .order(Sequel.desc(:count), Sequel[:tags][:name])
+          .all
+      end
+
+      # 태그명 자동완성 — q substring (case-insensitive 자동, COLLATE NOCASE).
+      # @return [Array<String>]
+      def complete_tags(q:, limit: 25)
+        q = q.to_s.strip
+        ds = @db[:tags]
+        ds = ds.where(Sequel.like(:name, "%#{q}%")) unless q.empty?
+        ds.order(:name).limit(limit).select_map(:name)
+      end
 
       # 위키링크 자동완성 후보 검색 (ADR-004 / W3-T03).
       # 정렬: 모드 우선(record > note > memo) → created_at desc → id desc(보조).
@@ -201,11 +220,16 @@ module Sowing
       end
 
       # 기존 entry_tags 매핑 제거 후 새 태그로 다시 매핑.
+      # frontmatter tags ∪ body의 #태그를 모두 정규화 후 union하여 인덱싱 (W3-T05).
       # 태그 정규화 테이블은 INSERT OR IGNORE (이미 있으면 재사용).
-      def sync_tags(entry_id, tag_names)
+      def sync_tags(entry_id, frontmatter_tags:, body:)
         @db[:entry_tags].where(entry_id: entry_id).delete
 
-        tag_names.each do |name|
+        body_tags = Infrastructure::Markdown::Hashtag.extract(body.to_s)
+        all_tags = (frontmatter_tags + body_tags).map { |t| t.to_s.strip.downcase }
+          .reject(&:empty?).uniq
+
+        all_tags.each do |name|
           @db[:tags].insert_conflict.insert(name: name)
           tag_id = @db[:tags].where(name: name).get(:id)
           @db[:entry_tags].insert(entry_id: entry_id, tag_id: tag_id)
