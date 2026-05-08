@@ -35,14 +35,34 @@ puts "\n[디렉토리 상태]"
   end
 end
 
-# 4. DB 연결
-puts "\n[DB]"
+# 4. DB 연결 + 인덱스 통계
+puts "\n[DB / 인덱스]"
 begin
   db = Sowing::Infrastructure::DB.connection
   tables = db.tables
-  puts "  ✅ 연결 성공 (테이블 #{tables.size}개)"
-  if tables.empty?
-    puts "  ⚠  마이그레이션 미실행 — bundle exec rake db:migrate 필요"
+  puts "  ✅ 연결 성공 (테이블 #{tables.size}개: #{tables.sort.join(", ")})"
+
+  if tables.include?(:entries)
+    total = db[:entries].count
+    by_mode = db[:entries].group_and_count(:mode).all
+    puts "  entries 총 #{total}건"
+    by_mode.each { |row| puts "    · #{row[:mode]}: #{row[:count]}건" } unless by_mode.empty?
+  else
+    puts "  ⚠  entries 테이블 없음 — bundle exec rake db:setup 필요"
+  end
+
+  if tables.include?(:tags)
+    tag_total = db[:tags].count
+    puts "  tags 총 #{tag_total}개"
+    if tag_total > 0
+      top = db[:tags]
+        .join(:entry_tags, tag_id: :id)
+        .group_and_count(Sequel[:tags][:name])
+        .order(Sequel.desc(:count))
+        .limit(5)
+        .all
+      top.each { |row| puts "    · #{row[:name]} (#{row[:count]}회 사용)" }
+    end
   end
 rescue => e
   puts "  ❌ 연결 실패: #{e.message}"
@@ -50,8 +70,31 @@ end
 
 # 5. 볼트 무결성 (Phase 2에서 강화)
 puts "\n[볼트 무결성]"
-md_count = Dir.glob(File.join(Sowing::Infrastructure::Paths.vault_dir, "**/*.md")).size
+vault = Sowing::Infrastructure::Paths.vault_dir
+md_count = Dir.glob(File.join(vault, "**/*.md")).size
 puts "  마크다운 파일 수: #{md_count}"
 
-puts "\n─" * 60
+[
+  ["메모 (00_Inbox/)", File.join(vault, "00_Inbox")],
+  ["필기 (20_Notes/)", File.join(vault, "20_Notes")],
+  ["기록 (30_Records/)", File.join(vault, "30_Records")]
+].each do |label, dir|
+  count = File.directory?(dir) ? Dir.glob(File.join(dir, "**/*.md")).size : 0
+  puts "  #{label}: #{count}건"
+end
+
+trash_dir = File.join(vault, ".sowing/trash")
+trash_count = File.directory?(trash_dir) ? Dir.glob(File.join(trash_dir, "**/*.md")).size : 0
+puts "  휴지통 (.sowing/trash/): #{trash_count}건"
+
+# 6. 인덱스 ↔ 파일 정합성 (간단)
+if defined?(db) && db.tables.include?(:entries)
+  indexed = db[:entries].count
+  diff = md_count - indexed
+  if md_count > 0 && diff != 0
+    puts "  ⚠  마크다운 #{md_count}건 vs 인덱스 #{indexed}건 (차이 #{diff}) — bundle exec rake vault:reindex 권장"
+  end
+end
+
+puts "\n#{"─" * 60}"
 puts "✅ 진단 완료"

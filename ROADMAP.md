@@ -24,7 +24,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 
 ## Week 1: 기반 구축 (Foundation)
 
-### [ ] W1-T01: 프로젝트 부트스트랩
+### [x] W1-T01: 프로젝트 부트스트랩 — 완료 (2026-05-08, 커밋 5596df7)
 - **목표**: Sinatra + Sequel + RSpec 최소 동작 환경 구성
 - **출력**:
   - `Gemfile`, `Gemfile.lock`
@@ -41,7 +41,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - `bundle exec rspec` 성공 (샘플 테스트 1개 포함)
 - **선행**: 없음
 
-### [ ] W1-T02: 데이터 디렉토리·로깅 인프라
+### [x] W1-T02: 데이터 디렉토리·로깅 인프라 — 베이스라인에 paths.rb 포함 (logger는 W2 이전 별도 작업으로 보강 가능)
 - **목표**: OS별 데이터 디렉토리 자동 결정 + 로거 설정
 - **출력**:
   - `lib/sowing/infrastructure/paths.rb` — `data_dir`, `vault_default_dir`, `cache_dir` 헬퍼
@@ -50,7 +50,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: macOS·Linux에서 각각 올바른 경로 반환 확인 (mock으로 테스트)
 - **선행**: W1-T01
 
-### [ ] W1-T03: SQLite 연결 + 첫 마이그레이션
+### [x] W1-T03: SQLite 연결 + 첫 마이그레이션 — 베이스라인에 db.rb + 001_create_entries.rb 포함
 - **목표**: Sequel + SQLite 연결, `entries` 테이블 생성
 - **출력**:
   - `lib/sowing/infrastructure/db/connection.rb`
@@ -62,7 +62,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - 마이그레이션 멱등 (두 번 실행 안전)
 - **선행**: W1-T02
 
-### [ ] W1-T04: 도메인 객체 — Ulid, TagSet
+### [x] W1-T04: 도메인 객체 — Ulid, TagSet — 완료 (2026-05-08, 커밋 7be57f6)
 - **목표**: 가장 기본적인 Value Object 두 개
 - **출력**:
   - `lib/sowing/domain/value_objects/ulid.rb` — 생성·파싱·비교
@@ -72,7 +72,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: 각 단위 테스트 100% 통과, 모두 frozen 검증 포함
 - **선행**: W1-T01
 
-### [ ] W1-T05: 도메인 객체 — Entry, Memo, Note, Record
+### [x] W1-T05: 도메인 객체 — Entry, Memo, Note, Record — 완료 (2026-05-08, 커밋 cb07764)
 - **목표**: 메모/필기/기록 3종 도메인 객체
 - **출력**:
   - `lib/sowing/domain/entry.rb` (공통 모듈 또는 부모)
@@ -87,7 +87,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - 옵시디언 표준 키만 사용
 - **선행**: W1-T04
 
-### [ ] W1-T06: VaultRepo 구현 (읽기/쓰기/삭제)
+### [x] W1-T06: VaultRepo 구현 (읽기/쓰기/삭제) — 완료 (2026-05-08, 커밋 8d31901 / 8b09f59 / 81bcf59 — 3분할)
 - **목표**: 마크다운 파일 시스템 추상화
 - **출력**:
   - `lib/sowing/infrastructure/filesystem/safe_writer.rb` — 원자적 쓰기 (tempfile + rename)
@@ -101,7 +101,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - 휴지통 폴더 (`.sowing/trash/`) 로 이동 확인
 - **선행**: W1-T05
 
-### [ ] W1-T07: IndexRepo 구현 (Sequel 기반)
+### [x] W1-T07: IndexRepo 구현 (Sequel 기반) — 완료 (2026-05-08, 커밋 9caf748)
 - **목표**: SQLite entries 테이블 CRUD
 - **출력**:
   - `lib/sowing/repositories/index_repo.rb` — upsert, find, list, delete, search_by_tag, search_by_date
@@ -109,7 +109,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: CRUD 통과, 트랜잭션 검증
 - **선행**: W1-T03, W1-T05
 
-### [ ] W1-T08: CLI에서 메모 작성 동작
+### [x] W1-T08: CLI에서 메모 작성 동작 — 완료 (2026-05-08, 커밋 9784fde) **🎯 W1 마일스톤 달성**
 - **목표**: `bin/sowing memo "내용"` 으로 마크다운 파일 + 인덱스 생성
 - **출력**:
   - `lib/sowing/use_cases/create_memo.rb` (CLAUDE.md 패턴 준수)

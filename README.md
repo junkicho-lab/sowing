@@ -36,6 +36,39 @@
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
+## 구현 현황 (Week 1 완료)
+
+### ✅ 동작하는 기능
+
+- **CLI에서 메모 작성**: `bin/sowing memo "내용"` → `00_Inbox/YYYY-MM-DD_HHmmss.md` 생성 + SQLite 인덱스 갱신
+- **개발 서버**: `bin/sowing dev` → `http://127.0.0.1:48723`
+- **진단 도구**: `bin/sowing-doctor`
+- **테스트**: `bundle exec rspec` (192건 통과)
+
+### 구현된 컴포넌트
+
+| 계층 | 모듈 | 설명 |
+|------|------|------|
+| Domain | `Sowing::Domain::ValueObjects::{Ulid, TagSet}` | 불변 Value Object, frozen, 한국어 정렬 |
+| Domain | `Sowing::Domain::{Memo, Note, Record}` + `Entry` mixin | 메모/필기/기록 3종, `to_frontmatter`/`to_markdown` |
+| Infrastructure | `Filesystem::SafeWriter` | 원자적 쓰기 (tempfile + rename), NFC 정규화 |
+| Infrastructure | `Markdown::{Parser, Serializer, ParsedDocument}` | front_matter_parser 래핑, 양방향 round-trip 검증 |
+| Repository | `Repositories::VaultRepo` | 마크다운 파일 시스템 (write/read/list/delete=trash) |
+| Repository | `Repositories::IndexRepo` + `IndexedEntry` | SQLite 인덱스 CRUD + 태그·날짜 검색 |
+| Use Case | `UseCases::CreateMemo` | 도메인 + 두 Repo 조립, Dry::Monads Result |
+| Infrastructure | `Paths`, `DB` | OS별 경로 결정, Sequel + SQLite 연결 |
+
+### 미구현 (Week 2 이후)
+
+- 웹 UI (메모/필기/기록 작성·조회 — Sinatra 컨트롤러 + Hotwire)
+- 마크다운 에디터 (CodeMirror 6)
+- 위키링크 `[[link]]` 파서·자동완성·그래프
+- 전문 검색 (FTS5, 한국어 토큰화)
+- 옵시디언 ↔ 본 앱 동기화 (파일 watcher)
+- 패키징 (Tebako 단일 실행파일)
+
+상세 일정은 [ROADMAP.md](ROADMAP.md) 참조.
+
 ## 문서
 
 | 문서 | 대상 | 내용 |
