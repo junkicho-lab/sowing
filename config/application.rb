@@ -14,13 +14,31 @@ require "sequel"
 # Sowing 모듈 진입점
 module Sowing
   class << self
-    attr_accessor :loader, :env, :logger
+    attr_accessor :loader, :env, :logger, :sync_coordinator
 
     # 앱 전체 부트스트랩 (paths + db + 자동 로딩)
     def boot!
       boot_paths!
       boot_loader!
       boot_db!
+    end
+
+    # 동기화 부팅 — 볼트 ↔ 인덱스 일관성 검증 후 watcher 시작 (W5-T04).
+    # 무거운 I/O 동반(Listen 스레드 + 전체 볼트 스캔)이므로 boot!에서 분리, 명시 호출만.
+    # CLI/서버 진입점에서 한 번 호출. 테스트는 호출하지 않음.
+    # @return [Sowing::Sync::Coordinator] 시작된 코디네이터
+    def boot_sync!
+      return @sync_coordinator if @sync_coordinator&.running?
+
+      vault_dir = Sowing::Infrastructure::Paths.vault_dir
+      coordinator = Sowing::Sync::Coordinator.new(vault_dir: vault_dir, logger: @logger)
+      Sowing::Sync::ConsistencyCheck.new(
+        vault_dir: vault_dir,
+        index_repo: Sowing::Repositories::IndexRepo.new,
+        coordinator: coordinator
+      ).run
+      coordinator.start
+      @sync_coordinator = coordinator
     end
 
     def boot_paths!

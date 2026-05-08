@@ -59,6 +59,12 @@ module Sowing
         to_indexed_entry(row)
       end
 
+      # 인덱스에 등록된 모든 path (vault 기준 상대 경로) — 부팅 시 일관성 검증용 (W5-T04).
+      # @return [Array<String>]
+      def all_paths
+        @db[:entries].select_map(:path)
+      end
+
       # @param mode     [Symbol] :memo, :note, :record
       # @param category [String, nil] category 컬럼 정확 일치 필터
       # @param limit    [Integer, nil] 가져올 최대 행 수
