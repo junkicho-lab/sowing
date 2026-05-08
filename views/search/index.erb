@@ -1,0 +1,117 @@
+<section class="search-page" aria-labelledby="search_heading">
+  <header class="search-page__header">
+    <h1 id="search_heading">검색</h1>
+    <p class="search-page__hint">제목·본문 검색 + 모드/카테고리/태그/날짜 필터를 자유롭게 조합하세요.</p>
+  </header>
+
+  <form action="/search" method="get" class="search-form" role="search">
+    <div class="search-form__main">
+      <input type="search"
+             name="q"
+             value="<%= h(@q) %>"
+             placeholder="검색어 (한국어 2글자도 자동 매칭)"
+             autocomplete="off"
+             autofocus
+             class="search-form__q">
+      <button type="submit" class="button button--primary">검색</button>
+    </div>
+
+    <div class="search-form__filters">
+      <div class="search-form__field">
+        <label for="search_mode">모드</label>
+        <select id="search_mode" name="mode">
+          <option value="">전체</option>
+          <option value="memo" <%= 'selected' if @mode_str == "memo" %>>메모</option>
+          <option value="note" <%= 'selected' if @mode_str == "note" %>>필기</option>
+          <option value="record" <%= 'selected' if @mode_str == "record" %>>기록</option>
+        </select>
+      </div>
+
+      <div class="search-form__field">
+        <label for="search_category">카테고리</label>
+        <input type="text"
+               id="search_category"
+               name="category"
+               value="<%= h(@category) %>"
+               list="search_categories_datalist"
+               placeholder="예: lessons, 학급운영"
+               autocomplete="off">
+        <datalist id="search_categories_datalist">
+          <% (@categories || []).each do |c| %>
+            <option value="<%= h(c) %>">
+          <% end %>
+        </datalist>
+      </div>
+
+      <div class="search-form__field">
+        <label for="search_tag">태그</label>
+        <input type="text"
+               id="search_tag"
+               name="tag"
+               value="<%= h(@tag) %>"
+               placeholder="예: 수업"
+               autocomplete="off">
+      </div>
+
+      <div class="search-form__field">
+        <label for="search_from">시작일</label>
+        <input type="date" id="search_from" name="from" value="<%= h(@from_str) %>">
+      </div>
+
+      <div class="search-form__field">
+        <label for="search_to">종료일</label>
+        <input type="date" id="search_to" name="to" value="<%= h(@to_str) %>">
+      </div>
+    </div>
+
+    <% active_filters = [@q.empty? ? nil : "q=#{@q}", @mode_str.empty? ? nil : "mode=#{@mode_str}", @category, @tag, @from_str.empty? ? nil : "from=#{@from_str}", @to_str.empty? ? nil : "to=#{@to_str}"].compact %>
+    <% unless active_filters.empty? %>
+      <p class="search-form__reset"><a href="/search">필터 초기화</a></p>
+    <% end %>
+  </form>
+
+  <% if @total > 0 %>
+    <p class="search-page__count">총 <%= @total %>건</p>
+    <ul class="search-results">
+      <% @results.each do |entry| %>
+        <li class="search-result">
+          <span class="search-result__icon" aria-label="<%= h(mode_label(entry.mode)) %>"><%= mode_icon(entry.mode) %></span>
+          <div class="search-result__body">
+            <a href="<%= h(entry_link_for(entry)) %>" class="search-result__link"><%= h(entry_display_title(entry)) %></a>
+            <span class="search-result__meta">
+              <%= h(mode_label(entry.mode)) %>
+              <% if entry.category && !entry.category.empty? %> · <%= h(entry.category) %><% end %>
+              · <%= h(entry.created_at.strftime("%Y-%m-%d")) %>
+              <% unless entry.tags.empty? %>
+                · <%= entry.tags.map { |t| "##{h(t)}" }.join(" ") %>
+              <% end %>
+            </span>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+
+    <% if @total_pages > 1 %>
+      <nav class="pagination" aria-label="페이지 이동">
+        <% if @page > 1 %>
+          <a class="pagination__link" href="/search<%= query_string_for(page: @page - 1) %>" rel="prev">← 이전</a>
+        <% else %>
+          <span class="pagination__link pagination__link--disabled" aria-disabled="true">← 이전</span>
+        <% end %>
+        <span class="pagination__info"><%= @page %> / <%= @total_pages %></span>
+        <% if @page < @total_pages %>
+          <a class="pagination__link" href="/search<%= query_string_for(page: @page + 1) %>" rel="next">다음 →</a>
+        <% else %>
+          <span class="pagination__link pagination__link--disabled" aria-disabled="true">다음 →</span>
+        <% end %>
+      </nav>
+    <% end %>
+  <% else %>
+    <% if !@q.empty? || @mode || @category || @tag || @from || @to %>
+      <div class="empty-state empty-state--inline">
+        <p>조건에 맞는 항목이 없습니다.</p>
+        <p class="empty-state__hint">필터를 줄이거나 다른 검색어를 시도해 보세요.</p>
+      </div>
+    <% end %>
+  <% end %>
+</section>

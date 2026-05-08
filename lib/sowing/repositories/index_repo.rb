@@ -85,6 +85,12 @@ module Sowing
         @db[:entries].where(mode: mode.to_s).exclude(category: nil).distinct.select_order_map(:category)
       end
 
+      # 모든 모드의 distinct category 합집합 (검색 화면 datalist).
+      # @return [Array<String>]
+      def all_distinct_categories
+        @db[:entries].exclude(category: nil).distinct.select_order_map(:category)
+      end
+
       MODE_PRIORITY = {"record" => 1, "note" => 2, "memo" => 3}.freeze
       private_constant :MODE_PRIORITY
 
@@ -201,6 +207,28 @@ module Sowing
           .order(Sequel.desc(:created_at), Sequel.desc(:id))
           .all
         rows.map { |row| to_indexed_entry(row) }
+      end
+
+      # 통합 필터 검색 (W4-T03). q + mode + category + tag + 날짜 범위 모두 결합.
+      # 모든 필터는 AND. tag는 entry_tags+tags JOIN. q는 search 라우팅(한글 비율 자동).
+      # @return [Array<IndexedEntry>]
+      def search_with_filters(q: nil, mode: nil, category: nil, tag: nil,
+        from: nil, to: nil, limit: 50, offset: 0)
+        ds = filtered_dataset(q: q, mode: mode, category: category, tag: tag, from: from, to: to)
+        return [] if ds.nil?
+
+        ds.order(Sequel.desc(Sequel[:entries][:created_at]), Sequel.desc(Sequel[:entries][:id]))
+          .limit(limit)
+          .offset(offset)
+          .all
+          .map { |row| to_indexed_entry(row) }
+      end
+
+      # @return [Integer]
+      def count_with_filters(q: nil, mode: nil, category: nil, tag: nil, from: nil, to: nil)
+        ds = filtered_dataset(q: q, mode: mode, category: category, tag: tag, from: from, to: to)
+        return 0 if ds.nil?
+        ds.count
       end
 
       # ──────────────────────────────────────────
@@ -392,6 +420,58 @@ module Sowing
         return false if text.empty?
         korean_chars = text.scan(/\p{Hangul}/).size
         (korean_chars.to_f / text.length) >= KOREAN_RATIO_THRESHOLD
+      end
+
+      # 통합 필터 데이터셋. q가 있고 매칭 0건이면 nil 반환 (caller가 빈 결과로 처리).
+      def filtered_dataset(q:, mode:, category:, tag:, from:, to:)
+        ds = @db[:entries]
+
+        ds = ds.where(Sequel[:entries][:mode] => mode.to_s) if mode
+        ds = ds.where(Sequel[:entries][:category] => category) if category && !category.to_s.strip.empty?
+
+        if tag && !tag.to_s.strip.empty?
+          tag_normalized = tag.to_s.strip.downcase
+          ds = ds
+            .join(:entry_tags, entry_id: Sequel[:entries][:id])
+            .join(:tags, id: Sequel[:entry_tags][:tag_id])
+            .where(Sequel[:tags][:name] => tag_normalized)
+            .select_all(:entries)
+        end
+
+        if from && to
+          ds = ds.where(Sequel[:entries][:created_at] => from.iso8601..to.iso8601)
+        end
+
+        if q && !q.to_s.strip.empty?
+          q_clean = q.to_s.strip
+          matched_ids = if korean_dominant?(q_clean)
+            like_match_ids(q_clean)
+          else
+            fts_match_ids(q_clean)
+          end
+          return nil if matched_ids.empty?
+          ds = ds.where(Sequel[:entries][:id] => matched_ids)
+        end
+
+        ds
+      end
+
+      def fts_match_ids(q)
+        @db[:entries_fts]
+          .where(Sequel.lit("entries_fts MATCH ?", q))
+          .select_map(:id)
+      end
+
+      def like_match_ids(q)
+        pattern = "%#{escape_like(q)}%"
+        @db[:entries_fts]
+          .where(
+            Sequel.lit(
+              "title LIKE ? ESCAPE '#{LIKE_ESCAPE_CHAR}' OR body LIKE ? ESCAPE '#{LIKE_ESCAPE_CHAR}'",
+              pattern, pattern
+            )
+          )
+          .select_map(:id)
       end
 
       # LIKE 패턴에서 wildcard 문자(%, _) 및 escape 문자(!) 자체를 literal로 처리.

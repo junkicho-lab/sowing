@@ -10,6 +10,7 @@ class Sowing::Application
   use Sowing::Controllers::NotesController
   use Sowing::Controllers::RecordsController
   use Sowing::Controllers::TagsController
+  use Sowing::Controllers::SearchController
   use Sowing::Controllers::PreviewController
   use Sowing::Controllers::ApiController
 
