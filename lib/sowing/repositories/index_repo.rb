@@ -84,6 +84,34 @@ module Sowing
         @db[:entries].where(mode: mode.to_s).exclude(category: nil).distinct.select_order_map(:category)
       end
 
+      MODE_PRIORITY = {"record" => 1, "note" => 2, "memo" => 3}.freeze
+      private_constant :MODE_PRIORITY
+
+      # 위키링크 자동완성 후보 검색 (ADR-004 / W3-T03).
+      # 정렬: 모드 우선(record > note > memo) → created_at desc → id desc(보조).
+      # q가 비어있으면 모든 모드 최근순. q가 있으면 entries.title의 substring 매칭만
+      # (메모는 title이 nil이라 q 매칭에서 제외 — 본문 매칭은 W4 FTS에서 도입 예정).
+      #
+      # @param q [String]
+      # @param limit [Integer]
+      # @return [Array<Hash>] entries 컬럼 그대로 (path, title, mode, created_at 등)
+      def complete(q:, limit: 25)
+        q = q.to_s.strip
+        ds = @db[:entries]
+
+        unless q.empty?
+          # 사용자 입력에 %/_ 가 있으면 literal 매칭 못 함 (W3-T03 한계).
+          # FTS 도입 시 본 한계 해소 예정.
+          ds = ds.where(Sequel.like(:title, "%#{q}%"))
+        end
+
+        ds.order(
+          Sequel.case(MODE_PRIORITY, 4, :mode),
+          Sequel.desc(:created_at),
+          Sequel.desc(:id)
+        ).limit(limit).all
+      end
+
       # ──────────────────────────────────────────
       # 위키링크 그래프 (SPEC §8.3 links 테이블)
       # ──────────────────────────────────────────
