@@ -20,6 +20,7 @@
       "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js",
       "controllers/quick_memo": "/js/controllers/quick_memo_controller.js",
       "controllers/editor": "/js/controllers/editor_controller.js",
+      "controllers/preview": "/js/controllers/preview_controller.js",
       "codemirror": "https://esm.sh/codemirror@6.0.1",
       "@codemirror/lang-markdown": "https://esm.sh/@codemirror/lang-markdown@6.2.5"
     }
@@ -30,10 +31,12 @@
     import { Application } from "@hotwired/stimulus"
     import QuickMemoController from "controllers/quick_memo"
     import EditorController from "controllers/editor"
+    import PreviewController from "controllers/preview"
 
     const stimulus = Application.start()
     stimulus.register("quick-memo", QuickMemoController)
     stimulus.register("editor", EditorController)
+    stimulus.register("preview", PreviewController)
     window.Stimulus = stimulus
   </script>
 </head>

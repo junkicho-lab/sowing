@@ -1,0 +1,23 @@
+<%#
+  좌측 에디터 / 우측 라이브 프리뷰. 모바일은 stack(컬럼).
+
+  Locals:
+    id, name, value, rows, required — _editor partial로 전달
+    debounce_ms — 디바운스 ms (기본 300, ROADMAP W2-T07)
+%>
+<div data-controller="preview"
+     data-preview-url-value="/preview"
+     data-preview-debounce-ms-value="<%= h(defined?(debounce_ms) && debounce_ms ? debounce_ms : 300) %>"
+     class="editor-with-preview">
+
+  <div class="editor-with-preview__pane editor-with-preview__pane--editor">
+    <span class="editor-with-preview__heading" aria-hidden="true">에디터</span>
+    <%= erb :"shared/_editor", layout: false, locals: {id: id, name: name, value: value, rows: rows, required: required} %>
+  </div>
+
+  <div class="editor-with-preview__pane editor-with-preview__pane--preview">
+    <span class="editor-with-preview__heading" aria-hidden="true">미리보기</span>
+    <%# 서버측 commonmarker로 초기 렌더 — JS 비활성·로딩 중에도 즉시 본문이 보임 (progressive enhancement) %>
+    <div id="preview_pane" class="preview-pane prose"><%= markdown_to_html(value || "") %></div>
+  </div>
+</div>

@@ -300,6 +300,53 @@ pre code {
   border: 1px solid rgba(220, 53, 69, 0.2);
 }
 
+/* Editor + live preview split */
+
+.editor-with-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.editor-with-preview__pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* prevent overflow in grid cell */
+}
+
+.editor-with-preview__heading {
+  display: block;
+  margin: 0 0 var(--space-1) 0;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.preview-pane {
+  flex: 1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: white;
+  padding: var(--space-2);
+  min-height: 14rem;
+  overflow-y: auto;
+}
+
+.preview-pane:empty::before {
+  content: "여기에 미리보기가 표시됩니다.";
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .editor-with-preview {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* CodeMirror 6 host (editor partial) */
 
 .cm-host {

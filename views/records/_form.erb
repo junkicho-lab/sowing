@@ -33,7 +33,7 @@
 
   <div class="field">
     <label for="record_body">본문 <span class="required">*</span></label>
-    <%= erb :"shared/_editor", layout: false, locals: {id: "record_body", name: "body", value: form[:body], rows: 16, required: true} %>
+    <%= erb :"shared/_editor_with_preview", layout: false, locals: {id: "record_body", name: "body", value: form[:body], rows: 16, required: true} %>
   </div>
 
   <div class="field">

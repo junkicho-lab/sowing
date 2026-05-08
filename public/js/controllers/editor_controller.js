@@ -29,6 +29,8 @@ export default class extends Controller {
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             this.textareaTarget.value = update.state.doc.toString()
+            // 외부 컨트롤러(예: preview)가 입력 변경을 구독할 수 있도록 bubbling 이벤트 발행.
+            this.textareaTarget.dispatchEvent(new CustomEvent("editor:input", { bubbles: true }))
           }
         })
       ],
