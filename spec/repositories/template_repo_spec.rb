@@ -5,11 +5,16 @@ require "tmpdir"
 
 RSpec.describe Sowing::Repositories::TemplateRepo do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("template-repo-spec-")) }
+  let(:system_dir) { Pathname.new(Dir.mktmpdir("template-system-spec-")) }
   let(:fixed_now) { Time.new(2026, 5, 8, 14, 23, 14, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }
-  let(:repo) { described_class.new(vault_dir: vault_dir, clock: clock) }
+  # 단위 테스트는 시스템 템플릿을 격리 (실제 templates/ 영향 차단).
+  let(:repo) { described_class.new(vault_dir: vault_dir, system_dir: system_dir, clock: clock) }
 
-  after { FileUtils.rm_rf(vault_dir) if vault_dir.exist? }
+  after do
+    FileUtils.rm_rf(vault_dir) if vault_dir.exist?
+    FileUtils.rm_rf(system_dir) if system_dir.exist?
+  end
 
   describe "#list / #find" do
     it "templates 디렉토리 없으면 빈 배열" do
@@ -59,6 +64,39 @@ RSpec.describe Sowing::Repositories::TemplateRepo do
       %w[수업회고 lesson_reflection 2026-Q2 abc123].each do |slug|
         expect { repo.save(slug: slug, content: "x") }.not_to raise_error
       end
+    end
+  end
+
+  describe "system + user 두 디렉토리 (W6-T05)" do
+    it "system 템플릿이 list에 포함되며 source: :system 마킹" do
+      File.write(system_dir.join("기본수업.md"), "기본 콘텐츠")
+      list = repo.list
+      expect(list.map(&:slug)).to include("기본수업")
+      expect(list.find { |t| t.slug == "기본수업" }.source).to eq(:system)
+    end
+
+    it "user override — 같은 slug면 user 우선" do
+      File.write(system_dir.join("회고.md"), "기본 v")
+      FileUtils.mkdir_p(vault_dir.join("templates"))
+      File.write(vault_dir.join("templates/회고.md"), "사용자 v")
+
+      template = repo.find("회고")
+      expect(template.content).to eq("사용자 v")
+      expect(template.source).to eq(:user)
+    end
+
+    it "user에만 있으면 source: :user" do
+      FileUtils.mkdir_p(vault_dir.join("templates"))
+      File.write(vault_dir.join("templates/내것.md"), "사용자만")
+      expect(repo.find("내것").source).to eq(:user)
+    end
+
+    it "save는 system이 있어도 항상 user_dir로" do
+      File.write(system_dir.join("회고.md"), "기본")
+      template = repo.save(slug: "회고", content: "내가 덮어씀")
+      expect(template.source).to eq(:user)
+      expect(template.path.to_s).to include(vault_dir.to_s)
+      expect(repo.find("회고").content).to eq("내가 덮어씀")
     end
   end
 

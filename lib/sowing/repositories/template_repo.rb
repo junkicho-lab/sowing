@@ -13,45 +13,52 @@ module Sowing
     # 치환 엔진은 단순 {{key}} gsub — Liquid/ERB 의존성 없이 충분.
     # default_context는 date/time/year/datetime/date_korean 등 자주 쓰이는 변수.
     class TemplateRepo
-      Template = Data.define(:slug, :name, :content, :path)
+      Template = Data.define(:slug, :name, :content, :path, :source)
 
       SLUG_RE = /\A[A-Za-z0-9가-힣_-]+\z/
       MAX_SLUG_LENGTH = 80
       PLACEHOLDER_RE = /\{\{\s*(\w+)\s*\}\}/
+      DEFAULT_SYSTEM_DIR = File.expand_path("../../../../templates", __FILE__)
 
       def initialize(vault_dir:,
+        system_dir: DEFAULT_SYSTEM_DIR,
         clock: Time,
         safe_writer: Infrastructure::Filesystem::SafeWriter.new)
-        @templates_dir = Pathname.new(vault_dir.to_s).expand_path.join("templates")
+        @user_dir = Pathname.new(vault_dir.to_s).expand_path.join("templates")
+        @system_dir = Pathname.new(system_dir.to_s).expand_path
         @clock = clock
         @safe_writer = safe_writer
       end
 
-      attr_reader :templates_dir
+      attr_reader :user_dir, :system_dir
 
-      # @return [Array<Template>] slug 정렬
+      # @return [Array<Template>] slug 정렬. user가 system을 덮어씀(같은 slug).
       def list
-        return [] unless @templates_dir.exist?
-        Dir.glob(@templates_dir.join("*.md")).sort.map { |p| build_from_path(Pathname.new(p)) }
+        entries = {}
+        scan_dir(@system_dir, :system).each { |t| entries[t.slug] = t }
+        scan_dir(@user_dir, :user).each { |t| entries[t.slug] = t }
+        entries.values.sort_by(&:slug)
       end
 
       # @param slug [String]
-      # @return [Template, nil]
+      # @return [Template, nil] user override 우선
       def find(slug)
         return nil unless valid_slug?(slug)
-        path = @templates_dir.join("#{slug}.md")
-        return nil unless path.exist?
-        build_from_path(path)
+        user_path = @user_dir.join("#{slug}.md")
+        return build_from_path(user_path, :user) if user_path.exist?
+        system_path = @system_dir.join("#{slug}.md")
+        return build_from_path(system_path, :system) if system_path.exist?
+        nil
       end
 
-      # 신규/덮어쓰기. SafeWriter로 원자적 기록.
+      # 신규/덮어쓰기 — 항상 user_dir에. system 템플릿을 같은 slug로 저장하면 자동 override.
       # @return [Template]
       def save(slug:, content:)
         raise ArgumentError, "유효하지 않은 slug — 한글/영문/숫자/하이픈/언더스코어, 최대 #{MAX_SLUG_LENGTH}자" unless valid_slug?(slug)
-        FileUtils.mkdir_p(@templates_dir)
-        target = @templates_dir.join("#{slug}.md")
+        FileUtils.mkdir_p(@user_dir)
+        target = @user_dir.join("#{slug}.md")
         @safe_writer.atomic_write(target, content.to_s)
-        build_from_path(target)
+        build_from_path(target, :user)
       end
 
       # @param content [String]   템플릿 본문 ({{key}} 포함 가능)
@@ -67,9 +74,14 @@ module Sowing
 
       private
 
-      def build_from_path(path)
+      def scan_dir(dir, source)
+        return [] unless dir.exist?
+        Dir.glob(dir.join("*.md")).sort.map { |p| build_from_path(Pathname.new(p), source) }
+      end
+
+      def build_from_path(path, source)
         slug = path.basename(".md").to_s
-        Template.new(slug: slug, name: slug, content: path.read, path: path)
+        Template.new(slug: slug, name: slug, content: path.read, path: path, source: source)
       end
 
       def valid_slug?(slug)

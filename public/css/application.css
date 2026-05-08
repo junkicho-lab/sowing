@@ -1489,3 +1489,21 @@ pre code {
   word-break: break-word;
   font-size: 0.9rem;
 }
+
+.templates__source {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.05em 0.5em;
+  border-radius: 999px;
+  margin-left: 0.4em;
+  vertical-align: middle;
+}
+.templates__source--system {
+  background: rgba(45, 95, 63, 0.1);
+  color: var(--color-primary);
+}
+.templates__source--user {
+  background: rgba(212, 165, 116, 0.2);
+  color: #8B5A2B;
+}

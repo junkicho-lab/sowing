@@ -22,7 +22,12 @@
       <% @templates.each do |template| %>
         <li class="templates__item">
           <a href="/templates/<%= h(Rack::Utils.escape(template.slug)) %>" class="templates__link">
-            <span class="templates__name"><%= h(template.name) %></span>
+            <span class="templates__name">
+              <%= h(template.name) %>
+              <span class="templates__source templates__source--<%= template.source %>">
+                <%= template.source == :system ? "기본" : "사용자" %>
+              </span>
+            </span>
             <span class="templates__meta"><%= template.content.lines.first&.strip&.slice(0, 60) %></span>
           </a>
         </li>
