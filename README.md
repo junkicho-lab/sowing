@@ -21,22 +21,31 @@
 
 ## 기술 스택
 
-- Ruby 3.3 + Sinatra 4
-- SQLite (인덱스), 로컬 마크다운 파일 (콘텐츠)
-- Hotwire (Turbo + Stimulus)
-- Tebako 단일 실행파일 패키징
+- Ruby 4.0+ + Sinatra 4 (Modular)
+- SQLite 3.34+ (FTS5 trigram 인덱스), 로컬 마크다운 파일 (콘텐츠)
+- Hotwire (Turbo + Stimulus, importmap — 빌드 도구 0)
+- CodeMirror 6 (마크다운 에디터)
+- Listen gem (파일시스템 감시)
+- Tebako 단일 실행파일 패키징 (스캐폴드 완료, 빌드 환경 준비 중)
 
 ## 시작하기
 
 ### 사용자 (출시 후)
 
-[Releases 페이지](https://github.com/your-org/sowing/releases)에서 OS별 인스톨러를 다운로드하세요.
+[Releases 페이지](https://github.com/junkicho-lab/sowing/releases) 가 준비되면 OS별 인스톨러를 다운로드하세요.
+현재는 소스 빌드만 가능합니다 — [SETUP.md](SETUP.md) 참조.
 
 ### 개발자
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
-## 구현 현황 (Week 7 완료)
+## 구현 현황 (Week 8 — 코드·문서 측면 MVP 완성)
+
+> 8주 로드맵의 코드·문서 deliverable은 모두 갖춰졌습니다.
+> 실제 OS별 인스톨러 출시(W8-T03·T04·T05) 와 베타 테스터 모집(W8-T07)은
+> Apple Developer 계정·Windows VM·실제 사용자가 필요해 후속 작업으로 분리됩니다.
+> 자세한 한계는 [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md), 출시 절차는
+> [docs/RELEASE.md](docs/RELEASE.md) 참조.
 
 ### ✅ 동작하는 기능
 
@@ -137,12 +146,35 @@
 | `editor_controller.js` (Stimulus) | CodeMirror 6 + textarea sync + `editor:input` event dispatch + 자동완성 (위키링크 + 태그) |
 | `preview_controller.js` (Stimulus) | 디바운스 + fetch + `Turbo.renderStreamMessage` |
 
-### 미구현 (Week 8)
+### Week 8 진행 상태
 
-- 패키징 (Tebako 단일 실행파일 — W8)
-- QA · 베타 (W8)
+| 작업 | 상태 | 비고 |
+|------|------|------|
+| W8-T01 시스템 트레이 wrapper | ⏳ Deferred | 비-필수, 브라우저 진입으로 대체 |
+| W8-T02 Tebako 빌드 검증 | 🟡 스캐폴드 | `packaging/` 메타·드라이버 완료, 실제 빌드는 Tebako 환경 필요 |
+| W8-T03 macOS DMG + codesign | ⏳ Deferred | Apple Developer 계정 필요 |
+| W8-T04 Windows Inno Setup | ⏳ Deferred | Windows VM 필요 |
+| W8-T05 Linux AppImage | ⏳ Deferred | linuxdeploy 환경 검증 필요 |
+| W8-T06 `bin/sowing-doctor` 완성 | ✅ 완료 | 9개 섹션 + 진단 요약 (5+ 흔한 문제 자동 식별) |
+| W8-T07 베타 테스터 모집 | ⏳ Deferred | 실제 사용자 5명 필요 |
+| W8-T08 출시 준비 | 🟡 문서 완료 | CHANGELOG / RELEASE / KNOWN_ISSUES, GitHub Release는 바이너리 후 |
 
 상세 일정은 [ROADMAP.md](ROADMAP.md) 참조.
+
+## 8주 개발 요약
+
+| 주 | 마일스톤 | 핵심 deliverable |
+|----|---------|------------------|
+| W1 | CLI 메모 + 옵시디언 호환 | Domain (Memo/Note/Record + ULID/TagSet), VaultRepo, IndexRepo, SafeWriter, Markdown Parser/Serializer, `bin/sowing memo` |
+| W2 | 핵심 도메인 + 웹 UI 골격 | Sinatra modular + Hotwire, 메모/필기/기록 CRUD, 빠른 메모 모달(`Cmd+Shift+M`), CodeMirror 6 + 라이브 프리뷰 |
+| W3 | 승격 + 위키링크 + 태그 | 메모→필기→기록 승격(ULID 유지), 위키링크 그래프 자동 동기화, 태그 클라우드, 자동완성(`[[`, `#`) |
+| W4 | 검색 + 한국어 처리 | FTS5 trigram + 한국어 LIKE 폴백 (5,000건 < 500ms), 검색 화면 + 모든 필터, `Cmd+K` 빠른 검색 |
+| W5 | 동기화 + 옵시디언 통합 | FileWatcher + self-write 필터, ReindexEntry, AdoptOrphan, ConsistencyCheck, 충돌 처리(낙관적 잠금) |
+| W6 | 대시보드 + 통계 + 템플릿 | daily_stats + streak, 씨앗-숲 시각화 5단계 SVG, 템플릿 시스템 + 12종 교사 템플릿 |
+| W7 | 온보딩 + 샘플 + 가이드 | 4단계 마법사, 12종 샘플 시드, 3분 인터랙티브 튜토리얼, 동기화 가이드 4종, 설정 화면 |
+| W8 | 패키징 + QA (코드·문서) | Tebako 빌드 스캐폴드, doctor 9섹션, CHANGELOG / RELEASE / KNOWN_ISSUES |
+
+**규모**: 13개 컨트롤러 · 86개 라우트 · 855건 spec pass · standardrb 0 issue · 5x stress 0 failures.
 
 ## 문서
 
@@ -153,6 +185,10 @@
 | [docs/SPEC.md](docs/SPEC.md) | 모든 기여자 | 전체 기술 명세 |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | 모든 기여자 | 아키텍처 의사결정 기록 |
 | [ROADMAP.md](ROADMAP.md) | 모든 기여자 | 8주 MVP 일정 및 작업 분해 |
+| [CHANGELOG.md](CHANGELOG.md) | 사용자·기여자 | 버전별 변경 이력 |
+| [docs/RELEASE.md](docs/RELEASE.md) | 운영자 | 출시 절차 / 핫픽스 / 롤백 |
+| [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) | 사용자 | 알려진 한계 (패키징·기능·보안·성능) |
+| [packaging/README.md](packaging/README.md) | 운영자 | Tebako 빌드 단계 + OS별 deferred 항목 |
 
 ## 라이선스
 
