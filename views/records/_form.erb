@@ -1,0 +1,63 @@
+<form action="<%= h(action) %>" method="post" class="note-form">
+  <% if defined?(method_override) && method_override %>
+    <input type="hidden" name="_method" value="<%= h(method_override) %>">
+  <% end %>
+
+  <div class="field">
+    <label for="record_title">제목 <span class="required">*</span></label>
+    <input type="text"
+           id="record_title"
+           name="title"
+           value="<%= h(form[:title]) %>"
+           required
+           autofocus
+           autocomplete="off">
+  </div>
+
+  <div class="field">
+    <label for="record_category">카테고리 <span class="required">*</span></label>
+    <input type="text"
+           id="record_category"
+           name="category"
+           value="<%= h(form[:category]) %>"
+           list="record_categories_datalist"
+           placeholder="예: 학급운영, 수업철학, 연구"
+           required
+           autocomplete="off">
+    <datalist id="record_categories_datalist">
+      <% (categories || []).each do |c| %>
+        <option value="<%= h(c) %>">
+      <% end %>
+    </datalist>
+  </div>
+
+  <div class="field">
+    <label for="record_body">본문 <span class="required">*</span></label>
+    <textarea id="record_body" name="body" rows="16" required><%= h(form[:body]) %></textarea>
+  </div>
+
+  <div class="field">
+    <label for="record_promoted_from">승격된 원본 (선택)</label>
+    <input type="text"
+           id="record_promoted_from"
+           name="promoted_from"
+           value="<%= h(form[:promoted_from]) %>"
+           placeholder="00_Inbox/2026-05-08_092314.md (메모를 기록으로 키울 때)"
+           autocomplete="off">
+  </div>
+
+  <div class="field">
+    <label for="record_tags">태그</label>
+    <input type="text"
+           id="record_tags"
+           name="tags"
+           value="<%= h(form[:tags]) %>"
+           placeholder="공백 또는 쉼표로 구분 (선택)"
+           autocomplete="off">
+  </div>
+
+  <div class="form-actions">
+    <a href="/records" class="button button--secondary">취소</a>
+    <button type="submit" class="button button--primary">저장</button>
+  </div>
+</form>

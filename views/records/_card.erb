@@ -1,0 +1,13 @@
+<li class="note-card" id="record_<%= h(record.id) %>">
+  <div class="note-card__meta">
+    <span class="note-card__category"><%= h(record.category) %></span>
+    <time class="note-card__time" datetime="<%= h(record.created_at.iso8601) %>"><%= h(record.created_at.strftime("%Y-%m-%d")) %></time>
+  </div>
+  <h3 class="note-card__title">
+    <a href="/records/<%= h(record.id) %>" class="note-card__link"><%= h(record.title) %></a>
+  </h3>
+  <% if record.promoted_from %>
+    <p class="note-card__source">승격: <%= h(record.promoted_from) %></p>
+  <% end %>
+  <p class="note-card__body"><%= h(memo_excerpt(record.body, 140)) %></p>
+</li>

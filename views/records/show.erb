@@ -1,0 +1,36 @@
+<article class="note-show" aria-labelledby="record_show_title">
+  <header class="note-show__header">
+    <div class="note-show__meta">
+      <a href="/records?category=<%= h(@record.category) %>" class="note-card__category"><%= h(@record.category) %></a>
+      <time class="note-show__time" datetime="<%= h(@record.created_at.iso8601) %>">
+        <%= h(@record.created_at.strftime("%Y년 %-m월 %-d일")) %>
+        <% if @record.updated_at && @record.updated_at != @record.created_at %>
+          (수정 <%= h(@record.updated_at.strftime("%Y-%m-%d")) %>)
+        <% end %>
+      </time>
+    </div>
+
+    <h1 id="record_show_title" class="note-show__title"><%= h(@record.title) %></h1>
+
+    <% if @record.promoted_from %>
+      <p class="note-show__source"><span class="note-show__source-label">승격</span> <%= h(@record.promoted_from) %></p>
+    <% end %>
+
+    <% unless @record.tags.empty? %>
+      <ul class="note-show__tags" aria-label="태그">
+        <% @record.tags.each do |tag| %>
+          <li class="note-show__tag">#<%= h(tag) %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  </header>
+
+  <div class="note-show__body prose">
+    <%= markdown_to_html(@record.body) %>
+  </div>
+
+  <footer class="note-show__footer">
+    <a href="/records" class="button button--secondary">← 목록으로</a>
+    <a href="/records/<%= h(@record.id) %>/edit" class="button button--primary">편집</a>
+  </footer>
+</article>

@@ -72,6 +72,14 @@ module Sowing
         ds.count
       end
 
+      # 사용된 적 있는 distinct category 이름 (정렬). Record처럼 자유 텍스트 카테고리에서
+      # datalist 자동완성·필터 탭에 사용.
+      # @return [Array<String>]
+      def distinct_categories(mode:)
+        validate_mode!(mode)
+        @db[:entries].where(mode: mode.to_s).exclude(category: nil).distinct.select_order_map(:category)
+      end
+
       # @param id [Sowing::Domain::ValueObjects::Ulid, String]
       # @return [Boolean] 삭제 여부
       def delete(id)

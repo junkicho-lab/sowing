@@ -1,0 +1,12 @@
+<section class="notes-edit">
+  <header class="notes-new__header">
+    <h1>기록 편집</h1>
+    <p class="notes-new__hint">제목·카테고리를 바꾸면 옵시디언 폴더 내 파일 위치도 함께 이동합니다 (옛 위치는 휴지통으로).</p>
+  </header>
+
+  <% if @error %>
+    <div class="alert alert--error" role="alert"><%= h(@error) %></div>
+  <% end %>
+
+  <%= erb :"records/_form", layout: false, locals: {form: @form, action: "/records/#{@record&.id}", method_override: "patch", categories: @categories} %>
+</section>

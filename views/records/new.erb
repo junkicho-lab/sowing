@@ -1,0 +1,12 @@
+<section class="notes-new">
+  <header class="notes-new__header">
+    <h1>기록 작성</h1>
+    <p class="notes-new__hint">자기 경험·통찰을 영구 보관할 깊이 있는 글입니다. 미래의 나·동료에게 전달할 수 있는 형태로 적어 보세요.</p>
+  </header>
+
+  <% if @error %>
+    <div class="alert alert--error" role="alert"><%= h(@error) %></div>
+  <% end %>
+
+  <%= erb :"records/_form", layout: false, locals: {form: @form, action: "/records", categories: @categories} %>
+</section>
