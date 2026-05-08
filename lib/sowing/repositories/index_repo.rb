@@ -133,13 +133,32 @@ module Sowing
       end
 
       # ──────────────────────────────────────────
-      # 전문 검색 (FTS5 trigram, W4-T01)
+      # 전문 검색 (W4-T01 FTS5 trigram + W4-T02 한국어 LIKE 폴백)
       # ──────────────────────────────────────────
 
-      # entries_fts에서 q를 매칭하는 entries 반환 (created_at desc).
-      # trigram 한계: 3글자 이상 query만 정확 매칭. 한국어 2글자는 W4-T02 LIKE 폴백.
+      KOREAN_RATIO_THRESHOLD = 0.30
+      LIKE_ESCAPE_CHAR = "!"
+      private_constant :KOREAN_RATIO_THRESHOLD, :LIKE_ESCAPE_CHAR
+
+      # 통합 검색 진입점. q의 한글 비율에 따라 자동 라우팅.
+      # 한글 비율 ≥ 30%이면 LIKE 폴백 (trigram의 한국어 2글자 한계 보강),
+      # 그 외(영문 위주)는 FTS5 trigram.
       # @param q [String]
       # @param limit [Integer]
+      # @return [Array<IndexedEntry>]
+      def search(q:, limit: 50)
+        q = q.to_s.strip
+        return [] if q.empty?
+
+        if korean_dominant?(q)
+          search_like(q: q, limit: limit)
+        else
+          search_full_text(q: q, limit: limit)
+        end
+      end
+
+      # entries_fts에서 q를 매칭하는 entries 반환 (created_at desc).
+      # trigram 한계: 3글자 이상 query만 정확 매칭. 한국어 2글자는 search_like가 보강.
       # @return [Array<IndexedEntry>]
       def search_full_text(q:, limit: 50)
         q = q.to_s.strip
@@ -147,6 +166,32 @@ module Sowing
 
         ids = @db[:entries_fts]
           .where(Sequel.lit("entries_fts MATCH ?", q))
+          .limit(limit)
+          .select_map(:id)
+        return [] if ids.empty?
+
+        rows = @db[:entries]
+          .where(id: ids)
+          .order(Sequel.desc(:created_at), Sequel.desc(:id))
+          .all
+        rows.map { |row| to_indexed_entry(row) }
+      end
+
+      # LIKE 폴백 — entries_fts.title/body에서 substring 매칭.
+      # 한국어 2글자 등 trigram이 못 잡는 케이스를 위해. 5,000건 < 500ms 목표.
+      # @return [Array<IndexedEntry>]
+      def search_like(q:, limit: 50)
+        q = q.to_s.strip
+        return [] if q.empty?
+
+        pattern = "%#{escape_like(q)}%"
+        ids = @db[:entries_fts]
+          .where(
+            Sequel.lit(
+              "title LIKE ? ESCAPE '#{LIKE_ESCAPE_CHAR}' OR body LIKE ? ESCAPE '#{LIKE_ESCAPE_CHAR}'",
+              pattern, pattern
+            )
+          )
           .limit(limit)
           .select_map(:id)
         return [] if ids.empty?
@@ -340,6 +385,18 @@ module Sowing
 
       def lookup_target_id_by_title(title)
         @db[:entries].where(title: title).get(:id)
+      end
+
+      # 한글 비율이 임계 이상이면 LIKE 폴백을 선택 (trigram 한계 보강).
+      def korean_dominant?(text)
+        return false if text.empty?
+        korean_chars = text.scan(/\p{Hangul}/).size
+        (korean_chars.to_f / text.length) >= KOREAN_RATIO_THRESHOLD
+      end
+
+      # LIKE 패턴에서 wildcard 문자(%, _) 및 escape 문자(!) 자체를 literal로 처리.
+      def escape_like(text)
+        text.gsub(/[%_#{Regexp.escape(LIKE_ESCAPE_CHAR)}]/o) { |c| "#{LIKE_ESCAPE_CHAR}#{c}" }
       end
 
       # ── FTS5 동기화 ────────────────────────────
