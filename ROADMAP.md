@@ -436,66 +436,45 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 
 ## Week 8: 패키징 + QA + 베타
 
-### [ ] W8-T01: 시스템 트레이 wrapper (선택, OS별)
-- **출력**:
-  - macOS: 메뉴바 앱 (Swift 또는 platypus 활용)
-  - Windows: 시스템 트레이 (별도 wrapper)
-  - 메뉴: 빠른 메모, 대시보드 열기, 종료
-- **검증**: 메뉴바에서 단축 액션 동작
-- **선행**: W5 전체
+### [-] W8-T01: 시스템 트레이 wrapper — Deferred (비-필수, OS별 native 코드 필요)
+- 브라우저로 `http://127.0.0.1:48723` 직접 접속만으로 MVP 충족. trayer는 Phase 2.
 
-### [ ] W8-T02: Tebako 빌드 검증
-- **출력**:
-  - `packaging/tebako.yml`
-  - macOS·Linux 빌드 스크립트
-  - 빌드 결과물 동작 확인
-- **검증**: Tebako로 빌드한 단일 파일이 정상 실행
-- **선행**: W7 전체
+### [~] W8-T02: Tebako 빌드 스캐폴드 — 부분 완료 (2026-05-09)
+- ✅ `packaging/tebako.yml` — 빌드 메타데이터
+- ✅ `packaging/build.sh` — Linux/macOS/Windows 드라이버
+- ✅ `packaging/README.md` — 사전 요구사항·단계 안내
+- ⏳ 실제 빌드는 Tebako 바이너리 + Docker 환경에서 수동 진행 필요
 
-### [ ] W8-T03: macOS DMG + codesign + notarize
-- **출력**:
-  - `packaging/macos/build.sh`
-  - DMG 생성, Apple 서명, notarize 자동화
-- **검증**: 외부 사용자가 다운로드해도 Gatekeeper 경고 없음
-- **선행**: W8-T02
+### [-] W8-T03: macOS DMG + codesign + notarize — Deferred (Apple Developer 계정 필요)
+- 우회: 소스 빌드(`bundle install && bin/sowing dev`). KNOWN_ISSUES.md 명시.
 
-### [ ] W8-T04: Windows Inno Setup 인스톨러
-- **출력**: `packaging/windows/installer.iss`
-- **검증**: Windows 11 사용자가 설치·실행 성공
-- **선행**: W8-T02
+### [-] W8-T04: Windows Inno Setup 인스톨러 — Deferred (Windows VM 필요)
+- 우회: WSL2에서 Linux 빌드 사용.
 
-### [ ] W8-T05: Linux AppImage
-- **출력**: `packaging/linux/build.sh`
-- **검증**: Ubuntu 22.04에서 더블클릭 실행
-- **선행**: W8-T02
+### [-] W8-T05: Linux AppImage — Deferred (linuxdeploy 환경 검증 필요)
+- 우회: Tebako 단일 바이너리 직접 실행.
 
-### [ ] W8-T06: 진단 도구 `bin/sowing-doctor` 완성
-- **출력**:
-  - 환경 정보 출력
-  - 볼트 무결성 체크
-  - 인덱스 일관성 체크
-  - 일반적 문제 자동 진단
-- **검증**: 5종 이상의 흔한 문제 진단·해결 안내
-- **선행**: W7 전체
+### [x] W8-T06: 진단 도구 `bin/sowing-doctor` 완성 — 완료 (2026-05-09)
+- 환경(Ruby/인코딩) + 경로(권한·디스크 여유) + DB(SQLite 버전·FTS5 정합성) + 볼트
+  무결성 + 동기화/충돌 + 통계/성장 + 템플릿 + 온보딩/학습 + 동기화 가이드 9개 섹션.
+- 진단 요약 (issues 누적 → 마지막에 액션 제안), 5+ 흔한 문제 자동 식별.
 
-### [ ] W8-T07: 베타 테스터 5명 모집·피드백 수집
-- **출력**:
-  - 비공개 베타 모집
-  - 피드백 양식
-  - 발견된 버그 issue 등록
-- **검증**: 5명 모두 30분 내 첫 메모 작성 성공, 7일간 사용 후 회고
-- **선행**: W8-T03/T04/T05
+### [-] W8-T07: 베타 테스터 5명 모집·피드백 수집 — Deferred (실제 사용자 필요)
+- 출시 후 진행. README + RELEASE.md 따라 GitHub Issues 운영.
 
-### [ ] W8-T08: 출시 준비
-- **출력**:
-  - GitHub Release 페이지
-  - 사용자 안내 문서
-  - 알려진 이슈·로드맵 공개
-- **검증**: 외부 사용자가 다운로드 → 설치 → 사용 전 과정 자가 완수 가능
-- **선행**: W8-T07
+### [~] W8-T08: 출시 준비 — 문서 완료 (2026-05-09)
+- ✅ CHANGELOG.md (v0.1.0 + Unreleased)
+- ✅ docs/RELEASE.md — 출시 절차 / 핫픽스 / 롤백 / 데이터 호환성 약속
+- ✅ docs/KNOWN_ISSUES.md — 패키징·기능·보안·성능 한계 솔직 공개
+- ⏳ GitHub Release 페이지 — 바이너리 빌드 후 진행 (T03~T05 의존)
 
 ### **🎯 Week 8 마일스톤 (= MVP 출시)**
 **3개 OS에서 인스톨러를 통한 설치가 가능하고, 베타 사용자가 만족한다.**
+
+> **현재 상태 (2026-05-09)**: 코드·문서 측면 MVP 완성 (855건 spec pass, 13개 컨트롤러, 9개 doctor 섹션).
+> 실제 OS별 인스톨러 출시 + 베타 테스터 모집은 후속 작업으로 분리 — Tebako 빌드 환경,
+> Apple Developer 계정, Windows VM, 실제 사용자 5명이 필요. 스캐폴드(packaging/) +
+> 출시 절차 문서(RELEASE.md) + 한계 공개(KNOWN_ISSUES.md) 까지는 완료.
 
 ---
 

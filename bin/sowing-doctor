@@ -10,11 +10,24 @@ require_relative "../config/application"
 puts "🔍 Sowing Doctor — 진단 시작"
 puts "─" * 60
 
+# 진단 결과 누적기 — 마지막에 5종 흔한 문제 진단(W8-T06) 요약 출력.
+issues = []
+
 # 1. 환경
 puts "\n[환경]"
 puts "  Ruby:        #{RUBY_VERSION} (#{RUBY_PLATFORM})"
 puts "  Sowing:      #{Sowing::VERSION}"
 puts "  SOWING_ENV:  #{Sowing.env}"
+puts "  Encoding:    external=#{Encoding.default_external.name}"
+if Encoding.default_external != Encoding::UTF_8
+  issues << "외부 인코딩이 UTF-8이 아님 — 한국어 파일명/내용이 깨질 수 있음. LANG=ko_KR.UTF-8 설정 권장"
+end
+
+# Ruby 버전 검증 (Gemfile은 ~> 4.0 가정)
+ruby_major = RUBY_VERSION.split(".")[0].to_i
+if ruby_major < 3
+  issues << "Ruby #{RUBY_VERSION} 너무 낮음 (3.0+ 필요) — `rbenv install`/`mise install` 또는 시스템 Ruby 업그레이드"
+end
 
 # 2. 경로
 puts "\n[경로]"
@@ -22,17 +35,37 @@ puts "  데이터 디렉토리: #{Sowing::Infrastructure::Paths.data_dir}"
 puts "  볼트:           #{Sowing::Infrastructure::Paths.vault_dir}"
 puts "  DB:             #{Sowing::Infrastructure::Paths.db_path}"
 
-# 3. 디렉토리 존재
+# 3. 디렉토리 존재 + 쓰기 권한 + 디스크 여유
 puts "\n[디렉토리 상태]"
 [
-  ["데이터", Sowing::Infrastructure::Paths.data_dir],
-  ["볼트", Sowing::Infrastructure::Paths.vault_dir]
+  ["데이터", Sowing::Infrastructure::Paths.data_dir.to_s],
+  ["볼트", Sowing::Infrastructure::Paths.vault_dir.to_s]
 ].each do |label, path|
   if File.directory?(path)
-    puts "  ✅ #{label}: 존재"
+    if File.writable?(path)
+      puts "  ✅ #{label}: 존재 + 쓰기 가능"
+    else
+      puts "  ❌ #{label}: 존재하나 쓰기 권한 없음"
+      issues << "#{label} 디렉토리에 쓰기 권한 없음 (#{path}) — `chmod u+w` 또는 소유자 확인"
+    end
   else
     puts "  ⚠  #{label}: 없음 — bin/sowing dev 실행 시 자동 생성됨"
   end
+end
+
+# 디스크 여유 — `df` 명령으로 홈 파티션 가용 공간 확인 (sys-filesystem gem 의존 회피)
+begin
+  df_output = `df -k "#{Dir.home}" 2>/dev/null`.lines.last
+  if df_output && (parts = df_output.split).size >= 4
+    free_kb = parts[3].to_i
+    free_mb = free_kb / 1024
+    if free_mb < 100
+      puts "  ⚠  홈 파티션 여유: #{free_mb} MB"
+      issues << "디스크 여유 #{free_mb}MB — 메모/필기/기록 작성에 지장. 정리 권장"
+    end
+  end
+rescue
+  # df 미지원 OS는 skip
 end
 
 # 4. DB 연결 + 인덱스 통계
@@ -84,7 +117,13 @@ begin
     puts "  승격된 entries: #{promoted_count}건" if promoted_count > 0
   end
 
-  # FTS5 인덱스 정합성 (W4-T01).
+  # FTS5 인덱스 정합성 (W4-T01) + SQLite 버전 (3.34+ 필요 — trigram 토크나이저).
+  sqlite_version = db.fetch("SELECT sqlite_version() AS v").first[:v]
+  puts "  SQLite:     #{sqlite_version}"
+  if Gem::Version.new(sqlite_version) < Gem::Version.new("3.34")
+    issues << "SQLite #{sqlite_version} — FTS5 trigram 토크나이저는 3.34+ 필요 (한국어 검색 부정확)"
+  end
+
   if tables.include?(:entries_fts) && tables.include?(:entries)
     fts_total = db[:entries_fts].count
     entries_total = db[:entries].count
@@ -93,12 +132,24 @@ begin
     else
       diff = entries_total - fts_total
       puts "  ⚠  FTS5 entries_fts: #{fts_total}건 vs entries #{entries_total}건 (차이 #{diff}) — IndexRepo 동기화 누락 가능"
+      issues << "FTS5 인덱스 entries 동기화 누락 (#{diff}건) — `bundle exec rake vault:reindex` 권장"
     end
   elsif tables.include?(:entries) && !tables.include?(:entries_fts)
     puts "  ⚠  FTS5 entries_fts 테이블 없음 — bundle exec rake db:setup 필요"
+    issues << "FTS5 entries_fts 테이블 없음 — `bundle exec rake db:setup` 필요"
+  end
+
+  # 깨진 위키링크가 많으면 안내
+  if tables.include?(:links)
+    broken_count = db[:links].where(target_id: nil).count
+    total = db[:links].count
+    if total > 0 && broken_count.to_f / total > 0.3
+      issues << "위키링크 #{broken_count}/#{total}건 깨짐 (#{(broken_count.to_f / total * 100).round}%) — 타겟 필기·기록 제목 확인"
+    end
   end
 rescue => e
   puts "  ❌ 연결 실패: #{e.message}"
+  issues << "DB 연결 실패: #{e.message}"
 end
 
 # 5. 웹 (컨트롤러·라우트 카운트 — 부팅 직후 모든 컨트롤러가 로드되었는지 확인)
@@ -263,4 +314,11 @@ rescue => e
 end
 
 puts "\n#{"─" * 60}"
-puts "✅ 진단 완료"
+if issues.empty?
+  puts "✅ 진단 완료 — 발견된 문제 없음"
+else
+  puts "⚠  진단 완료 — #{issues.size}개 항목 점검 필요"
+  issues.each_with_index { |msg, i| puts "  #{i + 1}. #{msg}" }
+  puts ""
+  puts "💡 도움말: 위 항목들을 처리한 뒤 doctor를 다시 실행해 보세요."
+end

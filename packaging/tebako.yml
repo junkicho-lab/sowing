@@ -1,0 +1,61 @@
+# Tebako 패키징 설정 (W8-T02).
+#
+# Tebako는 Ruby 앱 + 의존성 + 인터프리터를 단일 바이너리로 묶는다.
+# 사용자는 Ruby 설치 없이 실행 가능 — Sowing의 "비-개발자 교사" 타깃에 부합.
+#
+# 빌드 (개발자 머신에서):
+#   docker pull ghcr.io/tamatebako/tebako:latest
+#   tebako press \
+#     --root=/path/to/sowing \
+#     --entry-point=bin/sowing \
+#     --output=dist/sowing-${VERSION}-${OS}-${ARCH} \
+#     --Ruby=4.0.3
+#
+# 본 yml은 향후 Tebako 설정 파일 포맷이 안정화되면 인자 대신 파일로 정리.
+# 현재 (2026-05) Tebako CLI는 명령행 인자 위주 — 본 파일은 빌드 메타데이터.
+
+name: sowing
+entry_point: bin/sowing
+ruby_version: 4.0.3
+
+# 진입점 (각 OS에서 실행될 단일 바이너리 이름)
+binaries:
+  linux:
+    output: sowing
+    arch: [x86_64, aarch64]
+  macos:
+    output: sowing
+    arch: [x86_64, arm64]
+  windows:
+    output: sowing.exe
+    arch: [x86_64]
+
+# 패키징에서 제외할 경로 (런타임에 불필요)
+exclude:
+  - spec/
+  - .git/
+  - .github/
+  - tmp/
+  - log/
+  - .claude/
+  - .rspec_status
+  - examples.txt
+  - "*.gem"
+
+# 런타임에 함께 묶이는 정적 자원
+include:
+  - lib/
+  - config/
+  - views/
+  - public/
+  - templates/
+  - db/migrations/
+  - bin/
+  - Gemfile
+  - Gemfile.lock
+
+# 런타임 환경 변수 기본값 — 패키지 사용자에게 친절한 default
+runtime_env:
+  SOWING_ENV: production
+  # SOWING_VAULT 미지정 시 ~/Documents/SowingVault (Paths.default_vault_dir)
+  # SOWING_DATA_DIR 미지정 시 OS별 표준 위치 (Paths.default_data_dir)
