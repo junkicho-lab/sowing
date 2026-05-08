@@ -1,0 +1,21 @@
+<article class="onboarding-card">
+  <h1>샘플 콘텐츠를 만들어 드릴까요?</h1>
+  <p class="onboarding__lede">
+    빈 화면 대신 <strong>예시 메모·필기·기록 12건</strong>을 미리 채워 드립니다.
+    위키링크와 태그가 어떻게 동작하는지 한눈에 볼 수 있어요. 언제든 삭제 가능합니다.
+  </p>
+
+  <ul class="onboarding__features">
+    <li>💭 메모 4건 — 빠른 메모 활용 예시</li>
+    <li>📝 필기 4건 — 카테고리·태그·위키링크 예시</li>
+    <li>📖 기록 4건 — 회고·평가·중요한 순간 예시</li>
+  </ul>
+
+  <form action="/onboarding/samples" method="post" class="onboarding__form">
+    <div class="onboarding__actions">
+      <a href="/onboarding/profile" class="button button--secondary">← 이전</a>
+      <button type="submit" name="sample_consent" value="0" class="button button--secondary">건너뛰기</button>
+      <button type="submit" name="sample_consent" value="1" class="button button--primary">샘플 생성하기 →</button>
+    </div>
+  </form>
+</article>

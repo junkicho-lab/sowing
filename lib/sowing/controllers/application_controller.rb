@@ -14,6 +14,14 @@ module Sowing
       set :public_folder, File.join(Sowing.root, "public")
       set :default_encoding, "utf-8"
 
+      # 온보딩 미완료 시 마법사로 자동 redirect (W7-T01).
+      # 예외 경로: /onboarding/*, /health, 정적 자원(/css, /js).
+      before do
+        next if request.path_info.start_with?("/onboarding", "/health", "/css", "/js")
+        next if Infrastructure::Settings.onboarding_completed?
+        redirect "/onboarding/welcome"
+      end
+
       helpers do
         # 한국어 날짜 포맷: "2026년 5월 8일 금요일"
         def korean_today(time = Time.now)

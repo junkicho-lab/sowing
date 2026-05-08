@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title><%= page_title %></title>
+  <link rel="stylesheet" href="/css/application.css">
+</head>
+<body class="onboarding-body">
+  <main class="onboarding">
+    <header class="onboarding__brand">
+      <a href="/" class="brand">Sowing 🌱</a>
+    </header>
+
+    <% if @step != "welcome" && @step != "done" %>
+      <nav class="onboarding__progress" aria-label="진행 단계">
+        <ol class="onboarding__steps">
+          <% Sowing::Controllers::OnboardingController::STEPS[0..-2].each_with_index do |s, i| %>
+            <li class="onboarding__step <%= 'onboarding__step--current' if s == @step %> <%= 'onboarding__step--done' if Sowing::Controllers::OnboardingController::STEPS.index(@step) > i %>">
+              <span class="onboarding__step-num"><%= i + 1 %></span>
+            </li>
+          <% end %>
+        </ol>
+      </nav>
+    <% end %>
+
+    <section class="onboarding__content">
+      <%= yield %>
+    </section>
+  </main>
+</body>
+</html>

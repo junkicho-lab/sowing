@@ -1,0 +1,24 @@
+<article class="onboarding-card">
+  <h1>어떻게 불러 드릴까요?</h1>
+  <p class="onboarding__lede">
+    템플릿에서 <code>{{user}}</code> 자리에 들어갈 이름이에요. 비워 두면 "선생님"으로 인사드립니다.
+  </p>
+
+  <form action="/onboarding/profile" method="post" class="onboarding__form">
+    <div class="field">
+      <label for="user_name">이름 또는 호칭</label>
+      <input type="text"
+             id="user_name"
+             name="user_name"
+             value="<%= h(@user_name) %>"
+             placeholder="예: 김선생, 5학년 3반 담임 등"
+             autofocus
+             autocomplete="off">
+    </div>
+
+    <div class="onboarding__actions">
+      <a href="/onboarding/vault" class="button button--secondary">← 이전</a>
+      <button type="submit" class="button button--primary">저장하고 다음 →</button>
+    </div>
+  </form>
+</article>

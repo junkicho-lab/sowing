@@ -1,0 +1,28 @@
+<article class="onboarding-card">
+  <h1>볼트 위치 확인</h1>
+  <p class="onboarding__lede">
+    Sowing은 모든 글을 <strong>표준 마크다운 파일</strong>로 저장합니다.
+    옵시디언으로도 그대로 열어볼 수 있어요.
+  </p>
+
+  <dl class="onboarding__info">
+    <dt>현재 볼트 경로</dt>
+    <dd><code><%= h(@vault_dir) %></code></dd>
+  </dl>
+
+  <details class="onboarding__details">
+    <summary>다른 위치에 저장하고 싶다면?</summary>
+    <p>
+      앱 종료 후 <code>SOWING_VAULT</code> 환경 변수를 설정하고 다시 실행하세요.
+      <br>예: <code>SOWING_VAULT=~/Dropbox/Sowing bin/sowing dev</code>
+      <br>(클라우드 동기화는 W7-T05 가이드 참조)
+    </p>
+  </details>
+
+  <form action="/onboarding/vault" method="post" class="onboarding__form">
+    <div class="onboarding__actions">
+      <a href="/onboarding/welcome" class="button button--secondary">← 이전</a>
+      <button type="submit" class="button button--primary">위치 확인 + 다음 →</button>
+    </div>
+  </form>
+</article>

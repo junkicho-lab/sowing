@@ -45,6 +45,10 @@ RSpec.configure do |config|
   config.before(:each) do
     # 각 테스트 시작 시 시간 freeze 옵션 활성화 가능
     # Timecop.freeze(Time.parse("2026-05-07 09:00:00 +0900"))
+
+    # W7-T01: 기본적으로 온보딩을 완료 상태로 — 기존 spec이 redirect로 깨지지 않게.
+    # 온보딩 자체를 검증하는 spec은 명시적으로 Settings.reset!를 호출.
+    Sowing::Infrastructure::Settings.update(onboarding_completed: true)
   end
 
   config.after(:each) do

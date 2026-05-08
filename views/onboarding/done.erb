@@ -1,0 +1,30 @@
+<article class="onboarding-card onboarding-card--success">
+  <h1>🌱 준비가 끝났어요</h1>
+  <p class="onboarding__lede">
+    환영합니다, <strong><%= h(@user_name || "선생님") %></strong>!
+  </p>
+
+  <p>이제 다음 중 무엇이든 시작해 보세요:</p>
+
+  <ul class="onboarding__next">
+    <li>
+      <kbd>⌘/Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> 으로 빠른 메모
+    </li>
+    <li>
+      <kbd>⌘/Ctrl</kbd> + <kbd>K</kbd> 로 어디서든 검색
+    </li>
+    <li>
+      <a href="/notes/new">필기 작성</a> · <a href="/records/new">기록 작성</a> · <a href="/templates">템플릿 둘러보기</a>
+    </li>
+  </ul>
+
+  <% if @sample_consent %>
+    <div class="alert alert--info">
+      샘플 콘텐츠 생성은 <code>bundle exec rake vault:seed</code> 로 곧 추가됩니다 (W7-T03).
+    </div>
+  <% end %>
+
+  <div class="onboarding__actions">
+    <a href="/" class="button button--primary">대시보드로 가기 →</a>
+  </div>
+</article>
