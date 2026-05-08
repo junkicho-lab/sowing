@@ -1,6 +1,39 @@
 import { Controller } from "@hotwired/stimulus"
 import { EditorView, basicSetup } from "codemirror"
 import { markdown } from "@codemirror/lang-markdown"
+import { autocompletion } from "@codemirror/autocomplete"
+
+// 위키링크 자동완성 source (W3-T04).
+// [[ 입력 시 cursor 직전 패턴을 매칭, /api/wiki_complete?q=… 호출.
+// validFor: cursor 뒤 ] · | · \n이 들어오면 query 무효화 → 새 source 호출.
+async function wikiLinkSource(context) {
+  const before = context.matchBefore(/\[\[([^\]|\n]*)$/)
+  if (!before) return null
+
+  const query = before.text.slice(2) // "[[xxx" → "xxx"
+
+  try {
+    const response = await fetch(
+      `/api/wiki_complete?q=${encodeURIComponent(query)}`,
+      { headers: { Accept: "application/json" } }
+    )
+    if (!response.ok) return null
+    const data = await response.json()
+
+    return {
+      from: before.from + 2, // [[ 다음부터 query 시작
+      options: data.results.map((r) => ({
+        label: r.title,
+        type: r.mode,        // record/note/memo — CodeMirror가 자동으로 색 구분
+        detail: r.icon,      // 우측 보조 텍스트 (📖/📝/💭)
+        apply: `${r.title}]]`
+      })),
+      validFor: /^[^\]|\n]*$/
+    }
+  } catch {
+    return null
+  }
+}
 
 // CodeMirror 6 마크다운 에디터.
 // textarea를 숨기고 CodeMirror 뷰로 교체. 입력은 실시간으로 textarea에 동기화하여
@@ -26,6 +59,11 @@ export default class extends Controller {
         basicSetup,
         markdown(),
         EditorView.lineWrapping,
+        // [[ 입력 시 200ms 후 자동완성 팝업 — 위키링크 source만 노출 (override).
+        autocompletion({
+          override: [wikiLinkSource],
+          activateOnTypingDelay: 200
+        }),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             this.textareaTarget.value = update.state.doc.toString()

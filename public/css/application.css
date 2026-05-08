@@ -380,6 +380,41 @@ pre code {
   border-right: 1px solid var(--color-border);
 }
 
+/* CodeMirror autocomplete tooltip (위키링크 자동완성) */
+
+.cm-tooltip.cm-tooltip-autocomplete {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  font-family: var(--font-body);
+}
+
+.cm-tooltip.cm-tooltip-autocomplete > ul {
+  font-size: 0.92rem;
+  max-height: 18rem;
+}
+
+.cm-tooltip.cm-tooltip-autocomplete > ul > li {
+  padding: 0.3rem 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] {
+  background: var(--color-code-bg);
+  color: var(--color-primary);
+}
+
+.cm-completionDetail {
+  margin-left: auto;
+  color: var(--color-muted);
+  font-style: normal;
+}
+
+.cm-completionLabel { font-family: var(--font-body); }
+
 /* Filter tabs */
 
 .filter-tabs {
