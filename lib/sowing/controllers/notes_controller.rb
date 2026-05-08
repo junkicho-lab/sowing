@@ -18,9 +18,12 @@ module Sowing
       ERROR_MESSAGES = {
         empty_title: "제목을 입력해 주세요.",
         empty_body: "본문을 입력해 주세요.",
-        empty_category: "카테고리를 선택해 주세요.",
+        empty_category: "카테고리를 입력해 주세요.",
         invalid_category: "유효하지 않은 카테고리입니다.",
-        empty_source: "출처를 입력해 주세요."
+        empty_source: "출처를 입력해 주세요.",
+        not_found: "필기를 찾을 수 없습니다.",
+        not_promotable: "이 항목은 승격 대상이 아닙니다.",
+        file_missing: "필기 파일이 존재하지 않습니다."
       }.freeze
 
       helpers do
@@ -38,6 +41,10 @@ module Sowing
 
         def update_note_use_case
           UseCases::UpdateNote.new(vault_repo: vault_repo, index_repo: index_repo)
+        end
+
+        def promote_to_record_use_case
+          UseCases::PromoteToRecord.new(vault_repo: vault_repo, index_repo: index_repo)
         end
 
         def categories
@@ -183,6 +190,48 @@ module Sowing
           @error = error_message(result.failure)
           status 422
           erb :"notes/new", layout: :"layouts/application"
+        end
+      end
+
+      get "/notes/:id/promote_to_record" do
+        @note = find_note(params["id"])
+        halt_with_404(ERROR_MESSAGES[:not_found]) if @note.nil?
+
+        @page_title = "기록으로 승격"
+        @form = {
+          title: @note.title, # note title prefill — 사용자 편집 가능
+          category: nil,
+          tags: @note.tags.to_a.join(", ")
+        }
+        @categories = index_repo.distinct_categories(mode: :record)
+        @error = nil
+        erb :"notes/promote_to_record", layout: :"layouts/application"
+      end
+
+      post "/notes/:id/promote_to_record" do
+        result = promote_to_record_use_case.call(
+          id: params["id"],
+          title: params["title"].to_s,
+          category: params["category"].to_s,
+          tags: parse_tags(params["tags"])
+        )
+
+        if result.success?
+          redirect "/records/#{result.value!.id}"
+        elsif [:not_found, :not_promotable, :file_missing].include?(result.failure)
+          halt_with_404(error_message(result.failure))
+        else
+          @note = find_note(params["id"]) || halt_with_404(ERROR_MESSAGES[:not_found])
+          @page_title = "기록으로 승격"
+          @form = {
+            title: params["title"],
+            category: params["category"],
+            tags: params["tags"]
+          }
+          @categories = index_repo.distinct_categories(mode: :record)
+          @error = error_message(result.failure)
+          status 422
+          erb :"notes/promote_to_record", layout: :"layouts/application"
         end
       end
 

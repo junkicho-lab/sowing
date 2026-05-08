@@ -3,5 +3,8 @@
     <%= h(memo_time_label(memo.created_at)) %>
   </time>
   <p class="memo-card__body"><%= h(memo_excerpt(memo.body)) %></p>
-  <a href="/memos/<%= h(memo.id) %>/promote_to_note" class="memo-card__promote" title="필기로 승격">↗</a>
+  <span class="memo-card__actions">
+    <a href="/memos/<%= h(memo.id) %>/promote_to_note" class="memo-card__promote" title="필기로 승격">📝</a>
+    <a href="/memos/<%= h(memo.id) %>/promote_to_record" class="memo-card__promote" title="기록으로 승격">📖</a>
+  </span>
 </li>

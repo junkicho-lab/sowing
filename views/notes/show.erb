@@ -30,6 +30,9 @@
 
   <footer class="note-show__footer">
     <a href="/notes" class="button button--secondary">← 목록으로</a>
-    <a href="/notes/<%= h(@note.id) %>/edit" class="button button--primary">편집</a>
+    <span class="note-show__footer-actions">
+      <a href="/notes/<%= h(@note.id) %>/promote_to_record" class="button button--secondary" title="이 필기를 영구 보관용 기록으로 키웁니다">📖 기록으로 승격</a>
+      <a href="/notes/<%= h(@note.id) %>/edit" class="button button--primary">편집</a>
+    </span>
   </footer>
 </article>

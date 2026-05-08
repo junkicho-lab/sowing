@@ -1,0 +1,46 @@
+<section class="notes-new">
+  <header class="notes-new__header">
+    <h1>기록으로 승격</h1>
+    <p class="notes-new__hint">필기를 기록(영구 보관)으로 키웁니다 — 같은 ID·작성 시각·본문·태그는 그대로, 카테고리·제목을 부여합니다. 옛 필기는 휴지통으로 이동.</p>
+  </header>
+
+  <% if @error %>
+    <div class="alert alert--error" role="alert"><%= h(@error) %></div>
+  <% end %>
+
+  <details class="promote-source">
+    <summary>원본 필기 정보 보기</summary>
+    <p class="promote-source__path">제목: <strong><%= h(@note.title) %></strong></p>
+    <p class="promote-source__path">분류: <code><%= h(category_label(@note.category)) %></code> · 출처: <%= h(@note.source) %></p>
+    <p class="promote-source__path">작성: <code><%= h(@note.created_at.strftime("%Y-%m-%d %H:%M:%S")) %></code></p>
+    <pre class="promote-source__body"><%= h(memo_excerpt(@note.body, 240)) %></pre>
+  </details>
+
+  <form action="/notes/<%= h(@note.id) %>/promote_to_record" method="post" class="note-form">
+    <div class="field">
+      <label for="record_title">제목 <span class="required">*</span></label>
+      <input type="text" id="record_title" name="title" value="<%= h(@form[:title]) %>" required autofocus autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="record_category">카테고리 <span class="required">*</span></label>
+      <input type="text" id="record_category" name="category" value="<%= h(@form[:category]) %>"
+             list="record_categories_datalist" placeholder="예: 학급운영, 수업철학, 연구" required autocomplete="off">
+      <datalist id="record_categories_datalist">
+        <% (@categories || []).each do |c| %>
+          <option value="<%= h(c) %>">
+        <% end %>
+      </datalist>
+    </div>
+
+    <div class="field">
+      <label for="record_tags">태그 (필기의 태그가 미리 채워짐)</label>
+      <input type="text" id="record_tags" name="tags" value="<%= h(@form[:tags]) %>" placeholder="공백 또는 쉼표로 구분" autocomplete="off">
+    </div>
+
+    <div class="form-actions">
+      <a href="/notes/<%= h(@note.id) %>" class="button button--secondary">취소</a>
+      <button type="submit" class="button button--primary">기록으로 승격</button>
+    </div>
+  </form>
+</section>

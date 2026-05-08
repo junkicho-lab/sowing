@@ -178,17 +178,27 @@ pre code {
   flex: 1;
 }
 
-.memo-card__promote {
+.memo-card__actions {
+  display: flex;
   flex-shrink: 0;
+  gap: 0.2rem;
+}
+.memo-card__promote {
   color: var(--color-muted);
   text-decoration: none;
-  font-size: 1.1rem;
-  padding: 0 0.4rem;
+  font-size: 1rem;
+  padding: 0.15rem 0.4rem;
   border-radius: 4px;
+  filter: grayscale(0.5);
 }
 .memo-card__promote:hover {
-  color: var(--color-primary);
   background: var(--color-code-bg);
+  filter: grayscale(0);
+}
+
+.note-show__footer-actions {
+  display: flex;
+  gap: var(--space-1);
 }
 
 /* 승격 폼의 원본 메모 보기 */
