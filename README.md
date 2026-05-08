@@ -36,7 +36,7 @@
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
-## 구현 현황 (Week 3 완료)
+## 구현 현황 (Week 4 완료)
 
 ### ✅ 동작하는 기능
 
@@ -52,8 +52,10 @@
   - 라이브 프리뷰: 좌-우 split, Turbo Stream + 300ms 디바운스, 서버 응답 ~2ms
   - **자동완성**: `[[` 위키링크 + `#` 태그 (CodeMirror, 200ms 디바운스)
   - **위키링크 그래프**: 인덱스 자동 동기화 (outbound + inbound + broken 추적), title 매칭 시 자동 re-link
+  - **검색** (`/search`): FTS5 trigram + 한국어 LIKE 폴백 (자동 라우팅), 모드/카테고리/태그/날짜 범위 AND 결합, 5,000건 < 500ms
+  - **빠른 검색 모달**: `Cmd/Ctrl+K` 글로벌 단축키, 200ms 디바운스, ↑↓/Enter/Esc, 결과 클릭 시 navigate
 - **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`
-- **테스트**: `bundle exec rspec` (576건 통과)
+- **테스트**: `bundle exec rspec` (650건 통과)
 
 ### 구현된 컴포넌트
 
@@ -76,7 +78,7 @@
 | 모듈 | 설명 |
 |------|------|
 | `Repositories::VaultRepo` | `write/read/list/delete(→trash)/update(path 이동)` |
-| `Repositories::IndexRepo` + `IndexedEntry` | CRUD + tags 정규화 + category·date 검색 + paging + distinct categories + 위키링크 그래프 (outbound·inbound·broken·자동 re-link) + tag_cloud + complete/complete_tags |
+| `Repositories::IndexRepo` + `IndexedEntry` | CRUD + tags 정규화 + category·date 검색 + paging + distinct categories + 위키링크 그래프 (outbound·inbound·broken·자동 re-link) + tag_cloud + complete/complete_tags + `search_with_filters` (FTS5↔LIKE 자동 라우팅, 한글 비율 ≥ 30% → LIKE) |
 
 #### Use Case (Dry::Monads Result)
 | 모듈 | 설명 |
@@ -94,23 +96,23 @@
 | `Controllers::NotesController` | 6 actions + `promote_to_record` |
 | `Controllers::RecordsController` | 6 actions |
 | `Controllers::TagsController` | `GET /tags`, `GET /tags/:name` |
+| `Controllers::SearchController` | `GET /search` — q/mode/category/tag/from/to/page (AND 결합) |
 | `Controllers::PreviewController` | `POST /preview` Turbo Stream |
-| `Controllers::ApiController` | `GET /api/wiki_complete`, `GET /api/tag_complete` (JSON) |
+| `Controllers::ApiController` | `GET /api/wiki_complete`, `GET /api/tag_complete`, `GET /api/quick_search` (JSON) |
 
 #### Frontend (Hotwire — 빌드 도구 0)
 | 컨트롤러 | 역할 |
 |------|------|
 | `quick_memo_controller.js` (Stimulus) | 모달 + 단축키 + Turbo 제출 hook |
+| `quick_search_controller.js` (Stimulus) | 글로벌 `Cmd/Ctrl+K` + 200ms 디바운스 fetch + ↑↓/Enter/Esc 키보드 내비게이션 |
 | `editor_controller.js` (Stimulus) | CodeMirror 6 + textarea sync + `editor:input` event dispatch + 자동완성 (위키링크 + 태그) |
 | `preview_controller.js` (Stimulus) | 디바운스 + fetch + `Turbo.renderStreamMessage` |
 
-### 미구현 (Week 4 이후)
+### 미구현 (Week 5 이후)
 
-- 전문 검색 (FTS5 trigram 토크나이저 + 한국어 LIKE 폴백 — W4-T01~T02)
-- 검색 UI + 한국어 검색 정확도 측정 (W4-T03~T05)
-- 태그·날짜 통계·대시보드 위젯 (W5)
-- 옵시디언 ↔ 본 앱 동기화 (파일 watcher — W6)
-- 백업·복구 (W7)
+- 옵시디언 ↔ 본 앱 동기화 (파일 watcher — W5)
+- 대시보드 + 통계 + 템플릿 (W6)
+- 온보딩 + 샘플 콘텐츠 + 동기화 가이드 (W7)
 - 패키징 (Tebako 단일 실행파일 — W8)
 
 상세 일정은 [ROADMAP.md](ROADMAP.md) 참조.

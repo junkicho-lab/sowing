@@ -83,6 +83,20 @@ begin
     promoted_count = db[:entries].exclude(promoted_from: nil).count
     puts "  승격된 entries: #{promoted_count}건" if promoted_count > 0
   end
+
+  # FTS5 인덱스 정합성 (W4-T01).
+  if tables.include?(:entries_fts) && tables.include?(:entries)
+    fts_total = db[:entries_fts].count
+    entries_total = db[:entries].count
+    if fts_total == entries_total
+      puts "  ✅ FTS5 entries_fts: #{fts_total}건 (entries와 일치)"
+    else
+      diff = entries_total - fts_total
+      puts "  ⚠  FTS5 entries_fts: #{fts_total}건 vs entries #{entries_total}건 (차이 #{diff}) — IndexRepo 동기화 누락 가능"
+    end
+  elsif tables.include?(:entries) && !tables.include?(:entries_fts)
+    puts "  ⚠  FTS5 entries_fts 테이블 없음 — bundle exec rake db:setup 필요"
+  end
 rescue => e
   puts "  ❌ 연결 실패: #{e.message}"
 end
