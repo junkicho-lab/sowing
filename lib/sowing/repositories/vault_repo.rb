@@ -24,6 +24,8 @@ module Sowing
       ILLEGAL_FILENAME_CHARS = %r{[\\/<>:"|?*\x00-\x1F]}
       MAX_COLLISION_RETRIES = 999
 
+      attr_reader :vault_dir
+
       def initialize(vault_dir:,
         safe_writer: Infrastructure::Filesystem::SafeWriter.new,
         parser: Infrastructure::Markdown::Parser.new,
