@@ -6,6 +6,7 @@
 class Sowing::Application
   # 사용자 향 화면. 마운트 순서가 매칭 우선순위.
   use Sowing::Controllers::OnboardingController
+  use Sowing::Controllers::TutorialController
   use Sowing::Controllers::DashboardController
   use Sowing::Controllers::MemosController
   use Sowing::Controllers::NotesController

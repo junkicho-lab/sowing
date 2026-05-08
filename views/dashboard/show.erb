@@ -2,6 +2,16 @@
   <h1>안녕하세요 👋</h1>
   <p class="dashboard__date">오늘은 <%= korean_today %>입니다.</p>
 
+  <% unless @tutorial_completed %>
+    <aside class="dashboard__tutorial-cta">
+      <p>
+        🌱 <strong>처음이신가요?</strong>
+        3분짜리 인터랙티브 튜토리얼로 메모·필기·기록의 흐름을 익혀 보세요.
+      </p>
+      <a href="/tutorial" class="button button--primary">튜토리얼 시작 →</a>
+    </aside>
+  <% end %>
+
   <section class="stats" aria-labelledby="stats_heading">
     <h2 id="stats_heading" class="visually-hidden">기록 통계</h2>
     <ul class="stats__grid">

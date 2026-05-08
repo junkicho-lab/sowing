@@ -1,0 +1,104 @@
+<section class="tutorial">
+  <header class="tutorial__header">
+    <p class="tutorial__crumb"><a href="/">← 대시보드</a></p>
+    <h1>첫 메모 튜토리얼</h1>
+    <p class="tutorial__lede">
+      3분이면 메모 → 필기 → 기록의 흐름을 익힐 수 있어요.
+      각 단계를 직접 해보면 자동으로 다음으로 넘어갑니다.
+    </p>
+  </header>
+
+  <nav class="tutorial__progress" aria-label="진행 단계">
+    <ol class="tutorial__steps">
+      <% (1..@step_total).each do |i| %>
+        <li class="tutorial__step <%= 'tutorial__step--current' if i == @step %> <%= 'tutorial__step--done' if i < @step %>">
+          <span class="tutorial__step-num"><%= i %></span>
+          <span class="tutorial__step-label">
+            <%= ["메모", "필기 승격", "기록 승격", "완료"][i - 1] %>
+          </span>
+        </li>
+      <% end %>
+    </ol>
+  </nav>
+
+  <article class="tutorial__card">
+    <% if @step == 1 %>
+      <h2>1단계 · 빠른 메모 한 줄</h2>
+      <p>가장 가벼운 단계예요. 떠오른 생각을 한 줄로 남깁니다.</p>
+      <ul class="tutorial__hints">
+        <li>단축키: <kbd>⌘</kbd>·<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd></li>
+        <li>모달이 뜨면 한 줄 적고 <kbd>⌘</kbd>·<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 로 저장</li>
+        <li>예: "오늘 1교시 학생들이 활기차게 토론했다"</li>
+      </ul>
+      <div class="tutorial__actions">
+        <a href="/" class="button button--primary">대시보드로 가서 메모 남기기 →</a>
+        <form action="/tutorial/next" method="post" style="display:inline">
+          <button type="submit" class="button button--secondary">건너뛰고 다음 →</button>
+        </form>
+      </div>
+
+    <% elsif @step == 2 %>
+      <h2>2단계 · 메모를 필기로 승격</h2>
+      <p>중요한 메모는 <strong>필기</strong>로 정리해 두세요. 카테고리·태그·제목이 붙어 검색·재방문이 쉬워집니다.</p>
+      <ul class="tutorial__hints">
+        <li>메모 목록에서 메모 옆 <strong>📝</strong> 아이콘 클릭</li>
+        <li>제목·카테고리(수업/연수/도서/회의)·출처를 채워 저장</li>
+        <li>승격된 필기는 원래 메모와 <code>promoted_from</code> 으로 연결됩니다</li>
+      </ul>
+      <div class="tutorial__actions">
+        <a href="/memos" class="button button--primary">메모 목록으로 →</a>
+        <form action="/tutorial/next" method="post" style="display:inline">
+          <button type="submit" class="button button--secondary">건너뛰고 다음 →</button>
+        </form>
+      </div>
+
+    <% elsif @step == 3 %>
+      <h2>3단계 · 필기·메모를 기록으로</h2>
+      <p>한 학기·한 해를 살아낸 흔적은 <strong>기록</strong>으로 남깁니다. 회고·평가·중요한 순간이 여기에 모여요.</p>
+      <ul class="tutorial__hints">
+        <li>필기·메모에서 <strong>📖</strong> 아이콘으로 기록 승격</li>
+        <li>카테고리는 자유 텍스트 (학급운영, 수업회고, 평가 등)</li>
+        <li>저장 위치: <code>30_Records/{YYYY}/{카테고리}/</code></li>
+      </ul>
+      <div class="tutorial__actions">
+        <a href="/notes" class="button button--primary">필기 목록으로 →</a>
+        <form action="/tutorial/next" method="post" style="display:inline">
+          <button type="submit" class="button button--secondary">건너뛰고 다음 →</button>
+        </form>
+      </div>
+
+    <% elsif @step == 4 %>
+      <h2>4단계 · 준비가 끝났어요 🌱</h2>
+      <% if @completed_at %>
+        <p>축하합니다! 메모 → 필기 → 기록의 한 사이클을 모두 경험하셨습니다.</p>
+      <% else %>
+        <p>마지막 단계입니다. 아래 버튼으로 튜토리얼을 마무리하세요.</p>
+      <% end %>
+      <ul class="tutorial__hints">
+        <li><kbd>⌘</kbd>·<kbd>Ctrl</kbd> + <kbd>K</kbd> 로 어디서든 검색</li>
+        <li><a href="/templates">/templates</a> — 12종 교사 템플릿 활용</li>
+        <li><a href="/tags">/tags</a> — 자주 쓰는 태그로 빠르게 이동</li>
+        <li>대시보드의 🌱 씨앗-숲은 누적 entry로 자라납니다</li>
+      </ul>
+      <div class="tutorial__actions">
+        <% unless @completed_at %>
+          <form action="/tutorial/next" method="post" style="display:inline">
+            <button type="submit" class="button button--primary">완료 ✓</button>
+          </form>
+        <% end %>
+        <a href="/" class="button <%= @completed_at ? 'button--primary' : 'button--secondary' %>">대시보드로 가기 →</a>
+        <% if @completed_at %>
+          <form action="/tutorial/restart" method="post" style="display:inline">
+            <button type="submit" class="button button--secondary">처음부터 다시</button>
+          </form>
+        <% end %>
+      </div>
+    <% end %>
+  </article>
+
+  <footer class="tutorial__footer">
+    <form action="/tutorial/skip" method="post">
+      <button type="submit" class="button button--ghost">전체 건너뛰기 (나중에 다시 볼 수 있어요)</button>
+    </form>
+  </footer>
+</section>

@@ -1647,3 +1647,122 @@ pre code {
   color: var(--color-primary);
   margin: var(--space-2) 0;
 }
+
+/* Tutorial (W7-T04) */
+
+.tutorial { max-width: 42rem; margin: 0 auto; }
+.tutorial__header { margin-bottom: var(--space-3); }
+.tutorial__crumb { margin: 0 0 var(--space-2); font-size: 0.9rem; }
+.tutorial__crumb a { color: var(--color-muted); text-decoration: none; }
+.tutorial__crumb a:hover { color: var(--color-primary); }
+
+.tutorial__lede {
+  color: var(--color-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.tutorial__progress { margin-bottom: var(--space-3); }
+.tutorial__steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-1);
+  padding: 0;
+  margin: 0;
+}
+.tutorial__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: var(--space-1);
+  text-align: center;
+}
+.tutorial__step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-muted);
+  font-weight: 600;
+}
+.tutorial__step--current .tutorial__step-num {
+  background: var(--color-primary);
+  color: white;
+}
+.tutorial__step--done .tutorial__step-num {
+  background: rgba(45, 95, 63, 0.2);
+  color: var(--color-primary);
+}
+.tutorial__step-label {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+.tutorial__step--current .tutorial__step-label {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.tutorial__card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+.tutorial__card h2 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: 1.3rem;
+}
+
+.tutorial__hints {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-2) 0 var(--space-3);
+}
+.tutorial__hints li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.tutorial__hints li:last-child { border-bottom: none; }
+
+.tutorial__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  margin-top: var(--space-3);
+}
+
+.tutorial__footer {
+  text-align: center;
+  margin-top: var(--space-3);
+}
+
+.button--ghost {
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  color: var(--color-muted);
+}
+.button--ghost:hover {
+  background: var(--color-code-bg);
+  color: var(--color-text);
+}
+
+/* Dashboard tutorial CTA */
+.dashboard__tutorial-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-3) 0;
+  background: rgba(45, 95, 63, 0.06);
+  border: 1px solid rgba(45, 95, 63, 0.15);
+  border-radius: var(--radius);
+}
+.dashboard__tutorial-cta p { margin: 0; flex: 1; }

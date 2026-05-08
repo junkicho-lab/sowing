@@ -46,6 +46,7 @@ module Sowing
         @month_count = stats_repo.this_month
         @streak = stats_repo.current_streak
         @growth = Domain::ValueObjects::GrowthStage.new(stats_repo.total_all_time)
+        @tutorial_completed = !Infrastructure::Settings.load["tutorial_completed_at"].nil?
         erb :"dashboard/show", layout: :"layouts/application"
       end
     end

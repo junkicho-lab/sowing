@@ -18,7 +18,9 @@ module Sowing
         "user_name" => nil,
         "vault_consent" => nil,
         "sample_consent" => nil,
-        "completed_at" => nil
+        "completed_at" => nil,
+        "tutorial_step" => 1,
+        "tutorial_completed_at" => nil
       }.freeze
 
       module_function
