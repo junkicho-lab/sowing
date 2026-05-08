@@ -46,6 +46,28 @@ module Sowing
         {tags: tags}.to_json
       end
 
+      # 통합 빠른 검색 (W4-T04, Cmd/Ctrl+K 모달용).
+      # search_with_filters로 본문까지 검색 (한글 비율 자동 라우팅 FTS↔LIKE).
+      # 응답에 url 필드 추가 (모달 클릭 시 navigate target).
+      get "/api/quick_search" do
+        content_type :json
+        q = params["q"].to_s.strip
+        results = if q.empty?
+          []
+        else
+          index_repo.search_with_filters(q: q, limit: LIMIT).map do |entry|
+            {
+              path: entry.path,
+              title: indexed_display_title(entry),
+              mode: entry.mode.to_s,
+              icon: ICONS[entry.mode.to_s],
+              url: entry_url_for(entry)
+            }
+          end
+        end
+        {results: results}.to_json
+      end
+
       private
 
       # ADR-004: memo는 title이 없으므로 본문 첫 60자를 "(메모) ..." 형식으로 표시.
@@ -55,6 +77,24 @@ module Sowing
           "(메모) #{excerpt}"
         else
           row[:title].to_s
+        end
+      end
+
+      # IndexedEntry 버전. memo는 title이 nil 가능 → body 첫 60자.
+      def indexed_display_title(entry)
+        if entry.mode == :memo
+          excerpt = read_memo_body(entry.path).strip[0, MEMO_EXCERPT_LIMIT].to_s
+          "(메모) #{excerpt}"
+        else
+          entry.title.to_s
+        end
+      end
+
+      def entry_url_for(entry)
+        case entry.mode
+        when :note then "/notes/#{entry.id}"
+        when :record then "/records/#{entry.id}"
+        else "/memos" # 메모 개별 show 없음 — 목록으로 fallback
         end
       end
 

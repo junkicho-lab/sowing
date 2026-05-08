@@ -1,0 +1,28 @@
+<dialog id="quick_search_modal"
+        class="quick-search"
+        data-controller="quick-search"
+        data-quick-search-target="dialog"
+        aria-labelledby="quick_search_title">
+  <header class="quick-search__header">
+    <h2 id="quick_search_title" class="visually-hidden">빠른 검색</h2>
+    <input type="search"
+           class="quick-search__input"
+           data-quick-search-target="input"
+           data-action="input->quick-search#onInput keydown->quick-search#onKey"
+           placeholder="🔍 메모/필기/기록 검색…"
+           autocomplete="off"
+           spellcheck="false">
+    <button type="button"
+            class="quick-search__close"
+            aria-label="닫기"
+            data-action="click->quick-search#close">✕</button>
+  </header>
+
+  <ul class="quick-search__results" data-quick-search-target="results"></ul>
+
+  <footer class="quick-search__footer">
+    <span class="quick-search__hint">
+      <kbd>↑</kbd><kbd>↓</kbd> 이동 · <kbd>Enter</kbd> 열기 · <kbd>Esc</kbd> 닫기
+    </span>
+  </footer>
+</dialog>

@@ -19,6 +19,7 @@
       "@hotwired/turbo": "https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-esm.js",
       "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js",
       "controllers/quick_memo": "/js/controllers/quick_memo_controller.js",
+      "controllers/quick_search": "/js/controllers/quick_search_controller.js",
       "controllers/editor": "/js/controllers/editor_controller.js",
       "controllers/preview": "/js/controllers/preview_controller.js",
       "codemirror": "https://esm.sh/codemirror@6.0.1",
@@ -31,11 +32,13 @@
     import "@hotwired/turbo"
     import { Application } from "@hotwired/stimulus"
     import QuickMemoController from "controllers/quick_memo"
+    import QuickSearchController from "controllers/quick_search"
     import EditorController from "controllers/editor"
     import PreviewController from "controllers/preview"
 
     const stimulus = Application.start()
     stimulus.register("quick-memo", QuickMemoController)
+    stimulus.register("quick-search", QuickSearchController)
     stimulus.register("editor", EditorController)
     stimulus.register("preview", PreviewController)
     window.Stimulus = stimulus
@@ -56,5 +59,6 @@
   <main><%= yield %></main>
 
   <%= erb :"memos/_quick_modal", layout: false %>
+  <%= erb :"shared/_quick_search_modal", layout: false %>
 </body>
 </html>
