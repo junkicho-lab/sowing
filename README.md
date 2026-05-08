@@ -36,7 +36,7 @@
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
-## 구현 현황 (Week 2 완료)
+## 구현 현황 (Week 3 완료)
 
 ### ✅ 동작하는 기능
 
@@ -46,10 +46,14 @@
   - 메모 목록 (`/memos`): 페이지네이션 30건/page, 100건 < 200ms
   - 필기 CRUD (`/notes`): 카테고리 4종(수업/연수/도서/회의) + 출처 필수 + 편집 시 path 이동(휴지통 보존)
   - 기록 CRUD (`/records`): 자유 카테고리 + datalist + `30_Records/{YYYY}/{category}/` + promoted_from
+  - 태그 시스템 (`/tags`): frontmatter ∪ 본문 `#태그` 자동 인덱싱 + 태그 클라우드 + 태그별 entries
+  - **승격 흐름**: 메모 → 필기 (`/memos/:id/promote_to_note`) / 메모 → 기록 / 필기 → 기록 — ULID 유지, promoted_from 자동, 옛 파일 휴지통
   - 마크다운 에디터: CodeMirror 6 (line wrapping, syntax highlight, basicSetup)
   - 라이브 프리뷰: 좌-우 split, Turbo Stream + 300ms 디바운스, 서버 응답 ~2ms
+  - **자동완성**: `[[` 위키링크 + `#` 태그 (CodeMirror, 200ms 디바운스)
+  - **위키링크 그래프**: 인덱스 자동 동기화 (outbound + inbound + broken 추적), title 매칭 시 자동 re-link
 - **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`
-- **테스트**: `bundle exec rspec` (387건 통과)
+- **테스트**: `bundle exec rspec` (576건 통과)
 
 ### 구현된 컴포넌트
 
@@ -64,44 +68,49 @@
 |------|------|
 | `Filesystem::SafeWriter` | 원자적 쓰기 (tempfile + rename), NFC 정규화, chaos test 통과 |
 | `Markdown::{Parser, Serializer, ParsedDocument}` | front_matter_parser 래핑, round-trip 검증 |
+| `Markdown::WikiLink` | `[[target]]` / `[[target\|alias]]` 추출·렌더 (옵시디언 호환) |
+| `Markdown::Hashtag` | 본문 `#태그` 추출 (Crockford 호환 + digit-only 거부) |
 | `Paths`, `DB` | OS별 경로, Sequel + SQLite 연결 (PRAGMA WAL/foreign_keys) |
 
 #### Repository (단방향 의존 — Domain → Repo → Infra)
 | 모듈 | 설명 |
 |------|------|
 | `Repositories::VaultRepo` | `write/read/list/delete(→trash)/update(path 이동)` |
-| `Repositories::IndexRepo` + `IndexedEntry` | CRUD + tags 정규화 + category·date 검색 + paging + distinct categories |
+| `Repositories::IndexRepo` + `IndexedEntry` | CRUD + tags 정규화 + category·date 검색 + paging + distinct categories + 위키링크 그래프 (outbound·inbound·broken·자동 re-link) + tag_cloud + complete/complete_tags |
 
 #### Use Case (Dry::Monads Result)
 | 모듈 | 설명 |
 |------|------|
 | `UseCases::Persistence` | 공통 mixin: `persist!` / `repersist!` / `update_index!` |
-| `UseCases::{Create,Update}{Memo,Note,Record}` | 5개 Use Case (Memo는 Update 미구현) |
+| `UseCases::{Create,Update}{Memo,Note,Record}` | 5개 CRUD Use Case (Memo는 Update 미구현) |
+| `UseCases::{PromoteToNote, PromoteToRecord}` | 메모/필기 승격 — ID 유지, path 이동, promoted_from 자동 |
 
 #### Web (Sinatra modular)
 | 모듈 | 라우트 |
 |------|------|
 | `Controllers::ApplicationController` | base — views/public/helpers (markdown, escape, 한국어 날짜) |
 | `Controllers::DashboardController` | `GET /` |
-| `Controllers::MemosController` | `GET/POST /memos`, `POST` Turbo Stream |
-| `Controllers::NotesController` | 6 actions (`index/new/create/show/edit/update`) |
+| `Controllers::MemosController` | `GET/POST /memos`, `POST` Turbo Stream + 승격 라우트 (`promote_to_note`/`promote_to_record`) |
+| `Controllers::NotesController` | 6 actions + `promote_to_record` |
 | `Controllers::RecordsController` | 6 actions |
+| `Controllers::TagsController` | `GET /tags`, `GET /tags/:name` |
 | `Controllers::PreviewController` | `POST /preview` Turbo Stream |
+| `Controllers::ApiController` | `GET /api/wiki_complete`, `GET /api/tag_complete` (JSON) |
 
 #### Frontend (Hotwire — 빌드 도구 0)
 | 컨트롤러 | 역할 |
 |------|------|
 | `quick_memo_controller.js` (Stimulus) | 모달 + 단축키 + Turbo 제출 hook |
-| `editor_controller.js` (Stimulus) | CodeMirror 6 + textarea sync + `editor:input` event dispatch |
+| `editor_controller.js` (Stimulus) | CodeMirror 6 + textarea sync + `editor:input` event dispatch + 자동완성 (위키링크 + 태그) |
 | `preview_controller.js` (Stimulus) | 디바운스 + fetch + `Turbo.renderStreamMessage` |
 
-### 미구현 (Week 3 이후)
+### 미구현 (Week 4 이후)
 
-- 위키링크 `[[link]]`·`[[link\|alias]]` 파서·렌더러·그래프 (W3-T01~02)
-- 위키링크 자동완성 (W3-T03~04)
-- 태그 페이지 + 메모 → 필기/기록 승격 UI (W3-T05~07)
-- 전문 검색 (FTS5, 한국어 토큰화 — W4)
-- 옵시디언 ↔ 본 앱 동기화 (파일 watcher — W5+)
+- 전문 검색 (FTS5 trigram 토크나이저 + 한국어 LIKE 폴백 — W4-T01~T02)
+- 검색 UI + 한국어 검색 정확도 측정 (W4-T03~T05)
+- 태그·날짜 통계·대시보드 위젯 (W5)
+- 옵시디언 ↔ 본 앱 동기화 (파일 watcher — W6)
+- 백업·복구 (W7)
 - 패키징 (Tebako 단일 실행파일 — W8)
 
 상세 일정은 [ROADMAP.md](ROADMAP.md) 참조.

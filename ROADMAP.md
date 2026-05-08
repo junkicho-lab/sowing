@@ -194,7 +194,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 
 ## Week 3: 승격 + 위키링크 + 태그
 
-### [ ] W3-T01: 위키링크 파서·렌더러
+### [x] W3-T01: 위키링크 파서·렌더러 — 완료 (2026-05-08, 커밋 e0c75c5)
 - **출력**:
   - `lib/sowing/infrastructure/markdown/wiki_link.rb`
   - 본문에서 `[[link]]`, `[[link|alias]]` 추출
@@ -203,7 +203,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: spec/compatibility 의 wiki link 케이스 통과
 - **선행**: W2 전체
 
-### [ ] W3-T02: 위키링크 그래프 인덱스
+### [x] W3-T02: 위키링크 그래프 인덱스 — 완료 (2026-05-08, 커밋 af78203)
 - **출력**:
   - `db/migrations/002_create_links.rb`
   - `IndexRepo#upsert_links(entry_id, [...])`
@@ -211,7 +211,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: 링크 추가·제거 시 그래프 갱신
 - **선행**: W3-T01
 
-### [ ] W3-T03: 위키링크 자동완성 API
+### [x] W3-T03: 위키링크 자동완성 API — 완료 (2026-05-08, 커밋 0689196)
 - **출력**:
   - `GET /api/wiki_complete?q=` 엔드포인트
   - 메모/필기/기록 모두 후보에 포함 (ADR-004)
@@ -219,14 +219,14 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: 응답 < 100ms (10,000건 기준), 결과 형식이 ADR-004 명세 준수
 - **선행**: W3-T02
 
-### [ ] W3-T04: CodeMirror 위키링크 자동완성
+### [x] W3-T04: CodeMirror 위키링크 자동완성 — 완료 (2026-05-08, 커밋 b84f345)
 - **출력**:
   - `public/js/controllers/editor_controller.js` 확장
   - `[[` 입력 시 200ms 디바운스 후 자동완성 팝업
 - **검증**: UX 시나리오 통과 (입력 → 후보 → Tab으로 선택 → 닫힘)
 - **선행**: W3-T03
 
-### [ ] W3-T05: 태그 시스템
+### [x] W3-T05: 태그 시스템 — 완료 (2026-05-08, 커밋 5183f51, 003_create_tags 마이그레이션은 W1-T07에 002로 선행)
 - **출력**:
   - `db/migrations/003_create_tags.rb`
   - 본문 `#태그` + frontmatter `tags` 양쪽 추출
@@ -235,7 +235,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: 모든 곳에서 태그 검색·필터 동작
 - **선행**: W2 전체
 
-### [ ] W3-T06: 메모 → 필기 승격
+### [x] W3-T06: 메모 → 필기 승격 — 완료 (2026-05-08, 커밋 4e54114)
 - **출력**:
   - `lib/sowing/use_cases/promote_to_note.rb`
   - 카테고리·출처 입력 다이얼로그
@@ -247,7 +247,7 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - SQLite 인덱스 갱신
 - **선행**: W2 전체
 
-### [ ] W3-T07: 필기·메모 → 기록 승격
+### [x] W3-T07: 필기·메모 → 기록 승격 — 완료 (2026-05-08, 커밋 bb717e5) **🎯 W3 마일스톤 달성**
 - **출력**: W3-T06 패턴으로 `promote_to_record.rb`
 - **검증**: 동일
 - **선행**: W3-T06

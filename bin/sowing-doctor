@@ -64,6 +64,25 @@ begin
       top.each { |row| puts "    · #{row[:name]} (#{row[:count]}회 사용)" }
     end
   end
+
+  if tables.include?(:links)
+    link_total = db[:links].count
+    broken_count = db[:links].where(target_id: nil).count
+    puts "  links 총 #{link_total}건 (broken #{broken_count}건)"
+    if broken_count > 0
+      top_broken = db[:links].where(target_id: nil)
+        .group_and_count(:target_text)
+        .order(Sequel.desc(:count))
+        .limit(5)
+        .all
+      top_broken.each { |row| puts "    ⚠  [[#{row[:target_text]}]] (#{row[:count]}회 깨짐)" }
+    end
+  end
+
+  if tables.include?(:entries)
+    promoted_count = db[:entries].exclude(promoted_from: nil).count
+    puts "  승격된 entries: #{promoted_count}건" if promoted_count > 0
+  end
 rescue => e
   puts "  ❌ 연결 실패: #{e.message}"
 end
