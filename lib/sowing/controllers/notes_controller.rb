@@ -60,6 +60,15 @@ module Sowing
             nil
           end
         end
+
+        # id로 Note를 찾는다. 없거나 mode 불일치/파일 누락이면 nil.
+        def find_note(id)
+          indexed = index_repo.find(id)
+          return nil if indexed.nil? || indexed.mode != :note
+          vault_repo.read(indexed.path)
+        rescue Errno::ENOENT
+          nil
+        end
       end
 
       get "/notes" do
@@ -79,6 +88,19 @@ module Sowing
         @form = empty_form
         @error = nil
         erb :"notes/new", layout: :"layouts/application"
+      end
+
+      get "/notes/:id" do
+        @note = find_note(params["id"])
+        if @note.nil?
+          status 404
+          @page_title = "찾을 수 없음"
+          @message = "필기를 찾을 수 없습니다."
+          halt erb(:"errors/404", layout: :"layouts/application")
+        end
+
+        @page_title = @note.title
+        erb :"notes/show", layout: :"layouts/application"
       end
 
       post "/notes" do

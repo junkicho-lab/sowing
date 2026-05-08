@@ -3,7 +3,9 @@
     <span class="note-card__category note-card__category--<%= h(note.category) %>"><%= h(category_label(note.category)) %></span>
     <time class="note-card__time" datetime="<%= h(note.created_at.iso8601) %>"><%= h(memo_time_label(note.created_at)) %></time>
   </div>
-  <h3 class="note-card__title"><%= h(note.title) %></h3>
+  <h3 class="note-card__title">
+    <a href="/notes/<%= h(note.id) %>" class="note-card__link"><%= h(note.title) %></a>
+  </h3>
   <p class="note-card__source">출처: <%= h(note.source) %></p>
   <p class="note-card__body"><%= h(memo_excerpt(note.body, 140)) %></p>
 </li>

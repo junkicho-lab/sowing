@@ -1,0 +1,34 @@
+<article class="note-show" aria-labelledby="note_show_title">
+  <header class="note-show__header">
+    <div class="note-show__meta">
+      <a href="/notes?category=<%= h(@note.category) %>"
+         class="note-card__category note-card__category--<%= h(@note.category) %>"><%= h(category_label(@note.category)) %></a>
+      <time class="note-show__time" datetime="<%= h(@note.created_at.iso8601) %>">
+        <%= h(@note.created_at.strftime("%Y년 %-m월 %-d일")) %>
+        <% if @note.updated_at && @note.updated_at != @note.created_at %>
+          (수정 <%= h(@note.updated_at.strftime("%Y-%m-%d")) %>)
+        <% end %>
+      </time>
+    </div>
+
+    <h1 id="note_show_title" class="note-show__title"><%= h(@note.title) %></h1>
+
+    <p class="note-show__source"><span class="note-show__source-label">출처</span> <%= h(@note.source) %></p>
+
+    <% unless @note.tags.empty? %>
+      <ul class="note-show__tags" aria-label="태그">
+        <% @note.tags.each do |tag| %>
+          <li class="note-show__tag">#<%= h(tag) %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  </header>
+
+  <div class="note-show__body prose">
+    <%= markdown_to_html(@note.body) %>
+  </div>
+
+  <footer class="note-show__footer">
+    <a href="/notes" class="button button--secondary">← 목록으로</a>
+  </footer>
+</article>

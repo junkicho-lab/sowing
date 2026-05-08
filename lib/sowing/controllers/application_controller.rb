@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "sinatra/base"
+require "commonmarker"
 
 module Sowing
   module Controllers
@@ -48,6 +49,22 @@ module Sowing
         # 본 헬퍼는 데모용 — 실제 ERB는 자동 escape를 위해 <%= h(...) %> 또는 erb -%> 사용.
         def h(text)
           Rack::Utils.escape_html(text.to_s)
+        end
+
+        # 옵시디언 호환 마크다운 → HTML.
+        # - 헤더 앵커 비활성 (옵시디언 native 동작과 일치, 본문 깔끔)
+        # - syntax highlighter 비활성 — 인라인 style 대신 우리 CSS로 통제
+        # - render.unsafe: false — 사용자 입력의 raw <script> 차단 (CLAUDE.md 보안)
+        # - 위키링크 [[link]]는 commonmarker가 처리하지 않음 → plain text. W3-T01에서 별도 파서.
+        def markdown_to_html(text)
+          Commonmarker.to_html(
+            text.to_s,
+            options: {
+              extension: {header_ids: nil},
+              render: {unsafe: false}
+            },
+            plugins: {syntax_highlighter: nil}
+          )
         end
       end
     end
