@@ -1,0 +1,143 @@
+/*
+ * Sowing 디자인 토큰 + 기본 스타일.
+ * SPEC §10.4 색상·타이포그래피 준수 (씨앗-숲 자연 톤).
+ */
+
+:root {
+  /* Color palette */
+  --color-primary: #2D5F3F;     /* deep forest green */
+  --color-accent: #D4A574;      /* warm seed gold */
+  --color-bg: #FAF8F3;          /* warm paper */
+  --color-text: #2A2A2A;
+  --color-muted: #6B6B6B;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-code-bg: rgba(45, 95, 63, 0.06);
+
+  /* Typography */
+  --font-body: "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --line-height-body: 1.7;
+
+  /* Layout */
+  --container-max: 960px;
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-5: 3rem;
+  --radius: 6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: var(--line-height-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Header / nav */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.app-header .brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.app-header nav {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.app-header nav a {
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.app-header nav a:hover { color: var(--color-primary); }
+.app-header nav a[aria-disabled="true"] { color: var(--color-muted); cursor: not-allowed; }
+
+/* Main */
+
+main {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+/* Dashboard */
+
+.dashboard h1 {
+  color: var(--color-primary);
+  margin: 0 0 var(--space-2) 0;
+  font-size: 1.75rem;
+}
+
+.dashboard__date {
+  color: var(--color-muted);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* Empty state */
+
+.empty-state {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.empty-state h2 {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--color-primary);
+  font-size: 1.25rem;
+}
+
+.empty-state__hint {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  margin: var(--space-2) 0;
+}
+
+/* Code */
+
+code, pre {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+code {
+  background: var(--color-code-bg);
+  padding: 0.125em 0.4em;
+  border-radius: 4px;
+}
+
+pre {
+  background: var(--color-code-bg);
+  padding: var(--space-2);
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+}

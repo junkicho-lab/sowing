@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title><%= page_title %></title>
+  <link rel="stylesheet" href="/css/application.css">
+
+  <!--
+    Hotwire (Turbo + Stimulus) CDN 로딩.
+    빌드 도구 없이 importmap으로 ESM 직접 import (CLAUDE.md: 빌드 도구 도입 금지).
+    importmap 미지원 브라우저용 polyfill로 es-module-shims 동봉.
+  -->
+  <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.min.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "@hotwired/turbo": "https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-esm.js",
+      "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js"
+    }
+  }
+  </script>
+  <script type="module">
+    import "@hotwired/turbo"
+    import { Application } from "@hotwired/stimulus"
+    window.Stimulus = Application.start()
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <a href="/" class="brand">Sowing 🌱</a>
+    <nav aria-label="주 메뉴">
+      <a href="/">홈</a>
+      <a href="#" aria-disabled="true">필기</a>
+      <a href="#" aria-disabled="true">기록</a>
+      <a href="#" aria-disabled="true">검색</a>
+    </nav>
+  </header>
+  <main><%= yield %></main>
+</body>
+</html>
