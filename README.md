@@ -36,7 +36,7 @@
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
-## 구현 현황 (Week 4 완료)
+## 구현 현황 (Week 5 완료)
 
 ### ✅ 동작하는 기능
 
@@ -54,8 +54,10 @@
   - **위키링크 그래프**: 인덱스 자동 동기화 (outbound + inbound + broken 추적), title 매칭 시 자동 re-link
   - **검색** (`/search`): FTS5 trigram + 한국어 LIKE 폴백 (자동 라우팅), 모드/카테고리/태그/날짜 범위 AND 결합, 5,000건 < 500ms
   - **빠른 검색 모달**: `Cmd/Ctrl+K` 글로벌 단축키, 200ms 디바운스, ↑↓/Enter/Esc, 결과 클릭 시 navigate
+  - **양방향 동기화**: Listen gem watcher + self-write 필터, 외부 편집 자동 인덱싱(ReindexEntry), frontmatter 없는 외부 파일 자동 입양(AdoptOrphan), 부팅 시 볼트↔인덱스 일관성 검증(ConsistencyCheck — 인덱스 wipe 후 자동 재구축)
+  - **충돌 처리**: 폼 로드 시 disk hash 캡처(낙관적 잠금), PATCH 시 mismatch면 409 + Keep Mine(외부본 `.sowing/conflicts/` 백업) / Keep Theirs / 취소
 - **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`
-- **테스트**: `bundle exec rspec` (650건 통과)
+- **테스트**: `bundle exec rspec` (719건 통과)
 
 ### 구현된 컴포넌트
 
@@ -68,7 +70,9 @@
 #### Infrastructure
 | 모듈 | 설명 |
 |------|------|
-| `Filesystem::SafeWriter` | 원자적 쓰기 (tempfile + rename), NFC 정규화, chaos test 통과 |
+| `Filesystem::SafeWriter` | 원자적 쓰기 (tempfile + rename), NFC 정규화, chaos test 통과 + self-write 등록 |
+| `Filesystem::SelfWriteRegistry` | TTL 2초 thread-safe 레지스트리 (macOS realpath + NFC 정규화) — watcher 자체 쓰기 무시 |
+| `Filesystem::FileWatcher` | Listen gem 래퍼 — `.md` only, `.sowing/` ignore, 500ms latency, force_polling 옵션 |
 | `Markdown::{Parser, Serializer, ParsedDocument}` | front_matter_parser 래핑, round-trip 검증 |
 | `Markdown::WikiLink` | `[[target]]` / `[[target\|alias]]` 추출·렌더 (옵시디언 호환) |
 | `Markdown::Hashtag` | 본문 `#태그` 추출 (Crockford 호환 + digit-only 거부) |
@@ -77,15 +81,19 @@
 #### Repository (단방향 의존 — Domain → Repo → Infra)
 | 모듈 | 설명 |
 |------|------|
-| `Repositories::VaultRepo` | `write/read/list/delete(→trash)/update(path 이동)` |
+| `Repositories::VaultRepo` | `write/read/list/delete(→trash)/update(path 이동)/file_hash/backup_conflict` |
 | `Repositories::IndexRepo` + `IndexedEntry` | CRUD + tags 정규화 + category·date 검색 + paging + distinct categories + 위키링크 그래프 (outbound·inbound·broken·자동 re-link) + tag_cloud + complete/complete_tags + `search_with_filters` (FTS5↔LIKE 자동 라우팅, 한글 비율 ≥ 30% → LIKE) |
 
 #### Use Case (Dry::Monads Result)
 | 모듈 | 설명 |
 |------|------|
 | `UseCases::Persistence` | 공통 mixin: `persist!` / `repersist!` / `update_index!` |
-| `UseCases::{Create,Update}{Memo,Note,Record}` | 5개 CRUD Use Case (Memo는 Update 미구현) |
+| `UseCases::{Create,Update}{Memo,Note,Record}` | 5개 CRUD Use Case (Memo는 Update 미구현) — Update*는 `expected_file_hash`로 낙관적 잠금 + `force` 시 `.sowing/conflicts/` 백업 |
 | `UseCases::{PromoteToNote, PromoteToRecord}` | 메모/필기 승격 — ID 유지, path 이동, promoted_from 자동 |
+| `UseCases::ReindexEntry` | 외부 변경(:added/:modified/:removed) → 인덱스 동기화, mtime+hash 비교로 unchanged 단축 |
+| `UseCases::AdoptOrphan` | frontmatter 없는 외부 파일 → path 기반 mode 추론 + ULID 부여 + in-place frontmatter 기록 |
+| `Sync::Coordinator` | watcher → ReindexEntry → AdoptOrphan 폴백 파이프라인 + subscribe broadcast hook |
+| `Sync::ConsistencyCheck` | 부팅 시 볼트 ↔ 인덱스 비교 → handle_event 합성 (wipe 후 재구축 검증됨) |
 
 #### Web (Sinatra modular)
 | 모듈 | 라우트 |
@@ -108,9 +116,8 @@
 | `editor_controller.js` (Stimulus) | CodeMirror 6 + textarea sync + `editor:input` event dispatch + 자동완성 (위키링크 + 태그) |
 | `preview_controller.js` (Stimulus) | 디바운스 + fetch + `Turbo.renderStreamMessage` |
 
-### 미구현 (Week 5 이후)
+### 미구현 (Week 6 이후)
 
-- 옵시디언 ↔ 본 앱 동기화 (파일 watcher — W5)
 - 대시보드 + 통계 + 템플릿 (W6)
 - 온보딩 + 샘플 콘텐츠 + 동기화 가이드 (W7)
 - 패키징 (Tebako 단일 실행파일 — W8)

@@ -144,11 +144,39 @@ puts "  휴지통 (.sowing/trash/): #{trash_count}건"
 
 # 7. 인덱스 ↔ 파일 정합성 (간단)
 if defined?(db) && db.tables.include?(:entries)
+  # md_count는 .sowing/(휴지통·충돌백업) 포함이므로 그것을 제외한 활성 파일 수만 비교.
+  active_md = md_count - trash_count
+  conflicts_dir = File.join(vault, ".sowing/conflicts")
+  conflicts_count = File.directory?(conflicts_dir) ? Dir.glob(File.join(conflicts_dir, "**/*.md")).size : 0
+  active_md -= conflicts_count
+
   indexed = db[:entries].count
-  diff = md_count - indexed
-  if md_count > 0 && diff != 0
-    puts "  ⚠  마크다운 #{md_count}건 vs 인덱스 #{indexed}건 (차이 #{diff}) — bundle exec rake vault:reindex 권장"
+  diff = active_md - indexed
+  if active_md > 0 && diff != 0
+    puts "  ⚠  활성 마크다운 #{active_md}건 vs 인덱스 #{indexed}건 (차이 #{diff}) — Sowing.boot_sync! 또는 ConsistencyCheck 권장"
   end
+end
+
+# 8. 동기화 / 충돌 (W5)
+puts "\n[동기화 / 충돌]"
+conflicts_dir = File.join(vault, ".sowing/conflicts")
+conflicts_files = File.directory?(conflicts_dir) ? Dir.glob(File.join(conflicts_dir, "**/*.md")) : []
+if conflicts_files.empty?
+  puts "  ✅ 충돌 백업 없음"
+else
+  puts "  ⚠  충돌 백업 (.sowing/conflicts/): #{conflicts_files.size}건 — Keep Mine 시 외부본이 보존된 파일들"
+  recent = conflicts_files.sort_by { |f| File.mtime(f) }.last(3).reverse
+  recent.each do |path|
+    rel = Pathname.new(path).relative_path_from(Pathname.new(vault))
+    puts "    · #{rel} (#{File.mtime(path).strftime("%Y-%m-%d %H:%M")})"
+  end
+end
+
+if defined?(Sowing::Sync::Coordinator) && Sowing.respond_to?(:sync_coordinator) && Sowing.sync_coordinator
+  state = Sowing.sync_coordinator.running? ? "▶ 실행 중" : "■ 정지"
+  puts "  watcher: #{state}"
+else
+  puts "  watcher: 미가동 (boot_sync! 호출 시 자동 시작)"
 end
 
 puts "\n#{"─" * 60}"
