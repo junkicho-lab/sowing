@@ -1,0 +1,127 @@
+<section class="settings">
+  <header class="settings__header">
+    <h1>설정</h1>
+    <p class="settings__lede">
+      Sowing의 동작 방식을 확인·조정할 수 있습니다.
+      대부분의 설정은 단순한 안내·진입점이며, 상세 변경은 환경 변수 또는 외부 도구로 진행해요.
+    </p>
+  </header>
+
+  <% if @flash %>
+    <div class="alert alert--info" role="status"><%= h(@flash) %></div>
+  <% end %>
+
+  <article class="settings__section">
+    <h2>👤 프로필</h2>
+    <form action="/settings/profile" method="post" class="settings__form">
+      <div class="field">
+        <label for="user_name">호칭</label>
+        <input type="text"
+               id="user_name"
+               name="user_name"
+               value="<%= h(@settings_data["user_name"]) %>"
+               placeholder="예: 김선생"
+               autocomplete="off">
+        <small class="settings__hint">템플릿의 <code>{{user}}</code> 자리에 들어갑니다.</small>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="button button--primary">저장</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="settings__section">
+    <h2>📁 데이터 위치</h2>
+    <dl class="settings__info">
+      <dt>볼트 (마크다운)</dt>
+      <dd><code><%= h(@vault_dir) %></code></dd>
+      <dt>앱 데이터 (인덱스·로그·설정)</dt>
+      <dd><code><%= h(@data_dir) %></code></dd>
+    </dl>
+    <details class="settings__details">
+      <summary>위치를 바꾸려면?</summary>
+      <p>앱 종료 후 환경 변수 <code>SOWING_VAULT</code> 를 설정하고 재시작하세요.</p>
+      <pre><code>export SOWING_VAULT="/path/to/your/vault"
+bin/sowing dev</code></pre>
+      <p>볼트 폴더 자체를 다른 위치로 옮기려면 폴더를 그대로 이동한 뒤 새 경로로 환경 변수를 지정하면 됩니다.</p>
+    </details>
+  </article>
+
+  <article class="settings__section">
+    <h2>⌨️ 단축키</h2>
+    <dl class="settings__info">
+      <dt>빠른 메모</dt>
+      <dd><kbd>⌘/Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd></dd>
+      <dt>빠른 검색</dt>
+      <dd><kbd>⌘/Ctrl</kbd> + <kbd>K</kbd></dd>
+      <dt>빠른 메모 저장</dt>
+      <dd><kbd>⌘/Ctrl</kbd> + <kbd>Enter</kbd> (모달 내)</dd>
+      <dt>닫기</dt>
+      <dd><kbd>Esc</kbd></dd>
+    </dl>
+    <p class="settings__hint">현재 단축키는 고정. 사용자 정의는 차후 버전에서 지원 예정.</p>
+  </article>
+
+  <article class="settings__section">
+    <h2>☁️ 동기화 · 백업</h2>
+    <ul class="settings__links">
+      <li>
+        <a href="/guides">동기화 가이드 (iCloud · OneDrive · Dropbox · Syncthing)</a>
+        <span class="settings__hint">— 4종 OS별 설정 방법</span>
+      </li>
+      <li>
+        <strong>백업</strong>: 볼트 폴더(<code><%= h(@vault_dir) %></code>)를 통째로 zip하면 됩니다.
+        모든 데이터가 마크다운이므로 다른 컴퓨터·시점으로 그대로 복원 가능합니다.
+      </li>
+    </ul>
+  </article>
+
+  <article class="settings__section">
+    <h2>📚 학습</h2>
+    <ul class="settings__links">
+      <li>
+        <a href="/tutorial">3분 튜토리얼</a>
+        <span class="settings__hint">
+          — <%= @settings_data["tutorial_completed_at"] ? "완료됨 (#{h(@settings_data["tutorial_completed_at"][0,10])})" : "미완료" %>
+        </span>
+        <form action="/settings/restart_tutorial" method="post" style="display:inline; margin-left:0.5rem">
+          <button type="submit" class="button button--ghost">처음부터 다시</button>
+        </form>
+      </li>
+      <li>
+        <strong>온보딩</strong> — 처음 방문 마법사
+        <form action="/settings/restart_onboarding" method="post" style="display:inline; margin-left:0.5rem">
+          <button type="submit" class="button button--ghost">다시 보기</button>
+        </form>
+      </li>
+    </ul>
+  </article>
+
+  <article class="settings__section settings__section--danger">
+    <h2>🧹 샘플 콘텐츠 정리</h2>
+    <% if @samples.empty? %>
+      <p class="settings__hint">현재 시드된 샘플이 없습니다.</p>
+    <% else %>
+      <p>
+        온보딩에서 시드한 샘플 <strong><%= @samples.size %>건</strong>이 있습니다.
+        삭제 시 휴지통(<code>.sowing/trash</code>)으로 이동되므로 영구 삭제는 아닙니다.
+      </p>
+      <details class="settings__details">
+        <summary>삭제 대상 보기</summary>
+        <ul>
+          <% @samples.each do |s| %>
+            <li>
+              <code><%= h(s[:mode]) %></code>
+              <%= h(s[:title] || "(메모)") %>
+              <span class="settings__hint">— <%= h(s[:path]) %></span>
+            </li>
+          <% end %>
+        </ul>
+      </details>
+      <form action="/settings/samples/delete" method="post"
+            onsubmit="return confirm('샘플 <%= @samples.size %>건을 휴지통으로 이동합니다. 계속할까요?');">
+        <button type="submit" class="button button--danger">샘플 일괄 삭제 (휴지통으로)</button>
+      </form>
+    <% end %>
+  </article>
+</section>

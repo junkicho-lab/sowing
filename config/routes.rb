@@ -15,6 +15,7 @@ class Sowing::Application
   use Sowing::Controllers::SearchController
   use Sowing::Controllers::TemplatesController
   use Sowing::Controllers::GuidesController
+  use Sowing::Controllers::SettingsController
   use Sowing::Controllers::PreviewController
   use Sowing::Controllers::ApiController
 

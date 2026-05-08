@@ -1841,3 +1841,66 @@ pre code {
 .guide-show__body table { border-collapse: collapse; margin: var(--space-2) 0; }
 .guide-show__body th, .guide-show__body td { border: 1px solid var(--color-border); padding: 0.4rem 0.7rem; text-align: left; }
 .guide-show__body th { background: var(--color-code-bg); }
+
+/* Settings (W7-T06) */
+
+.settings { max-width: 44rem; margin: 0 auto; }
+.settings__header { margin-bottom: var(--space-3); }
+.settings__lede { color: var(--color-muted); margin: 0 0 var(--space-2); }
+
+.settings__section {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.settings__section h2 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: 1.1rem;
+}
+.settings__section--danger { border-left: 4px solid #B00020; }
+
+.settings__form .field { margin-bottom: var(--space-2); }
+.settings__hint { color: var(--color-muted); font-size: 0.85rem; }
+
+.settings__info {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem var(--space-2);
+  margin: 0;
+}
+.settings__info dt { color: var(--color-muted); font-size: 0.9rem; }
+.settings__info dd { margin: 0; }
+
+.settings__details {
+  margin: var(--space-2) 0 0;
+  font-size: 0.92rem;
+}
+.settings__details summary { cursor: pointer; color: var(--color-muted); }
+.settings__details pre {
+  background: var(--color-code-bg);
+  padding: var(--space-2);
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+
+.settings__links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.settings__links li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.settings__links li:last-child { border-bottom: none; }
+
+.button--danger {
+  background: #B00020;
+  color: white;
+  border-color: #B00020;
+}
+.button--danger:hover { opacity: 0.92; }

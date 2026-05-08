@@ -65,6 +65,15 @@ module Sowing
         @db[:entries].select_map(:path)
       end
 
+      # 샘플 시드(W7-T03)로 추가된 entry 조회. ULID prefix로 식별.
+      # @return [Array<Hash>] [{id:, path:, mode:, title:}]
+      def find_samples(prefix: "01KR1SAMP")
+        @db[:entries]
+          .where(Sequel.like(:id, "#{prefix}%"))
+          .select(:id, :path, :mode, :title)
+          .all
+      end
+
       # @param mode     [Symbol] :memo, :note, :record
       # @param category [String, nil] category 컬럼 정확 일치 필터
       # @param limit    [Integer, nil] 가져올 최대 행 수
