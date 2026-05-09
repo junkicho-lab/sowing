@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 10 (Eval Infrastructure) 진행 중
+- **W13-T01 완료** (2026-05-10): 한국어 교사 글 eval 코퍼스 100건
+  - `eval/corpus/SCHEMA.md` — 6 task type (entity_extraction / student_digest / gap_detection / reflection / contradiction / general) + 12 평가 차원 정의
+  - `hand_crafted/` 11건 시드 + `generated/` 89건 자동 변형 = 100건
+  - `eval/scripts/generate_corpus.rb` — 멱등 생성기 (Random.new(20260510) 고정 시드, 학생/과목/위치 치환)
+  - contract spec 15건: 100건 정확, 6 task 모두 사용, case_id 고유·형식, 평가 차원 화이트리스트, hand_crafted 플래그 일치
+  - 회귀: 946 → 961 (+15)
+
 ### 🎯 Phase 9 (Agent-Native Surface) ✅ 완료 (W9-T01~T05, 2026-05-09 / 마무리 2026-05-10)
 
 **마일스톤 달성**: Claude Desktop/Codex/Continue/Zed 등에서 MCP 로 Sowing sensor·actuator 호출 가능. iPhone 17 문제도 ChatGPT 모바일 MCP 게이트웨이로 자연 해결 — 별도 iOS 앱 불필요.

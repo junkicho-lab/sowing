@@ -592,11 +592,26 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 > **목표**: LLM 기능 도입 전에 검증 환경 먼저. Karpathy의 verifiability 원칙
 > (§1.5) — "검증 가능한 것이 자동화된다."
 
-### [ ] W13-T01: 한국어 교사 글 eval 코퍼스 100건
+### [x] W13-T01: 한국어 교사 글 eval 코퍼스 100건 — 완료 (2026-05-10)
 - **출력**:
-  - `eval/corpus/teacher_writings/` — 메모·필기·기록 100건 (가상 + 옵트인 실제 사용자 기여)
-  - 각 샘플: 입력 + 기대 출력 + 평가 차원 (사실 일치성·간결성·관련성)
-- **검증**: 100건 모두 frontmatter + body + eval 메타데이터 포함
+  - ✅ `eval/corpus/SCHEMA.md` — 코퍼스 스키마, 6 task type, 12 평가 차원 정의
+  - ✅ `eval/corpus/teacher_writings/hand_crafted/` 11건 시드 (각 task type 대표)
+    - entity_extraction 3 (단순/다중/빈)
+    - student_digest 2 (변화·일관)
+    - gap_detection 1 (결정적)
+    - reflection 1 (한 주 분량)
+    - contradiction 2 (변화 detect / false positive)
+    - general 2 (한국어 정돈)
+  - ✅ `eval/corpus/teacher_writings/generated/` 89건 자동 변형 (이름·과목·날짜 치환)
+  - ✅ `eval/scripts/generate_corpus.rb` — 멱등 생성기 (Random seed 고정)
+- **검증**:
+  - 100건 정확 ✓ (11 hand + 89 gen)
+  - 모든 케이스 frontmatter 필수 5키 (case_id/task/hand_crafted/eval_dimensions/expected_output)
+  - 6 task type 모두 사용
+  - case_id 고유 + 형식 검증
+  - 평가 차원 schema 정의 안 사용
+  - hand_crafted 플래그 디렉토리와 일치
+  - spec 15건. 회귀 946 → 961 (+15). lint clean. 5x stress 0 failures.
 - **선행**: 없음
 
 ### [ ] W13-T02: LLM-judge harness
