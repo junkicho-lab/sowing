@@ -1,0 +1,1982 @@
+{
+  "run_id": "2026-05-10T05:49:55+09:00",
+  "backend": "FakeBackend",
+  "model": "fake-baseline",
+  "corpus_dir": "eval/corpus/teacher_writings",
+  "corpus_size": 100,
+  "filter": {},
+  "summary": {
+    "precision": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 28
+    },
+    "recall": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 28
+    },
+    "evidence": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 17
+    },
+    "factuality": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 72
+    },
+    "conciseness": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 37
+    },
+    "coverage": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 54
+    },
+    "tone": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 27
+    },
+    "format": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 34
+    },
+    "korean_consistency": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 7
+    },
+    "structure": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 11
+    },
+    "insight": {
+      "avg": 3.0,
+      "min": 3,
+      "max": 3,
+      "n": 11
+    }
+  },
+  "cases": [
+    {
+      "case_id": "con-gen-070",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-071",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-072",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-073",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-074",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-075",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-076",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-077",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-078",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-079",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-080",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-081",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-082",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-083",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-gen-084",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-032",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-033",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-034",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-035",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-036",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-037",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-038",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-039",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-040",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-041",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-042",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-043",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-044",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-045",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-046",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-047",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-048",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-gen-049",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-001",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-002",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-003",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-004",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-005",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-006",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-007",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-008",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-009",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-010",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-011",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-012",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-013",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-014",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-015",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-016",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-017",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-018",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-019",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-020",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-021",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-022",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-023",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-024",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-025",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-026",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-027",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-028",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-029",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-030",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-gen-031",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-gen-050",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-gen-051",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-gen-052",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-gen-053",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-gen-054",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-gen-055",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-gen-056",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-gen-057",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-gen-058",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-gen-059",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gen-gen-085",
+      "task": "general",
+      "scores": {
+        "korean_consistency": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gen-gen-086",
+      "task": "general",
+      "scores": {
+        "korean_consistency": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gen-gen-087",
+      "task": "general",
+      "scores": {
+        "korean_consistency": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gen-gen-088",
+      "task": "general",
+      "scores": {
+        "korean_consistency": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gen-gen-089",
+      "task": "general",
+      "scores": {
+        "korean_consistency": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-gen-060",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-gen-061",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-gen-062",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-gen-063",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-gen-064",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-gen-065",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-gen-066",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-gen-067",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-gen-068",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-gen-069",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-001",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "con-002",
+      "task": "contradiction",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "evidence": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-001",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "dig-002",
+      "task": "student_digest",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-001",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-002",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ent-003",
+      "task": "entity_extraction",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "coverage": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "format": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gap-001",
+      "task": "gap_detection",
+      "scores": {
+        "precision": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "recall": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gen-001",
+      "task": "general",
+      "scores": {
+        "korean_consistency": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "gen-002",
+      "task": "general",
+      "scores": {
+        "korean_consistency": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "tone": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    },
+    {
+      "case_id": "ref-001",
+      "task": "reflection",
+      "scores": {
+        "factuality": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "structure": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        },
+        "insight": {
+          "score": 3,
+          "reason": "(fake) baseline"
+        }
+      }
+    }
+  ]
+}

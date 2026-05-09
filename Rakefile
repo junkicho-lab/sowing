@@ -76,3 +76,68 @@ namespace :vault do
     end
   end
 end
+
+namespace :eval do
+  desc "Eval 코퍼스 전체 평가 (W13-T03). SOWING_EVAL_BACKEND=fake|openai|anthropic|ollama 로 백엔드 선택. 기본 fake."
+  task :run do
+    Sowing.boot!
+    backend = build_eval_backend
+    runner = Sowing::Eval::Runner.new(backend: backend)
+    payload = runner.run
+
+    store = Sowing::Eval::ResultStore.new
+    path = store.save(payload)
+    summary = payload["summary"]
+
+    puts "✅ Eval 완료 — backend=#{backend.name} model=#{payload["model"]}"
+    puts "   corpus_size=#{payload["corpus_size"]}, 결과: #{path}"
+    puts "   차원별 평균:"
+    summary.sort.each do |dim, stats|
+      puts "     #{dim.ljust(20)} avg=#{stats["avg"]} (#{stats["min"]}~#{stats["max"]}, n=#{stats["n"]})"
+    end
+
+    # 회귀 감지
+    diff = store.compare_to_previous
+    if diff[:dimensions].empty?
+      puts "ℹ  비교할 직전 결과 없음 (첫 실행)"
+    else
+      puts "📉 회귀 비교 (이전 vs 현재, threshold=#{diff[:threshold]}):"
+      diff[:dimensions].sort.each do |dim, info|
+        marker =
+          if info[:delta] < -diff[:threshold] then "❌"
+          elsif info[:delta] < 0 then "⚠ "
+          else "✅"
+          end
+        puts "   #{marker} #{dim.ljust(20)} #{info[:previous]} → #{info[:current]} (Δ #{info[:delta].round(3)})"
+      end
+      if diff[:regressed]
+        puts "❌ 회귀 감지 — 차원 평균 하락 ≥ #{diff[:threshold]}"
+        exit 1
+      end
+    end
+  end
+
+  desc "Eval 결과 목록 (eval/results/*.json)"
+  task :list do
+    Sowing.boot!
+    store = Sowing::Eval::ResultStore.new
+    runs = store.all
+    if runs.empty?
+      puts "(eval 결과 없음 — bundle exec rake eval:run 실행)"
+    else
+      puts "📊 #{runs.size}개 결과:"
+      runs.each do |r|
+        puts "  #{r["run_id"]}  backend=#{r["backend"]}  model=#{r["model"]}  size=#{r["corpus_size"]}"
+      end
+    end
+  end
+
+  def build_eval_backend
+    case (ENV["SOWING_EVAL_BACKEND"] || "fake").downcase
+    when "openai" then Sowing::Eval::Backends::OpenAI.new
+    when "anthropic" then Sowing::Eval::Backends::Anthropic.new
+    when "ollama" then Sowing::Eval::Backends::Ollama.new
+    else Sowing::Eval::Backends::FakeBackend.new
+    end
+  end
+end

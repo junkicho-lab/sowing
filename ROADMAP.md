@@ -631,12 +631,19 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **lint**: standardrb clean. **stress**: 5x (1건 intermittent FileWatcher 타이밍 — 기존 패턴).
 - **선행**: W13-T01
 
-### [ ] W13-T03: CI eval 통합
+### [x] W13-T03: CI eval 통합 — 완료 (2026-05-10)
 - **출력**:
-  - `bundle exec rake eval:run` — corpus 전체 평가
-  - GitHub Actions에서 모델 버전 변경 시 자동 측정
-  - 결과를 `eval/results/{date}.json` 에 보관
-- **검증**: 의도적 회귀(가짜 LLM 출력 손상) → CI fail
+  - ✅ `Sowing::Eval::Runner` — corpus 전체 순회 + judge 호출 + summary 집계 (avg/min/max/n per dim)
+  - ✅ `Sowing::Eval::ResultStore` — `eval/results/*.json` 영속화 + `compare_to_previous` 회귀 감지
+  - ✅ `bundle exec rake eval:run` — `SOWING_EVAL_BACKEND=fake|openai|anthropic|ollama` 선택, 차원별 평균 출력 + 회귀 비교 + 회귀 시 exit 1
+  - ✅ `bundle exec rake eval:list` — 누적 결과 목록
+  - ✅ `.github/workflows/eval.yml` — PR/main push 자동 실행 (FakeBackend, artifact 업로드)
+  - ✅ `eval/results/baseline-fake-backend.json` — 100건 corpus baseline 1회 커밋, 그 외 결과는 .gitignore (artifact 만)
+- **검증**:
+  - 의도적 회귀 시뮬레이션 spec — factuality 4.0 → 1.0 (Δ=-2.0) → regressed=true ✓
+  - threshold 인자로 임계값 조정 가능 (기본 0.5)
+  - end-to-end: rake eval:run → 100건 평가 → 11 차원 baseline 산출 + 회귀 비교 동작
+- **spec**: 16건 (Runner 7 + 100건 회귀 1 + ResultStore 8). 회귀 995 → 1011 (+16).
 - **선행**: W13-T02
 
 ### [ ] W13-T04: 한국어 교사 도메인 특화 평가 차원

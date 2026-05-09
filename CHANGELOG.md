@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 10 (Eval Infrastructure) 진행 중
+- **W13-T03 완료** (2026-05-10): CI eval 통합
+  - `Sowing::Eval::Runner` — corpus 순회 + judge + summary (per-dim avg/min/max/n) + filter (only_task / limit) + synthesizer 주입 (Phase 11+ 합성기 미리보기)
+  - `Sowing::Eval::ResultStore` — JSON 결과 영속화 + `compare_to_previous` (Δ < -threshold 면 regressed=true, 기본 0.5)
+  - `rake eval:run` — `SOWING_EVAL_BACKEND` 환경 변수로 백엔드 선택, 차원별 평균 출력 + 회귀 비교 + 회귀 시 exit 1
+  - `rake eval:list` — 누적 결과 조회
+  - `.github/workflows/eval.yml` — PR/main push 트리거, FakeBackend 로 회귀 검사 + artifact 업로드 (30일)
+  - `eval/results/baseline-fake-backend.json` — 100건 baseline 커밋, 그 외 결과는 selective .gitignore (artifact 전용)
+  - end-to-end: 100건 평가 → 11 차원 baseline + 회귀 비교 동작 ✓
+  - spec 16건 (Runner 7 + 실제 100건 회귀 1 + ResultStore 8). 회귀 995 → 1011 (+16).
 - **W13-T02 완료** (2026-05-10): LLM-judge harness
   - `Sowing::Eval::Judge` — case + LLM 출력 → 차원별 score 0~5 + reason. 12 차원 정의(SCHEMA.md §4 동기화). JSON 파싱 실패·차원 누락·범위 밖 score 모두 graceful fallback (clamp + 사유 명시)
   - `Sowing::Eval::Kappa` — Cohen's quadratic weighted + simple kappa. ordinal 점수에 적합. ROADMAP 검증 시나리오 (kappa ≥ 0.8) 통과

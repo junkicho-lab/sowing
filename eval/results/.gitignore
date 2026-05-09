@@ -1,0 +1,4 @@
+# Eval 결과 — baseline 만 커밋, 그 외 run 결과는 로컬·CI artifact 로만 보존.
+# baseline-*.json 패턴은 git 추적, 나머지(타임스탬프 파일명)는 무시.
+*.json
+!baseline-*.json

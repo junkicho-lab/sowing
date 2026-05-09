@@ -1,0 +1,49 @@
+# Eval 회귀 자동 측정 (W13-T03).
+#
+# 모든 PR 과 main push 마다 FakeBackend 로 corpus 전체 평가 + 직전 결과와 비교.
+# 차원 평균이 0.5 이상 떨어지면 fail → LLM 합성기 변경(Phase 11+) 의 회귀 자동 감지.
+#
+# 실제 OpenAI/Anthropic 호출은 본 workflow 에서 안 함 (CI 비용·키 보안).
+# 로컬에서 SOWING_EVAL_BACKEND=anthropic 등으로 수동 실행.
+
+name: eval
+
+on:
+  pull_request:
+    paths:
+      - "lib/sowing/eval/**"
+      - "eval/corpus/**"
+      - "eval/scripts/**"
+      - ".github/workflows/eval.yml"
+  push:
+    branches: [main]
+    paths:
+      - "lib/sowing/eval/**"
+      - "eval/corpus/**"
+
+jobs:
+  eval-fake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: DB setup (eval Use Case 가 boot! 필요)
+        run: bundle exec rake db:setup
+
+      - name: Eval 실행 (FakeBackend, 회귀 감지)
+        env:
+          SOWING_EVAL_BACKEND: fake
+        run: bundle exec rake eval:run
+
+      - name: 결과 artifact 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-${{ github.run_id }}
+          path: eval/results/
+          retention-days: 30
