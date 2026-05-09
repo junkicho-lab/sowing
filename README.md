@@ -214,6 +214,7 @@
 | [sowing-docs/EVALUATION.md](sowing-docs/EVALUATION.md) | Phase 2 기여자 | 12 명제 Sowing 평가 + Phase 9~12 로드맵 + 명시적 거부 |
 | [docs/RELEASE.md](docs/RELEASE.md) | 운영자 | 출시 절차 / 핫픽스 / 롤백 |
 | [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) | 사용자 | 알려진 한계 (패키징·기능·보안·성능) |
+| [docs/AGENT_GUIDE.md](docs/AGENT_GUIDE.md) | MCP 사용자 | Claude Desktop / Codex / Continue / Zed 등록 + 12개 도구 + 5종 프롬프트 |
 | [packaging/README.md](packaging/README.md) | 운영자 | Tebako 빌드 단계 + OS별 deferred 항목 |
 
 ## 라이선스

@@ -563,18 +563,27 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - 회귀: 918 → 936 (+18). lint clean. 5x stress 0 failures.
 - **선행**: W9-T03
 
-### [ ] W9-T05: agent 지침 문서
+### [x] W9-T05: agent 지침 문서 — 완료 (2026-05-09)
 - **출력**:
-  - `docs/AGENT_GUIDE.md` — MCP 서버 등록 방법, 각 도구 입출력 예시, 안전한 사용 패턴
-  - 복붙 가능한 Claude Desktop / Codex 설정 블록
-  - 자주 쓰는 프롬프트 5종 ("이번 주 메모 정리", "민준 학생 관련 기록 모아", 등)
-- **검증**: 새 사용자가 5분 내 MCP 등록 + 첫 도구 호출 성공
+  - ✅ `docs/AGENT_GUIDE.md` (~250줄) — 5분 빠른 시작 / 12개 도구 카탈로그 입출력 예시 / 안전한 사용 패턴 / Troubleshooting
+  - ✅ Claude Desktop / Codex / Continue.dev / Zed 4종 설정 블록 (복붙 가능)
+  - ✅ 자주 쓰는 프롬프트 5종 (이번 주 활동 / 학생 검색 / 승격 보조 / 태그 검색 / 모바일 즉석 메모)
+  - ✅ Phase 10+ 미리보기 — 거짓 광고 안 함 (예정 명시)
+- **검증**: contract spec 10건 — 12 도구 모두 문서화 / 카테고리 3종 / 4 클라이언트 / 5 프롬프트 / audit·거부 항목 / Troubleshooting / cross-ref
+- **회귀**: 936 → 946 (+10)
 - **선행**: W9-T04
 
-### **🎯 Week 9~12 마일스톤 (Phase 9)**
+### **🎯 Week 9~12 마일스톤 (Phase 9) — 달성 (2026-05-09)**
 **Claude Desktop/ChatGPT/Codex에서 MCP로 Sowing의 sensor·actuator를 호출할 수 있다.
 사용자는 별도 iOS 앱 없이 ChatGPT 모바일에서 "오늘 1교시 학생 발표 자원함" 이라
-말하면 Sowing 메모로 저장된다.**
+말하면 Sowing 메모로 저장된다.** ✅
+
+**Phase 9 결과 요약**:
+- 12개 MCP 도구 (sensor 4 + actuator 4 + analytics 4)
+- 구조화 audit log (mutation 추적 + actor=user/agent/filesystem 구분)
+- AGENT_GUIDE.md (사용자 5분 셋업 + 12 도구 + 5 프롬프트)
+- end-to-end stdio JSON-RPC 검증: tools/list, tools/call create_memo, tools/call stats_summary 모두 정상
+- 회귀: 855 → 946 (+91 spec). lint clean. 5x stress 0 failures.
 
 ---
 

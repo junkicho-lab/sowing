@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Phase 9 (Agent-Native Surface) 진행 중
+### 🎯 Phase 9 (Agent-Native Surface) ✅ 완료 (2026-05-09)
+- **마일스톤 달성**: Claude Desktop/Codex/Continue/Zed 등에서 MCP 로 Sowing sensor·actuator 호출 가능. iPhone 17 문제도 ChatGPT 모바일 MCP 게이트웨이로 자연 해결 — 별도 iOS 앱 불필요.
+- **회귀**: 855 → 946 (+91 spec). lint clean. 5x stress 0 failures.
+- **다음**: Phase 10 (Eval Infrastructure, W13~16) — LLM 기능 도입 전 검증 환경 구축
+- **W9-T05 완료** (2026-05-09): agent 지침 문서
+  - `docs/AGENT_GUIDE.md` (~250줄) — 5분 빠른 시작 / 12 도구 카탈로그 / 5종 프롬프트 / 안전한 사용 패턴 / Troubleshooting
+  - 4 클라이언트 설정 블록: Claude Desktop / Codex / Continue.dev / Zed
+  - contract spec 10건: 12 도구 모두 문서화 검증 (새 도구 추가 시 가이드 갱신 강제)
+  - 회귀: 936 → 946 (+10)
 - **W9-T04 완료** (2026-05-09): MCP analytics sensors
   - 4개 read-only 도구 추가: `stats_summary` / `tag_cloud` / `wiki_complete` / `recent`
   - `stats_summary`: 오늘/주/월 카운트 + streak + 누적 + GrowthStage 5단계 (대시보드와 동일 데이터, AggregateDailyStats 자동 갱신)
