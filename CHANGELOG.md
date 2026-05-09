@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 10 (Eval Infrastructure) 진행 중
+- **W13-T02 완료** (2026-05-10): LLM-judge harness
+  - `Sowing::Eval::Judge` — case + LLM 출력 → 차원별 score 0~5 + reason. 12 차원 정의(SCHEMA.md §4 동기화). JSON 파싱 실패·차원 누락·범위 밖 score 모두 graceful fallback (clamp + 사유 명시)
+  - `Sowing::Eval::Kappa` — Cohen's quadratic weighted + simple kappa. ordinal 점수에 적합. ROADMAP 검증 시나리오 (kappa ≥ 0.8) 통과
+  - `Sowing::Eval::Backends::Base` 인터페이스 + 4 implementations:
+    - `FakeBackend` — captured_prompts/responses 큐/baseline_json — CI 안전
+    - `OpenAI` — Chat Completions (gpt-4o-mini 기본), Net::HTTP only
+    - `Anthropic` — Messages API (claude-haiku-4 기본), system 별도 필드
+    - `Ollama` — 로컬 (llama3.2 기본), ADR-013 "클라우드 강제 안 함" 직접 구현
+  - Zeitwerk inflector "openai" → "OpenAI" 추가
+  - 회귀 961 → 995 (+34 spec: Judge 14 + Kappa 9 + Backends 11). lint clean.
 - **W13-T01 완료** (2026-05-10): 한국어 교사 글 eval 코퍼스 100건
   - `eval/corpus/SCHEMA.md` — 6 task type (entity_extraction / student_digest / gap_detection / reflection / contradiction / general) + 12 평가 차원 정의
   - `hand_crafted/` 11건 시드 + `generated/` 89건 자동 변형 = 100건

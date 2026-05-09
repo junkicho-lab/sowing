@@ -64,7 +64,8 @@ module Sowing
         "fts_query" => "FtsQuery",
         "db" => "DB",
         "version" => "VERSION",
-        "mcp" => "MCP"
+        "mcp" => "MCP",
+        "openai" => "OpenAI"
       )
 
       @loader.setup

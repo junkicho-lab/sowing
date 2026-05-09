@@ -614,12 +614,21 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - spec 15건. 회귀 946 → 961 (+15). lint clean. 5x stress 0 failures.
 - **선행**: 없음
 
-### [ ] W13-T02: LLM-judge harness
+### [x] W13-T02: LLM-judge harness — 완료 (2026-05-10)
 - **출력**:
-  - `lib/sowing/eval/judge.rb` — LLM 출력에 점수 매기는 평가 모듈
-  - 차원별 점수 (0~5) + 사람-judge 비교 카파(kappa)
-  - OpenAI/Anthropic/Ollama 백엔드 추상화 (인터페이스 통일)
-- **검증**: 임의 출력 1건 → 점수 + 사유 자동 산출. 카파 ≥ 0.8.
+  - ✅ `lib/sowing/eval/judge.rb` — case + LLM 출력 → 차원별 score 0~5 + reason
+    - prompt 합성 (system + user) / JSON 파싱 / 잘못된 응답 graceful fallback / clamp
+    - ALL_DIMENSIONS 12개 (SCHEMA.md §4 와 동기화)
+  - ✅ `lib/sowing/eval/kappa.rb` — Cohen's quadratic weighted + simple kappa
+    - 완전 일치 → 1.0, 완전 반대 → 음수, chance → 0 근방
+    - ROADMAP 검증 시나리오 (kappa ≥ 0.8) 통과
+  - ✅ `lib/sowing/eval/backends/{base,fake_backend,openai,anthropic,ollama}.rb`
+    - Base 인터페이스 + 4 implementations (Net::HTTP only, 외부 gem 0)
+    - FakeBackend: captured_prompts + responses 큐 + baseline_json 폴백
+    - OpenAI/Anthropic/Ollama: 실제 HTTP 호출 가능 (API 키 환경 변수)
+- **검증**: 임의 출력 1건 → 점수 + 사유 자동 산출 ✓. 카파 ≥ 0.8 함수 검증 ✓.
+- **spec**: 49건 (Judge 14 + Kappa 9 + Backends 26). 회귀 961 → 995 (+34).
+- **lint**: standardrb clean. **stress**: 5x (1건 intermittent FileWatcher 타이밍 — 기존 패턴).
 - **선행**: W13-T01
 
 ### [ ] W13-T03: CI eval 통합
