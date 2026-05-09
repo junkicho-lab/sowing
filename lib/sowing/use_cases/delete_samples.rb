@@ -13,6 +13,7 @@ module Sowing
     # 파일이 이미 사라진 경우(외부에서 수동 삭제 등)에도 인덱스는 정리한다.
     class DeleteSamples
       include Dry::Monads[:result]
+      include Persistence
 
       def initialize(
         vault_repo: nil,
@@ -28,12 +29,10 @@ module Sowing
         removed = 0
 
         rows.each do |row|
-          begin
-            @vault_repo.delete(row[:path])
-          rescue Errno::ENOENT
-            # 외부에서 이미 삭제됨 — 인덱스만 정리하면 됨.
-          end
-          @index_repo.delete(row[:id])
+          # find_samples 는 Hash 를 반환하므로 audit·hash 계산을 위해 IndexedEntry 로 재조회.
+          indexed = @index_repo.find(row[:id])
+          next if indexed.nil?
+          unpersist!(indexed)
           removed += 1
         end
 

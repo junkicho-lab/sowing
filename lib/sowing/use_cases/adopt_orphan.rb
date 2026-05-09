@@ -49,6 +49,7 @@ module Sowing
 
         @safe_writer.atomic_write(abs_path, entry.to_markdown)
         update_index!(entry, abs_path)
+        audit_mutation!(entry, abs_path, action: :adopt, old_hash: nil, actor: "filesystem")
 
         Success(entry)
       end

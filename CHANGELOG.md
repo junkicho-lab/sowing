@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 9 (Agent-Native Surface) 진행 중
+- **W9-T01 완료** (2026-05-09): 구조화 audit log
+  - `Sowing::Infrastructure::AuditLog` — JSON Lines append-only, mutex 보호, 스레드 안전
+  - 스키마: `{ts, actor, action, entry_id, mode, path, old_hash, new_hash}`
+  - actor: `user` / `agent` / `filesystem` (W9-T03 MCP 에서 `agent` 활용 예정)
+  - action: `:create` / `:update` / `:delete` / `:adopt` / `:reindex`
+  - `Persistence#persist!` → `:create`, `#repersist!` → `:update`, 새 `#unpersist!` → `:delete`
+  - `AdoptOrphan` → `:adopt` (actor=filesystem), `ReindexEntry` → `:reindex` / `:delete` (actor=filesystem)
+  - `DeleteSamples` 가 새 `unpersist!` 사용
+  - `AuditLog.with_actor("agent") { ... }` 블록 API — 중첩 가능, ensure 복원
+  - spec 23건 추가 (단위 14 + 통합 9)
+
 ### Phase 2 방향성 결정 (2026-05-09)
 - [`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md): Karpathy의 Sequoia Ascent 2026 12 명제로 Sowing 점검 — agent-native 데이터 레이어는 강함, agent-facing 표면(MCP·LLM 합성)은 비어 있음
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) ADR-013: Phase 2 (W9~W24, 16주)는 Software 3.0 전환에 헌정 — Phase 9 MCP / Phase 10 Eval / Phase 11~12 LLM 합성

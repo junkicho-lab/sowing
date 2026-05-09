@@ -514,12 +514,16 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 > **목표**: Sowing의 sensors·actuators를 MCP로 노출. iPhone 17 문제(별도 iOS 앱
 > 없이 ChatGPT 모바일에서 Sowing 사용)를 자연스럽게 해결.
 
-### [ ] W9-T01: 구조화 audit log
+### [x] W9-T01: 구조화 audit log — 완료 (2026-05-09)
 - **출력**:
-  - `Infrastructure::AuditLog` — `.sowing/audit.log` 에 JSON lines 로 모든 mutation 기록
-  - `Persistence#persist!`/`#repersist!` 에서 자동 호출
-  - 스키마: `{ts, actor, action, entry_id, path, old_hash, new_hash}`
-- **검증**: 메모/필기/기록 작성·수정·삭제 5건 → audit.log 5줄 + 각 줄 JSON 파싱 가능
+  - ✅ `Infrastructure::AuditLog` — `.sowing/audit.log` JSON Lines, mutex 보호, 스레드 안전
+  - ✅ `Persistence#persist!`/`#repersist!`/새 `#unpersist!` 자동 호출
+  - ✅ AdoptOrphan/ReindexEntry 도 audit (actor=filesystem)
+  - ✅ DeleteSamples 가 unpersist! 사용
+  - ✅ `AuditLog.with_actor("agent") { }` 블록 — Phase 9-T03 MCP 에서 사용 예정
+  - ✅ 스키마: `{ts, actor, action, entry_id, mode, path, old_hash, new_hash}`
+- **검증**: 메모/필기/기록 작성·수정·삭제 5건 → audit.log 5줄 + 각 줄 JSON 파싱 가능 ✓
+- **spec**: 23건 (단위 14 + 통합 9). 회귀 855 → 878 통과.
 - **선행**: 없음
 
 ### [ ] W9-T02: MCP 서버 — stdio transport

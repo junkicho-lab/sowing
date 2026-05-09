@@ -56,6 +56,12 @@ module Sowing
 
         entry = @vault_repo.read(abs_path)
         update_index!(entry, abs_path)
+        audit_mutation!(
+          entry, abs_path,
+          action: :reindex,
+          old_hash: existing&.file_hash,
+          actor: "filesystem"
+        )
         Success(existing ? :reindexed : :added)
       rescue ArgumentError => e
         # frontmatter 누락·잘못된 mode 등 — adoption(W5-T03)에서 처리할 케이스.
@@ -66,6 +72,15 @@ module Sowing
         existing = @index_repo.find_by_path(rel_path)
         return Success(:not_indexed) unless existing
         @index_repo.delete(existing.id)
+        Infrastructure::AuditLog.instance.append(
+          action: :delete,
+          entry_id: existing.id,
+          mode: existing.mode,
+          path: existing.path,
+          actor: "filesystem",
+          old_hash: existing.file_hash,
+          new_hash: nil
+        )
         Success(:removed)
       end
     end
