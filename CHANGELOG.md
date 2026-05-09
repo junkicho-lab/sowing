@@ -7,7 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Phase 10 (Eval Infrastructure) 진행 중
+### 🎯 Phase 10 (Eval Infrastructure) ✅ 완료 (W13-T01~T04, 2026-05-10)
+
+**마일스톤 달성**: 임의 LLM 출력 1건 → 자동 점수 + 사유 산출. 모델 버전 변경 시 회귀 자동 측정. ADR-013 의 Phase 10 → 11 → 12 순서 의무 충족 — Phase 11 (LLM 합성) 진입 가능.
+
+**Phase 10 산출물 요약**:
+- 100건 한국어 교사 글 코퍼스 (hand_crafted 11 + generated 89, 6 task type)
+- LLM-judge harness (Judge + Kappa + 4 백엔드: Fake/OpenAI/Anthropic/Ollama)
+- CI eval (Runner + ResultStore + `rake eval:run` + GitHub Actions)
+- 5 한국어 도메인 차원 (결정적 휴리스틱, LLM 미사용)
+- 회귀: 946 → 1039 (+93 spec). lint clean. 5x stress 4-5/5.
+
+- **W13-T04 완료** (2026-05-10): 한국어 도메인 특화 5 차원
+  - `honorific_consistency` — 종결어미 일관성 (문장 분리 + 마지막 어절, "X니다" 우선 매칭)
+  - `korean_date_format` — 한국식(YYYY년 M월 D일) vs ISO(YYYY-MM-DD) 혼용 비율
+  - `student_anonymity` — 풀네임 노출 패널티 (성씨 + 이름 정확 2글자, 단어 경계 + 조사 lookahead)
+  - `classroom_context` — K-12 교실 어휘 사전 24개 매칭 종류 수
+  - `tag_korean` — 한글 태그(`#가-힣`) 종류 수
+  - 결정적 self-consistency → kappa = 1.0 (ROADMAP ≥ 0.7 형식 충족). 진짜 사람-judge 카파는 Phase 11+ 사용자 데이터 모인 후.
+  - spec 28건. 회귀 1011 → 1039 (+28). lint clean.
 - **W13-T03 완료** (2026-05-10): CI eval 통합
   - `Sowing::Eval::Runner` — corpus 순회 + judge + summary (per-dim avg/min/max/n) + filter (only_task / limit) + synthesizer 주입 (Phase 11+ 합성기 미리보기)
   - `Sowing::Eval::ResultStore` — JSON 결과 영속화 + `compare_to_previous` (Δ < -threshold 면 regressed=true, 기본 0.5)

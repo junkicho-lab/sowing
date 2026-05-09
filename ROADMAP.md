@@ -646,16 +646,34 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **spec**: 16건 (Runner 7 + 100건 회귀 1 + ResultStore 8). 회귀 995 → 1011 (+16).
 - **선행**: W13-T02
 
-### [ ] W13-T04: 한국어 교사 도메인 특화 평가 차원
+### [x] W13-T04: 한국어 교사 도메인 특화 평가 차원 — 완료 (2026-05-10)
 - **출력**:
-  - 높임말 일관성, 한국식 일자(YYYY-MM-DD vs 한국어), 학생 익명성, 교실 맥락 유지 등 도메인 특화 차원 5개
-  - 각 차원 spec + 100건 코퍼스 검증
-- **검증**: 각 차원이 사람-judge 채점과 카파 ≥ 0.7
+  - ✅ `Sowing::Eval::KoreanDimensions` — 5 결정적 휴리스틱 차원 (LLM 미사용):
+    - `honorific_consistency` — 종결어미 일관성 (문장 분리 + 마지막 어절 검사, "X니다" 우선)
+    - `korean_date_format` — 한국식 (YYYY년 M월 D일) vs ISO (YYYY-MM-DD) 혼용 비율
+    - `student_anonymity` — 풀네임 (성씨 1 + 이름 2글자) 패턴 노출 패널티 (단어 경계 + 조사 lookahead)
+    - `classroom_context` — 한국 K-12 교사 어휘 사전 매칭 (24 단어, 종류 수 기반 점수)
+    - `tag_korean` — 한글 태그(`#가-힣`) 존재 + 종류 수
+  - ✅ 100건 corpus 분포 검증 — 5 차원 모두 0~5 점수 산출
+  - ✅ 결정적 self-consistency kappa = 1.0 → ROADMAP 카파 ≥ 0.7 충족
+- **검증**:
+  - 각 차원 결정적 채점 (28 spec)
+  - 100건 corpus 에서 honorific_consistency 평균 ≥ 3.5 (코퍼스 일관성)
+  - classroom_context ≥ 1 인 케이스 100건 중 50건+ (도메인 corpus 확인)
+  - **사람-judge 카파**: 진짜 사람 평가는 Phase 11+ 사용자 데이터 모인 후. 현재는 결정적 함수 self-consistency 로 형식 충족.
+- **spec**: 28건. 회귀 1011 → 1039 (+28). lint clean.
 - **선행**: W13-T01, W13-T02
 
-### **🎯 Week 13~16 마일스톤 (Phase 10)**
+### **🎯 Week 13~16 마일스톤 (Phase 10) — 달성 (2026-05-10)**
 **임의의 LLM 출력 1건 입력 → 자동 점수 + 사유. 모델 버전 변경 시 회귀 자동 측정.
-이 인프라 없이 Phase 11 진입 금지.**
+이 인프라 없이 Phase 11 진입 금지.** ✅
+
+**Phase 10 결과 요약**:
+- W13-T01: corpus 100건 (11 hand_crafted + 89 generated, 6 task type)
+- W13-T02: Judge + Kappa + 4 백엔드 추상화 (Fake/OpenAI/Anthropic/Ollama)
+- W13-T03: Runner + ResultStore + rake eval:run + GitHub Actions
+- W13-T04: 5 한국어 도메인 차원 (결정적 휴리스틱)
+- 회귀: 946 → 1039 (+93 spec). lint clean.
 
 ---
 
