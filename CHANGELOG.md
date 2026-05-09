@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 9 (Agent-Native Surface) 진행 중
+- **W9-T03 완료** (2026-05-09): MCP write actuators
+  - 4개 mutation 도구 추가: `create_memo` / `create_note` / `create_record` / `promote`
+  - 모두 `AuditLog.with_actor("agent")` 블록으로 Use Case 호출 감쌈 → mutation 자동 actor=agent 마킹
+  - `promote` 는 통합 도구 (`to: note|record`) — 메모→필기 또는 메모/필기→기록, ID 유지
+  - 기존 Use Cases (CreateMemo/CreateNote/CreateRecord/PromoteToNote/PromoteToRecord) 그대로 재사용 — 새 비즈니스 로직 0
+  - end-to-end: stdio JSON-RPC tools/call 한 번 → vault 마크다운 작성 + audit 1줄 검증
+  - spec 16건. 회귀: 902 → 918.
 - **W9-T02 완료** (2026-05-09): MCP 서버 stdio transport
   - 공식 `mcp` gem v0.15 채택 — zero-dep stdio, 깔끔한 DSL
   - `bin/sowing-mcp` 진입점 — Claude Desktop / Codex / ChatGPT 등록 가능

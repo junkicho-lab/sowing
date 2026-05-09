@@ -13,9 +13,12 @@ RSpec.describe Sowing::MCP::Server do
       expect(server.server.version).to eq(Sowing::VERSION)
     end
 
-    it "4개 sensor 도구 등록 (list_memos / search / read_entry / health)" do
+    it "8개 도구 등록 (sensor 4 + actuator 4 — W9-T02 + W9-T03)" do
       tool_names = described_class::TOOLS.map(&:tool_name)
-      expect(tool_names).to contain_exactly("list_memos", "search", "read_entry", "health")
+      expect(tool_names).to contain_exactly(
+        "list_memos", "search", "read_entry", "health",
+        "create_memo", "create_note", "create_record", "promote"
+      )
     end
 
     it "instructions 에 Sowing 도메인 모델 안내 포함" do

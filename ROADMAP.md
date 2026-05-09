@@ -536,14 +536,18 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **spec**: 24건 (server 6 + tools 18). 회귀 902건 통과.
 - **선행**: W9-T01
 
-### [ ] W9-T03: MCP 도구 확장 — write actuators
+### [x] W9-T03: MCP 도구 확장 — write actuators — 완료 (2026-05-09)
 - **출력**:
-  - `create_memo(body, tags?)` — Use Case 재사용
-  - `create_note(title, body, category, source, tags?)`
-  - `create_record(title, body, category, tags?)`
-  - `promote(id, to: :note|:record, ...)` — 승격
-  - 모든 mutation은 audit log + 결과 반환 (id·path)
-- **검증**: 외부 에이전트가 메모 생성 → 인덱스 등록 + 마크다운 파일 작성 + audit 기록
+  - ✅ `create_memo(body, tags?)` — CreateMemo Use Case 래핑
+  - ✅ `create_note(title, body, category, source, tags?)` — CreateNote Use Case
+  - ✅ `create_record(title, body, category, tags?)` — CreateRecord Use Case
+  - ✅ `promote(id, to: note|record, title, category, source?, tags?)` — 통합 승격 도구
+  - ✅ 모든 mutation 은 `AuditLog.with_actor("agent")` 블록 안에서 호출 → 자동 actor=agent 마킹
+  - ✅ 결과는 IndexedEntry 직렬화로 반환 (id, path, mode 등)
+- **검증**:
+  - 외부 stdio JSON-RPC tools/call → vault 에 마크다운 작성 + audit 1줄 (actor=agent) ✓
+  - spec 16건 (CreateMemo 3 + CreateNote 3 + CreateRecord 2 + Promote 6 + 통합 2)
+  - 회귀: 902 → 918 (+16). lint clean. 5x stress 0 failures.
 - **선행**: W9-T02
 
 ### [ ] W9-T04: MCP 도구 확장 — analytics sensors
