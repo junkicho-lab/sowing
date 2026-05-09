@@ -357,6 +357,49 @@ rescue => e
   puts "  ❌ MCP 진단 실패: #{e.message}"
 end
 
+# 14. Eval Infrastructure (Phase 10)
+puts "\n[Eval Infrastructure (Phase 10)]"
+begin
+  corpus_dir = File.join(Sowing.root, "eval/corpus/teacher_writings")
+  if File.directory?(corpus_dir)
+    md_count = Dir.glob(File.join(corpus_dir, "**/*.md")).size
+    if md_count >= 100
+      puts "  ✅ corpus #{md_count}건 (≥ 100 W13-T01 기준)"
+    else
+      puts "  ⚠  corpus #{md_count}건 — W13-T01 의 100건 기준 미달"
+      issues << "eval corpus #{md_count}건 (100 미만) — `bundle exec ruby eval/scripts/generate_corpus.rb` 실행"
+    end
+  else
+    puts "  ⚠  eval/corpus 디렉토리 없음"
+    issues << "eval corpus 디렉토리 누락"
+  end
+
+  if defined?(Sowing::Eval::Judge)
+    dim_count = Sowing::Eval::Judge::ALL_DIMENSIONS.size
+    puts "  ✅ Judge 평가 차원 #{dim_count}개 (SCHEMA.md §4 기준 12)"
+
+    backends = %w[FakeBackend OpenAI Anthropic Ollama]
+    available = backends.select { |b| Sowing::Eval::Backends.const_defined?(b) }
+    puts "  ✅ Judge 백엔드 #{available.size}/4: #{available.join(", ")}"
+  end
+
+  if defined?(Sowing::Eval::KoreanDimensions)
+    kr_dims = Sowing::Eval::KoreanDimensions.dimensions
+    puts "  ✅ 한국어 도메인 차원 #{kr_dims.size}개: #{kr_dims.join(", ")}"
+  end
+
+  results_dir = File.join(Sowing.root, "eval/results")
+  if File.directory?(results_dir)
+    baseline = Dir.glob(File.join(results_dir, "baseline-*.json"))
+    other = Dir.glob(File.join(results_dir, "*.json")) - baseline
+    msg = "results: baseline #{baseline.size}건 + 로컬 run #{other.size}건"
+    msg += " (`bundle exec rake eval:run` 으로 회귀 측정)"
+    puts "  #{msg}"
+  end
+rescue => e
+  puts "  ❌ Eval 진단 실패: #{e.message}"
+end
+
 puts "\n#{"─" * 60}"
 if issues.empty?
   puts "✅ 진단 완료 — 발견된 문제 없음"

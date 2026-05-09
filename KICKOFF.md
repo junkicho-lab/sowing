@@ -218,8 +218,14 @@ claude "vault:reindex 작업을 만드는데, 먼저 dry-run 모드를 만들고
   - 12개 MCP 도구 (sensor 4 + actuator 4 + analytics 4) — `bin/sowing-mcp` stdio 진입점
   - 구조화 audit log (`vault/.sowing/audit.log`) — actor=user/agent/filesystem 구분
   - `docs/AGENT_GUIDE.md` (5분 셋업 + 12 도구 + 5 프롬프트 + 4 클라이언트)
-- **946건 spec pass / standardrb clean / 5x stress 0 failures** (855 → 946, +91 from Phase 9).
-- **13개 컨트롤러 / 86개 라우트 / 3-tier 도메인 (Memo/Note/Record) / 양방향 동기화 / 12종 템플릿 + 12건 샘플 / 4단계 온보딩 + 3분 튜토리얼 / 12 MCP 도구**.
+- **Phase 10 (Eval Infrastructure) ✅ 완료** (2026-05-10):
+  - 한국어 교사 글 corpus 100건 (`eval/corpus/teacher_writings/`, 6 task type)
+  - `Sowing::Eval::Judge` + `Kappa` + 4 백엔드 (Fake/OpenAI/Anthropic/Ollama, Net::HTTP only)
+  - 5 한국어 도메인 차원 (`Sowing::Eval::KoreanDimensions`)
+  - `rake eval:run` + `.github/workflows/eval.yml` (회귀 자동 측정)
+  - **ADR-013 의 Phase 11 진입 조건 충족** — LLM 합성 도구가 본 인프라 위에 안전히 얹힘
+- **1039건 spec pass / standardrb clean / 5x stress 4-5/5** (855 → 1039, +184 from Phase 9·10).
+- **13개 컨트롤러 / 86개 라우트 / 3-tier 도메인 (Memo/Note/Record) / 양방향 동기화 / 12종 템플릿 + 12건 샘플 / 4단계 온보딩 + 3분 튜토리얼 / 12 MCP 도구 / 100 eval corpus / 12 평가 차원**.
 - **W8 deferred**: T01 시스템 트레이 / T03 macOS 코드사인 / T04 Windows 인스톨러 / T05 Linux AppImage / T07 베타 테스터.
 
 ## P2.2 가장 먼저 읽을 것 (순서 중요)
@@ -248,41 +254,45 @@ claude "vault:reindex 작업을 만드는데, 먼저 dry-run 모드를 만들고
 4. ✅ 로컬 우선 — 외부 서버 강제 안 함
 5. ✅ 영구 삭제 금지 — 휴지통·충돌 백업
 
-## P2.4 Phase 10 첫 작업 (W13-T01 한국어 교사 글 eval 코퍼스) 시작 절차
+## P2.4 Phase 11 첫 작업 (W17-T01 EntityExtractor) 시작 절차
 
-> **Phase 9 (W9-T01~T05) 는 모두 완료**. Phase 10 (Eval Infrastructure, W13~16) 진입.
-> ADR-013: "LLM 기능은 Phase 10 검증 환경 위에 얹는다 — Phase 9 → 10 → 11 → 12 순서 의무".
+> **Phase 9·10 모두 완료**. Phase 11 (Tier-1 LLM 합성, W17~20) 진입 가능.
+> ADR-013: "LLM 기능은 Phase 10 검증 환경 위에 얹는다" — 충족. eval/corpus +
+> Judge + KoreanDimensions 가 회귀 가드 역할.
 
 1. **상태 확인**:
    ```sh
    cd /Users/woodncarpenter/projects/sowing
-   bundle exec rspec | tail -3       # 946 examples, 0 failures 인지 확인
-   bundle exec standardrb | tail -2   # exit=0 인지 확인
-   bin/sowing-doctor | tail -15       # MCP / Audit 섹션 포함 정상 확인
+   bundle exec rspec | tail -3        # 1039 examples, 0 failures 인지 확인
+   bundle exec standardrb | tail -2    # exit=0 인지 확인
+   bin/sowing-doctor | tail -20        # MCP / Audit / Eval 섹션 정상 확인
+   bundle exec rake eval:run           # FakeBackend baseline 회귀 확인 (선택)
    ```
 
 2. **읽기 (필수, 순서대로)**:
-   - `sowing-docs/EVALUATION.md` §3 Phase 10 작업 분해 — 4주 산출물 4개
-   - `templates/samples/*.md` — 한국어 교사 글 12건 시드 (corpus 시작점)
-   - `lib/sowing/use_cases/aggregate_daily_stats.rb` — 한국 교사 도메인 결정적 처리 패턴 참고
-   - `docs/AGENT_GUIDE.md` — 외부 LLM 호출이 어떻게 들어오는지
+   - `sowing-docs/EVALUATION.md` §3 Phase 11 작업 분해 + §1.4 LLM Wiki 패턴 의도
+   - `lib/sowing/eval/judge.rb` + `lib/sowing/eval/runner.rb` — 합성기를 어떻게 평가할 것인지
+   - `eval/corpus/teacher_writings/hand_crafted/ent-001.md` ~ `ent-003.md` — entity_extraction 시드
+   - `lib/sowing/repositories/index_repo.rb` `find_samples` / `recent_across` — entities 테이블 추가 시 패턴 참고
 
-3. **W13-T01 작업** (한국어 교사 글 eval 코퍼스 100건):
-   - 새 디렉토리: `eval/corpus/teacher_writings/`
-   - 100개 마크다운 — 입력 + 기대 출력 + 평가 차원 (사실 일치성·간결성·관련성)
-   - frontmatter 표준: `eval_dimensions: [factuality, conciseness, relevance, ...]`
-   - 시드 12건은 `templates/samples/` 에서 카피 후 expected output 부여로 확장
-   - 나머지 88건: 옵트인 사용자 기여 또는 가상 시나리오 (한국 교사 워크플로 대표성)
+3. **W17-T01 작업** (EntityExtractor Use Case + entities 테이블):
+   - migration 006: `entities` (id, type=student|subject|location, name, first_seen_at, last_seen_at, mention_count)
+   - migration 006: `entity_mentions` (entity_id, entry_id, position) — 인용 출처 추적
+   - 새 use case: `Sowing::UseCases::ExtractEntities`
+     - 결정적 fallback: frontmatter tags + 정규식 (한국어 학생 이름 패턴)
+     - LLM 옵트인: backend 주입 시 본문에서 NER, 결과 audit log 에 actor=agent 마킹
+     - Phase 10 의 `Sowing::Eval::Backends::Base` 그대로 재사용
+   - spec: ent-001~ent-003 시드에서 정확률 측정 (Judge + 100건 corpus 회귀)
 
 4. **검증**:
-   - 100건 모두 frontmatter + body + eval 메타데이터 포함
-   - `bundle exec rspec` — 신규 corpus contract spec + 회귀 946건 통과
-   - lint clean. 5x stress 0 failures.
+   - eval 코퍼스 entity_extraction task case 들에서 factuality·coverage ≥ 4점 평균
+   - `bundle exec rspec` — 회귀 1039건 + 신규 spec 통과
+   - `bundle exec rake eval:run` — 차원 평균 하락 없음 (regressed=false)
+   - lint clean. 5x stress 4-5/5.
 
-5. **커밋**: `[W13-T01] 한국어 교사 글 eval 코퍼스 100건`
+5. **커밋**: `[W17-T01] EntityExtractor + entities 테이블 (migration 006)`
 
-이후 W13-T02 (LLM-judge harness) 진입. OpenAI/Anthropic/Ollama 백엔드 추상화 +
-사람-judge 비교 카파(kappa) ≥ 0.8 검증.
+이후 W17-T02 (StudentDigest 합성기), W17-T03 (GapDetector), W17-T04 (검토 UI) 진입.
 
 ## P2.5 Phase 2 작업 시 추가 검증 게이트
 

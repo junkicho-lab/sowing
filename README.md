@@ -39,24 +39,26 @@
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
-## 구현 현황 — Phase 1 (MVP) + Phase 9 (Agent-Native Surface) 완료, Phase 10 진입 준비
+## 구현 현황 — Phase 1 (MVP) + Phase 9 (MCP) + Phase 10 (Eval) 완료, Phase 11 진입 준비
 
 > **Phase 1 (W1~W8 MVP)**: 코드·문서 deliverable 모두 갖춰졌습니다 (855 spec pass).
 > 실제 OS별 인스톨러 출시(W8-T03·T04·T05) 와 베타 테스터 모집(W8-T07)은
 > Apple Developer 계정·Windows VM·실제 사용자가 필요해 후속 작업으로 분리.
-> [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) · [docs/RELEASE.md](docs/RELEASE.md) 참조.
 >
-> **Phase 9 (W9~W12 Agent-Native Surface)** ✅ 완료 (2026-05-09): 12개 MCP 도구
-> (sensor 4 + actuator 4 + analytics 4) + 구조화 audit log + AGENT_GUIDE.md.
-> Claude Desktop·Codex·Continue·Zed 등에서 Sowing 직접 사용 가능. iPhone 17 문제도
-> ChatGPT 모바일 + MCP 게이트웨이로 자연 해결 — 별도 iOS 앱 불필요.
-> 회귀 855 → 946 spec.
+> **Phase 9 (W9~W12 Agent-Native Surface)** ✅ 완료 (2026-05-09):
+> 12개 MCP 도구 + 구조화 audit log + AGENT_GUIDE.md. Claude Desktop·Codex·
+> Continue·Zed 에서 Sowing 직접 사용 가능. iPhone 17 문제도 ChatGPT 모바일 + MCP
+> 게이트웨이로 자연 해결 — 별도 iOS 앱 불필요.
 >
-> **Phase 2 후속 (W13~W24, 12주)**: [`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md) 의
-> Karpathy 12 명제 점검 결과에 따라 Software 3.0 전환 진행 중.
-> Eval 인프라(W13~16) → Tier-1 LLM 합성(W17~20) → Tier-2 합성(W21~24).
-> 결정은 [`docs/DECISIONS.md` ADR-013](docs/DECISIONS.md).
-> MCP 사용은 [`docs/AGENT_GUIDE.md`](docs/AGENT_GUIDE.md), Phase 10 진입은
+> **Phase 10 (W13~W16 Eval Infrastructure)** ✅ 완료 (2026-05-10):
+> 한국어 교사 글 corpus 100건 + LLM-judge harness (Judge + Kappa + 4 백엔드:
+> Fake/OpenAI/Anthropic/Ollama) + CI eval (`rake eval:run` + GitHub Actions) +
+> 5 한국어 도메인 차원 (결정적 휴리스틱). 임의 LLM 출력 → 자동 점수. 모델 변경 시
+> 회귀 자동 측정. **ADR-013 의 Phase 11 (LLM 합성) 진입 조건 충족**. 회귀 855 → 1039 spec.
+>
+> **Phase 2 후속 (W17~W24, 8주)**: Tier-1 LLM 합성(W17~20) → Tier-2 합성(W21~24).
+> 결정은 [`docs/DECISIONS.md` ADR-013](docs/DECISIONS.md). MCP 사용은
+> [`docs/AGENT_GUIDE.md`](docs/AGENT_GUIDE.md), Phase 11 진입은
 > [`KICKOFF.md` Phase 2 섹션](KICKOFF.md) 부터.
 
 ### ✅ 동작하는 기능
@@ -89,8 +91,13 @@
     - 12개 도구: `list_memos` / `search` / `read_entry` / `health` / `create_memo` / `create_note` / `create_record` / `promote` / `stats_summary` / `tag_cloud` / `wiki_complete` / `recent`
     - 구조화 audit log (`vault/.sowing/audit.log`) — 모든 mutation 추적, actor=user/agent/filesystem 구분
     - Claude Desktop / Codex / Continue.dev / Zed 4종 클라이언트 등록 가이드 ([docs/AGENT_GUIDE.md](docs/AGENT_GUIDE.md))
-- **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`, `bin/sowing-mcp`, `rake vault:seed`, `rake vault:reindex`
-- **테스트**: `bundle exec rspec` (946건 통과 — Phase 1 855 + Phase 9 91)
+  - **Eval Infrastructure (Phase 10)** — `rake eval:run`
+    - 한국어 교사 글 100건 코퍼스 (`eval/corpus/teacher_writings/`, 6 task type — entity_extraction/student_digest/gap_detection/reflection/contradiction/general)
+    - LLM-judge harness — `Sowing::Eval::Judge` (12 평가 차원, 0~5 점) + `Kappa` (사람-judge 카파) + 4 백엔드 (Fake/OpenAI/Anthropic/Ollama, Net::HTTP only)
+    - 5 한국어 도메인 차원 — 결정적 휴리스틱: honorific_consistency / korean_date_format / student_anonymity / classroom_context / tag_korean
+    - Runner + ResultStore — 결과 회귀 비교 (Δ < -0.5 면 CI fail), GitHub Actions 자동 실행
+- **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`, `bin/sowing-mcp`, `rake vault:seed`, `rake vault:reindex`, `rake eval:run`
+- **테스트**: `bundle exec rspec` (1039건 통과 — Phase 1 855 + Phase 9 91 + Phase 10 93)
 
 ### 구현된 컴포넌트
 
@@ -160,6 +167,18 @@
 | `Sowing::MCP::Server` | 공식 `mcp` gem v0.15 래퍼, stdio transport, 12 도구 등록 |
 | `Sowing::MCP::Tools::*` | 12 결정적 도구 — sensor 4 / actuator 4 / analytics 4 |
 | `bin/sowing-mcp` | Claude Desktop·Codex·Continue·Zed 등이 spawn 하는 stdio JSON-RPC 진입점 |
+
+#### Eval Infrastructure (Phase 10)
+| 모듈 | 역할 |
+|------|------|
+| `Sowing::Eval::Judge` | case + LLM 출력 → 12 차원 score 0~5 + reason. JSON 파싱 실패 시 graceful fallback |
+| `Sowing::Eval::Kappa` | Cohen's quadratic weighted + simple kappa — ordinal 점수 사람-LLM 일치 측정 |
+| `Sowing::Eval::Backends::{Base, FakeBackend, OpenAI, Anthropic, Ollama}` | LLM API 추상화 (Net::HTTP only, 외부 gem 0). FakeBackend 가 CI 안전 default |
+| `Sowing::Eval::KoreanDimensions` | 5 결정적 한국어 차원 — honorific/date_format/anonymity/classroom_context/tag_korean |
+| `Sowing::Eval::Runner` | corpus 순회 + judge 호출 + summary 집계 + synthesizer 주입(Phase 11+ 합성기) |
+| `Sowing::Eval::ResultStore` | `eval/results/*.json` 영속화 + `compare_to_previous` 회귀 감지 (기본 threshold 0.5) |
+| `eval/corpus/teacher_writings/` | 100건 corpus (hand 11 + gen 89, 6 task type), `SCHEMA.md` 정의 |
+| `.github/workflows/eval.yml` | PR/main push 자동 실행 (FakeBackend), artifact 30일 보존 |
 | `Controllers::PreviewController` | `POST /preview` Turbo Stream |
 | `Controllers::ApiController` | `GET /api/wiki_complete`, `GET /api/tag_complete`, `GET /api/quick_search` (JSON) |
 
@@ -201,13 +220,13 @@
 
 **Phase 1 규모**: 13개 컨트롤러 · 86개 라우트 · 855건 spec pass · standardrb 0 issue · 5x stress 0 failures.
 
-## Phase 2 — Software 3.0 전환 (W9~W24, Phase 9 완료)
+## Phase 2 — Software 3.0 전환 (W9~W24, Phase 9·10 완료)
 
 | Week | Phase | 상태 | 마일스톤 |
 |------|-------|------|----------|
-| W9~12 | Phase 9: Agent-Native Surface | ✅ **완료** (2026-05-09) | 12개 MCP 도구 + audit log + AGENT_GUIDE.md — 외부 에이전트가 Sowing 직접 사용 |
-| W13~16 | Phase 10: Eval Infrastructure | ⏭ 다음 | 한국어 교사 글 100건 코퍼스 + LLM-judge harness + CI 통합 |
-| W17~20 | Phase 11: Tier-1 LLM 합성 | ⏳ | 학생별 누적 페이지 + 빠진 공백 알림 (LLM Wiki 패턴 진입) |
+| W9~12 | Phase 9: Agent-Native Surface | ✅ **완료** (2026-05-09) | 12개 MCP 도구 + audit log + AGENT_GUIDE.md |
+| W13~16 | Phase 10: Eval Infrastructure | ✅ **완료** (2026-05-10) | corpus 100건 + Judge·Kappa·4 백엔드 + CI eval + 5 한국어 차원 |
+| W17~20 | Phase 11: Tier-1 LLM 합성 | ⏭ 다음 | 학생별 누적 페이지 + 빠진 공백 알림 (LLM Wiki 패턴 진입) |
 | W21~24 | Phase 12: Tier-2 LLM 합성 | ⏳ | 학기말 회고 합성 + 수업 패턴 + 모순 탐지 |
 
 **기반**: Karpathy의 [Sequoia Ascent 2026 발표](sowing-docs/background.md) 12 명제로 Sowing 점검 결과 ([`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md)). 결정은 [ADR-013](docs/DECISIONS.md), 작업 분해는 [`ROADMAP.md`](ROADMAP.md) Phase 2 섹션, 진입자 안내는 [`KICKOFF.md` Phase 2](KICKOFF.md) 참조.
