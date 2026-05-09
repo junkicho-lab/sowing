@@ -192,13 +192,10 @@ RSpec.describe "Sowing::MCP::Tools — write actuators (W9-T03)" do
     end
   end
 
-  describe "Server::TOOLS 등록" do
-    it "8개 도구 모두 등록 (sensor 4 + actuator 4)" do
+  describe "Server::TOOLS 등록 — actuator 4 포함 확인" do
+    it "create_memo / create_note / create_record / promote 모두 등록됨" do
       names = Sowing::MCP::Server::TOOLS.map(&:tool_name)
-      expect(names).to contain_exactly(
-        "list_memos", "search", "read_entry", "health",
-        "create_memo", "create_note", "create_record", "promote"
-      )
+      expect(names).to include("create_memo", "create_note", "create_record", "promote")
     end
   end
 

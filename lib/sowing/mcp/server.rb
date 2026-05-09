@@ -8,7 +8,7 @@ module Sowing
     # MCP 모듈 자체의 .repositories DI 싱글턴은 lib/sowing/mcp.rb 에 정의.
     class Server
       TOOLS = [
-        # Read-only sensors (W9-T02)
+        # Read-only sensors (W9-T02) — 기본 조회
         Tools::ListMemos,
         Tools::Search,
         Tools::ReadEntry,
@@ -17,7 +17,12 @@ module Sowing
         Tools::CreateMemo,
         Tools::CreateNote,
         Tools::CreateRecord,
-        Tools::Promote
+        Tools::Promote,
+        # Analytics sensors (W9-T04) — 통계·태그·후보·최근
+        Tools::StatsSummary,
+        Tools::TagCloud,
+        Tools::WikiComplete,
+        Tools::Recent
       ].freeze
 
       def initialize(name: "sowing", version: Sowing::VERSION)
@@ -49,6 +54,10 @@ module Sowing
             - search: 한국어 자동 라우팅 검색 (FTS5 + LIKE 폴백)
             - read_entry: 단일 entry frontmatter + body
             - health: 시스템 상태 + 카운트
+            - recent: 모든 모드 통합 최근순
+            - stats_summary: 오늘/주/월 카운트 + streak + 누적 + 성장 단계
+            - tag_cloud: 태그 사용 빈도 내림차순
+            - wiki_complete: 위키링크 후보 (note/record title 매칭)
 
           Actuators (write — audit log actor=agent 자동 기록):
             - create_memo: 빠른 메모 생성

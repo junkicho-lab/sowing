@@ -550,13 +550,17 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - 회귀: 902 → 918 (+16). lint clean. 5x stress 0 failures.
 - **선행**: W9-T02
 
-### [ ] W9-T04: MCP 도구 확장 — analytics sensors
+### [x] W9-T04: MCP 도구 확장 — analytics sensors — 완료 (2026-05-09)
 - **출력**:
-  - `stats_summary(date_range?)` — StatsRepo 결과
-  - `tag_cloud(limit?)` — IndexRepo tag_cloud
-  - `wiki_complete(q)` — 자동완성
-  - `recent(mode?, limit?)` — 최근 N건
-- **검증**: 에이전트가 자연어로 "이번 주 통계 보여줘" → MCP stats_summary 호출 → 응답 자연어 가공
+  - ✅ `stats_summary` — 오늘/주(7일)/월 + streak + 누적 + GrowthStage (5단계). AggregateDailyStats 자동 갱신
+  - ✅ `tag_cloud(limit?)` — IndexRepo#tag_cloud, 사용 빈도 desc
+  - ✅ `wiki_complete(q?, limit?)` — IndexRepo#complete, ADR-004 형식
+  - ✅ `recent(limit?)` — 모드 통합 최근순. 신규 `IndexRepo#recent_across` 메서드 추가
+- **검증**:
+  - end-to-end stdio stats_summary → today/streak/growth.stage 한국어 라벨 정상 노출 ✓
+  - read-only 보장 — 모든 호출에 audit 줄 추가 0
+  - spec 18건 (StatsSummary 3 + TagCloud 3 + WikiComplete 4 + Recent 3 + 등록 1 + audit 1 + IndexRepo#recent_across 3)
+  - 회귀: 918 → 936 (+18). lint clean. 5x stress 0 failures.
 - **선행**: W9-T03
 
 ### [ ] W9-T05: agent 지침 문서

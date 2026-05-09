@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 9 (Agent-Native Surface) 진행 중
+- **W9-T04 완료** (2026-05-09): MCP analytics sensors
+  - 4개 read-only 도구 추가: `stats_summary` / `tag_cloud` / `wiki_complete` / `recent`
+  - `stats_summary`: 오늘/주/월 카운트 + streak + 누적 + GrowthStage 5단계 (대시보드와 동일 데이터, AggregateDailyStats 자동 갱신)
+  - `tag_cloud`: 사용 빈도 내림차순, limit 옵션
+  - `wiki_complete`: ADR-004 위키링크 후보 (note/record title 매칭)
+  - `recent`: 모드 통합 최근순 — 단일 모드인 `list_memos` 와 보완
+  - 신규 `Sowing::Repositories::IndexRepo#recent_across` 메서드
+  - Server::TOOLS: 8 → 12 (sensor 4 + actuator 4 + analytics 4)
+  - end-to-end: stats_summary 호출 → growth.label "🌿 새싹" 한국어 라벨 정상
+  - spec 18건. 회귀: 918 → 936.
 - **W9-T03 완료** (2026-05-09): MCP write actuators
   - 4개 mutation 도구 추가: `create_memo` / `create_note` / `create_record` / `promote`
   - 모두 `AuditLog.with_actor("agent")` 블록으로 Use Case 호출 감쌈 → mutation 자동 actor=agent 마킹

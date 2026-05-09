@@ -65,6 +65,16 @@ module Sowing
         @db[:entries].select_map(:path)
       end
 
+      # 모든 모드 통합 최근순 조회 — MCP recent 도구용 (W9-T04).
+      # list(mode:) 는 단일 모드만이라 별도. created_at desc + id desc 보조 정렬로 안정.
+      # @return [Array<IndexedEntry>]
+      def recent_across(limit: 10)
+        @db[:entries]
+          .order(Sequel.desc(:created_at), Sequel.desc(:id))
+          .limit(limit)
+          .map { |row| to_indexed_entry(row) }
+      end
+
       # 샘플 시드(W7-T03)로 추가된 entry 조회. ULID prefix로 식별.
       # @return [Array<Hash>] [{id:, path:, mode:, title:}]
       def find_samples(prefix: "01KR1SAMP")
