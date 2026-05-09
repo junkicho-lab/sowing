@@ -313,6 +313,50 @@ rescue => e
   puts "  ❌ 가이드 조회 실패: #{e.message}"
 end
 
+# 13. MCP 서버 + audit log (Phase 9)
+puts "\n[MCP / Audit (Phase 9)]"
+begin
+  mcp_bin = File.join(Sowing.root, "bin/sowing-mcp")
+  if File.exist?(mcp_bin) && File.executable?(mcp_bin)
+    puts "  ✅ bin/sowing-mcp 실행 가능"
+  else
+    puts "  ⚠  bin/sowing-mcp 없거나 실행 권한 없음 — chmod +x bin/sowing-mcp"
+    issues << "bin/sowing-mcp 실행 권한 누락 — `chmod +x bin/sowing-mcp`"
+  end
+
+  if defined?(Sowing::MCP::Server)
+    tool_count = Sowing::MCP::Server::TOOLS.size
+    puts "  ✅ 등록된 MCP 도구: #{tool_count}개"
+    if tool_count != 12
+      puts "    ⚠  Phase 9 기준 12개 — 현재 #{tool_count}개"
+    end
+  end
+
+  audit_path = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/audit.log")
+  if audit_path.exist?
+    line_count = audit_path.each_line.count
+    actors = audit_path.each_line
+      .lazy
+      .map { |l| JSON.parse(l)["actor"] rescue nil }
+      .reject(&:nil?)
+      .group_by(&:itself)
+      .transform_values(&:count)
+    summary = actors.map { |k, v| "#{k} #{v}" }.join(", ")
+    puts "  audit.log: #{line_count}줄 (#{summary.empty? ? "비어 있음" : summary})"
+  else
+    puts "  audit.log: 없음 (mutation 발생 시 자동 생성)"
+  end
+
+  agent_guide = File.join(Sowing.root, "docs/AGENT_GUIDE.md")
+  if File.exist?(agent_guide)
+    puts "  ✅ docs/AGENT_GUIDE.md 존재 — Claude Desktop / Codex / Continue / Zed 등록 안내"
+  else
+    issues << "docs/AGENT_GUIDE.md 누락"
+  end
+rescue => e
+  puts "  ❌ MCP 진단 실패: #{e.message}"
+end
+
 puts "\n#{"─" * 60}"
 if issues.empty?
   puts "✅ 진단 완료 — 발견된 문제 없음"

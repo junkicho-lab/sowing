@@ -39,17 +39,24 @@
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
-## 구현 현황 — Phase 1 (W1~W8 MVP) 완료, Phase 2 (W9~W24) 진입 준비
+## 구현 현황 — Phase 1 (MVP) + Phase 9 (Agent-Native Surface) 완료, Phase 10 진입 준비
 
-> **Phase 1 (8주 MVP)**: 코드·문서 deliverable 모두 갖춰졌습니다 (855 spec pass).
+> **Phase 1 (W1~W8 MVP)**: 코드·문서 deliverable 모두 갖춰졌습니다 (855 spec pass).
 > 실제 OS별 인스톨러 출시(W8-T03·T04·T05) 와 베타 테스터 모집(W8-T07)은
 > Apple Developer 계정·Windows VM·실제 사용자가 필요해 후속 작업으로 분리.
 > [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) · [docs/RELEASE.md](docs/RELEASE.md) 참조.
 >
-> **Phase 2 (W9~W24, 16주)**: [`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md) 의
-> Karpathy 12 명제 점검 결과에 따라 Software 3.0 전환에 헌정. MCP 서버(W9~12) →
+> **Phase 9 (W9~W12 Agent-Native Surface)** ✅ 완료 (2026-05-09): 12개 MCP 도구
+> (sensor 4 + actuator 4 + analytics 4) + 구조화 audit log + AGENT_GUIDE.md.
+> Claude Desktop·Codex·Continue·Zed 등에서 Sowing 직접 사용 가능. iPhone 17 문제도
+> ChatGPT 모바일 + MCP 게이트웨이로 자연 해결 — 별도 iOS 앱 불필요.
+> 회귀 855 → 946 spec.
+>
+> **Phase 2 후속 (W13~W24, 12주)**: [`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md) 의
+> Karpathy 12 명제 점검 결과에 따라 Software 3.0 전환 진행 중.
 > Eval 인프라(W13~16) → Tier-1 LLM 합성(W17~20) → Tier-2 합성(W21~24).
-> 결정은 [`docs/DECISIONS.md` ADR-013](docs/DECISIONS.md), 진입은
+> 결정은 [`docs/DECISIONS.md` ADR-013](docs/DECISIONS.md).
+> MCP 사용은 [`docs/AGENT_GUIDE.md`](docs/AGENT_GUIDE.md), Phase 10 진입은
 > [`KICKOFF.md` Phase 2 섹션](KICKOFF.md) 부터.
 
 ### ✅ 동작하는 기능
@@ -78,8 +85,12 @@
   - **인터랙티브 튜토리얼** (`/tutorial`): 3분 4단계 가이드 (메모 → 필기 승격 → 기록 승격 → 완료), IndexRepo 카운트로 자동 진행 감지
   - **동기화 가이드** (`/guides`): iCloud / OneDrive / Dropbox / Syncthing — OS 매트릭스 + 설정 명령
   - **설정** (`/settings`): 프로필·데이터 위치·단축키 표시·백업/동기화 진입점·샘플 일괄 삭제(휴지통)·온보딩/튜토리얼 재실행
-- **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`, `rake vault:seed`, `rake vault:reindex`
-- **테스트**: `bundle exec rspec` (855건 통과)
+  - **MCP 서버 (Phase 9)** — `bin/sowing-mcp` stdio 진입점
+    - 12개 도구: `list_memos` / `search` / `read_entry` / `health` / `create_memo` / `create_note` / `create_record` / `promote` / `stats_summary` / `tag_cloud` / `wiki_complete` / `recent`
+    - 구조화 audit log (`vault/.sowing/audit.log`) — 모든 mutation 추적, actor=user/agent/filesystem 구분
+    - Claude Desktop / Codex / Continue.dev / Zed 4종 클라이언트 등록 가이드 ([docs/AGENT_GUIDE.md](docs/AGENT_GUIDE.md))
+- **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`, `bin/sowing-mcp`, `rake vault:seed`, `rake vault:reindex`
+- **테스트**: `bundle exec rspec` (946건 통과 — Phase 1 855 + Phase 9 91)
 
 ### 구현된 컴포넌트
 
@@ -94,6 +105,7 @@
 | 모듈 | 설명 |
 |------|------|
 | `Settings` | data_dir/settings.json — onboarding/tutorial 진행 상태, user_name 등 사용자 환경 영속화 |
+| `AuditLog` | vault/.sowing/audit.log JSON Lines append-only — 모든 mutation 추적, mutex 보호, with_actor 스택 |
 | `Filesystem::SafeWriter` | 원자적 쓰기 (tempfile + rename), NFC 정규화, chaos test 통과 + self-write 등록 |
 | `Filesystem::SelfWriteRegistry` | TTL 2초 thread-safe 레지스트리 (macOS realpath + NFC 정규화) — watcher 자체 쓰기 무시 |
 | `Filesystem::FileWatcher` | Listen gem 래퍼 — `.md` only, `.sowing/` ignore, 500ms latency, force_polling 옵션 |
@@ -140,6 +152,14 @@
 | `Controllers::TutorialController` | `/tutorial` 4단계 학습 — IndexRepo 카운트로 자동 감지·진행 |
 | `Controllers::GuidesController` | `/guides` 동기화 가이드 4종 (iCloud/OneDrive/Dropbox/Syncthing) 마크다운 → HTML 렌더 |
 | `Controllers::SettingsController` | `/settings` — 프로필 / 경로·단축키 안내 / 백업 / 샘플 일괄 삭제 / 온보딩·튜토리얼 재실행 |
+
+#### MCP (Model Context Protocol — Phase 9)
+| 모듈 | 역할 |
+|------|------|
+| `Sowing::MCP` | DI 싱글턴 (.repositories / .reset!) — 테스트 격리 + 기본값 자동 폴백 |
+| `Sowing::MCP::Server` | 공식 `mcp` gem v0.15 래퍼, stdio transport, 12 도구 등록 |
+| `Sowing::MCP::Tools::*` | 12 결정적 도구 — sensor 4 / actuator 4 / analytics 4 |
+| `bin/sowing-mcp` | Claude Desktop·Codex·Continue·Zed 등이 spawn 하는 stdio JSON-RPC 진입점 |
 | `Controllers::PreviewController` | `POST /preview` Turbo Stream |
 | `Controllers::ApiController` | `GET /api/wiki_complete`, `GET /api/tag_complete`, `GET /api/quick_search` (JSON) |
 
@@ -181,14 +201,14 @@
 
 **Phase 1 규모**: 13개 컨트롤러 · 86개 라우트 · 855건 spec pass · standardrb 0 issue · 5x stress 0 failures.
 
-## Phase 2 — Software 3.0 전환 (W9~W24, 진행 예정)
+## Phase 2 — Software 3.0 전환 (W9~W24, Phase 9 완료)
 
-| Week | Phase | 마일스톤 |
-|------|-------|----------|
-| W9~12 | Phase 9: Agent-Native Surface | MCP 서버 + audit log + agent 지침 — 외부 에이전트(Claude/ChatGPT/Codex)가 Sowing 직접 사용 |
-| W13~16 | Phase 10: Eval Infrastructure | 한국어 교사 글 100건 코퍼스 + LLM-judge harness + CI 통합 |
-| W17~20 | Phase 11: Tier-1 LLM 합성 | 학생별 누적 페이지 + 빠진 공백 알림 (LLM Wiki 패턴 진입) |
-| W21~24 | Phase 12: Tier-2 LLM 합성 | 학기말 회고 합성 + 수업 패턴 + 모순 탐지 |
+| Week | Phase | 상태 | 마일스톤 |
+|------|-------|------|----------|
+| W9~12 | Phase 9: Agent-Native Surface | ✅ **완료** (2026-05-09) | 12개 MCP 도구 + audit log + AGENT_GUIDE.md — 외부 에이전트가 Sowing 직접 사용 |
+| W13~16 | Phase 10: Eval Infrastructure | ⏭ 다음 | 한국어 교사 글 100건 코퍼스 + LLM-judge harness + CI 통합 |
+| W17~20 | Phase 11: Tier-1 LLM 합성 | ⏳ | 학생별 누적 페이지 + 빠진 공백 알림 (LLM Wiki 패턴 진입) |
+| W21~24 | Phase 12: Tier-2 LLM 합성 | ⏳ | 학기말 회고 합성 + 수업 패턴 + 모순 탐지 |
 
 **기반**: Karpathy의 [Sequoia Ascent 2026 발표](sowing-docs/background.md) 12 명제로 Sowing 점검 결과 ([`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md)). 결정은 [ADR-013](docs/DECISIONS.md), 작업 분해는 [`ROADMAP.md`](ROADMAP.md) Phase 2 섹션, 진입자 안내는 [`KICKOFF.md` Phase 2](KICKOFF.md) 참조.
 

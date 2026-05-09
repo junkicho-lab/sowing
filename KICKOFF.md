@@ -211,11 +211,15 @@ claude "vault:reindex 작업을 만드는데, 먼저 dry-run 모드를 만들고
 > 기여자 / Claude Code 세션 / 운영자를 위한 추가 가이드입니다. 위의 §1~§7 은
 > Phase 1 시점 안내였고, 본 섹션은 **현재(2026-05-09 이후)** 의 상황입니다.
 
-## P2.1 현재 상태 (2026-05-09 기준)
+## P2.1 현재 상태 (2026-05-10 기준)
 
 - **Phase 1 완료**: W1~W7 모두 ✅ + W8 부분 (T02 스캐폴드 + T06 doctor + T08 문서).
-- **855건 spec pass / standardrb clean / 5x stress 0 failures**.
-- **13개 컨트롤러 / 86개 라우트 / 3-tier 도메인 (Memo/Note/Record) / 양방향 동기화 / 12종 템플릿 + 12건 샘플 / 4단계 온보딩 + 3분 튜토리얼**.
+- **Phase 9 (Agent-Native Surface) ✅ 완료** (2026-05-09):
+  - 12개 MCP 도구 (sensor 4 + actuator 4 + analytics 4) — `bin/sowing-mcp` stdio 진입점
+  - 구조화 audit log (`vault/.sowing/audit.log`) — actor=user/agent/filesystem 구분
+  - `docs/AGENT_GUIDE.md` (5분 셋업 + 12 도구 + 5 프롬프트 + 4 클라이언트)
+- **946건 spec pass / standardrb clean / 5x stress 0 failures** (855 → 946, +91 from Phase 9).
+- **13개 컨트롤러 / 86개 라우트 / 3-tier 도메인 (Memo/Note/Record) / 양방향 동기화 / 12종 템플릿 + 12건 샘플 / 4단계 온보딩 + 3분 튜토리얼 / 12 MCP 도구**.
 - **W8 deferred**: T01 시스템 트레이 / T03 macOS 코드사인 / T04 Windows 인스톨러 / T05 Linux AppImage / T07 베타 테스터.
 
 ## P2.2 가장 먼저 읽을 것 (순서 중요)
@@ -244,36 +248,41 @@ claude "vault:reindex 작업을 만드는데, 먼저 dry-run 모드를 만들고
 4. ✅ 로컬 우선 — 외부 서버 강제 안 함
 5. ✅ 영구 삭제 금지 — 휴지통·충돌 백업
 
-## P2.4 Phase 2 첫 작업 (W9-T01 audit log) 시작 절차
+## P2.4 Phase 10 첫 작업 (W13-T01 한국어 교사 글 eval 코퍼스) 시작 절차
+
+> **Phase 9 (W9-T01~T05) 는 모두 완료**. Phase 10 (Eval Infrastructure, W13~16) 진입.
+> ADR-013: "LLM 기능은 Phase 10 검증 환경 위에 얹는다 — Phase 9 → 10 → 11 → 12 순서 의무".
 
 1. **상태 확인**:
    ```sh
    cd /Users/woodncarpenter/projects/sowing
-   bundle exec rspec | tail -3       # 855 examples, 0 failures 인지 확인
+   bundle exec rspec | tail -3       # 946 examples, 0 failures 인지 확인
    bundle exec standardrb | tail -2   # exit=0 인지 확인
-   bin/sowing-doctor | tail -10       # 9개 섹션 모두 정상인지
+   bin/sowing-doctor | tail -15       # MCP / Audit 섹션 포함 정상 확인
    ```
 
 2. **읽기 (필수, 순서대로)**:
-   - `lib/sowing/use_cases/persistence.rb` — `persist!` / `repersist!` 가 mutation 진입점
-   - `lib/sowing/sync/coordinator.rb` — subscribe broadcast hook (audit log 가 이걸 활용 가능)
-   - `lib/sowing/infrastructure/filesystem/safe_writer.rb` — atomic write 패턴
+   - `sowing-docs/EVALUATION.md` §3 Phase 10 작업 분해 — 4주 산출물 4개
+   - `templates/samples/*.md` — 한국어 교사 글 12건 시드 (corpus 시작점)
+   - `lib/sowing/use_cases/aggregate_daily_stats.rb` — 한국 교사 도메인 결정적 처리 패턴 참고
+   - `docs/AGENT_GUIDE.md` — 외부 LLM 호출이 어떻게 들어오는지
 
-3. **W9-T01 작업** (구조화 audit log):
-   - 새 파일: `lib/sowing/infrastructure/audit_log.rb`
-   - 통합 지점: `Persistence#update_index!` 끝에서 audit_log.append
-   - 형식: JSON lines, `.sowing/audit.log` 에 append-only
-   - 스키마: `{ts, actor, action, entry_id, path, old_hash, new_hash}`
-   - spec 추가: 메모 작성 → 1줄, 수정 → 1줄, 삭제 → 1줄. JSON 파싱 가능. ts ISO8601.
+3. **W13-T01 작업** (한국어 교사 글 eval 코퍼스 100건):
+   - 새 디렉토리: `eval/corpus/teacher_writings/`
+   - 100개 마크다운 — 입력 + 기대 출력 + 평가 차원 (사실 일치성·간결성·관련성)
+   - frontmatter 표준: `eval_dimensions: [factuality, conciseness, relevance, ...]`
+   - 시드 12건은 `templates/samples/` 에서 카피 후 expected output 부여로 확장
+   - 나머지 88건: 옵트인 사용자 기여 또는 가상 시나리오 (한국 교사 워크플로 대표성)
 
 4. **검증**:
-   - `bundle exec rspec` — 신규 spec 통과 + 회귀 855건 통과
-   - `bundle exec standardrb` — clean
-   - 5x stress — `for i in 1..5; do bundle exec rspec; done` 모두 통과
+   - 100건 모두 frontmatter + body + eval 메타데이터 포함
+   - `bundle exec rspec` — 신규 corpus contract spec + 회귀 946건 통과
+   - lint clean. 5x stress 0 failures.
 
-5. **커밋**: `[W9-T01] 구조화 audit log — JSON lines append-only`
+5. **커밋**: `[W13-T01] 한국어 교사 글 eval 코퍼스 100건`
 
-이후 W9-T02 (MCP 서버 stdio transport) 진입. Ruby MCP 라이브러리 조사 또는 직접 구현 결정 필요.
+이후 W13-T02 (LLM-judge harness) 진입. OpenAI/Anthropic/Ollama 백엔드 추상화 +
+사람-judge 비교 카파(kappa) ≥ 0.8 검증.
 
 ## P2.5 Phase 2 작업 시 추가 검증 게이트
 

@@ -7,10 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### 🎯 Phase 9 (Agent-Native Surface) ✅ 완료 (2026-05-09)
-- **마일스톤 달성**: Claude Desktop/Codex/Continue/Zed 등에서 MCP 로 Sowing sensor·actuator 호출 가능. iPhone 17 문제도 ChatGPT 모바일 MCP 게이트웨이로 자연 해결 — 별도 iOS 앱 불필요.
-- **회귀**: 855 → 946 (+91 spec). lint clean. 5x stress 0 failures.
-- **다음**: Phase 10 (Eval Infrastructure, W13~16) — LLM 기능 도입 전 검증 환경 구축
+### 🎯 Phase 9 (Agent-Native Surface) ✅ 완료 (W9-T01~T05, 2026-05-09 / 마무리 2026-05-10)
+
+**마일스톤 달성**: Claude Desktop/Codex/Continue/Zed 등에서 MCP 로 Sowing sensor·actuator 호출 가능. iPhone 17 문제도 ChatGPT 모바일 MCP 게이트웨이로 자연 해결 — 별도 iOS 앱 불필요.
+
+**Phase 9 산출물 요약**:
+- **12 MCP 도구**: sensor 4 (list_memos/search/read_entry/health) + actuator 4 (create_memo/note/record/promote) + analytics 4 (stats_summary/tag_cloud/wiki_complete/recent)
+- **구조화 audit log** (`vault/.sowing/audit.log`): JSON Lines append-only, actor=user/agent/filesystem 구분, mutex 보호 thread-safe
+- **AGENT_GUIDE.md**: 5분 셋업 + 12 도구 카탈로그 + 5 프롬프트 + 4 클라이언트 (Claude Desktop / Codex / Continue.dev / Zed)
+- **bin/sowing-mcp**: stdio JSON-RPC 진입점 (공식 mcp gem v0.15 활용)
+- **bin/sowing-doctor**: MCP / Audit 섹션 (도구 카운트·audit actor 분포·실행 권한 점검)
+
+**검증**:
+- 회귀: 855 → 946 (+91 spec). lint clean. 5x stress 0 failures.
+- end-to-end stdio: `tools/list`, `tools/call create_memo` (실제 vault 마크다운 + audit `actor: "agent"`), `tools/call stats_summary` (한국어 GrowthStage label) 모두 정상.
+- ADR-013 거부 5종 모두 준수: 챗봇 UI 0 / 자동 글쓰기 0 / 클라우드 강제 0 / 의인화 카피 0 / 자율 mutation 0.
+
+**다음**: Phase 10 (Eval Infrastructure, W13~16) — LLM 기능 도입 전 검증 환경 구축. KICKOFF.md §P2.4 갱신.
 - **W9-T05 완료** (2026-05-09): agent 지침 문서
   - `docs/AGENT_GUIDE.md` (~250줄) — 5분 빠른 시작 / 12 도구 카탈로그 / 5종 프롬프트 / 안전한 사용 패턴 / Troubleshooting
   - 4 클라이언트 설정 블록: Claude Desktop / Codex / Continue.dev / Zed
