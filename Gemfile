@@ -57,3 +57,5 @@ group :production do
   # 패키징 단계에서만 활성화
   # gem "tebako", "~> 0.10"
 end
+
+gem "mcp", "~> 0.15"

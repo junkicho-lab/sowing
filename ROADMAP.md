@@ -526,12 +526,14 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **spec**: 23건 (단위 14 + 통합 9). 회귀 855 → 878 통과.
 - **선행**: 없음
 
-### [ ] W9-T02: MCP 서버 — stdio transport
+### [x] W9-T02: MCP 서버 — stdio transport — 완료 (2026-05-09)
 - **출력**:
-  - `lib/sowing/mcp/server.rb` — MCP 표준 stdio transport
-  - `bin/sowing-mcp` — Claude Desktop/Codex 등 MCP 클라이언트가 spawn하는 진입점
-  - 기본 도구 4종: `list_memos` / `search` / `read_entry` / `health`
-- **검증**: Claude Desktop config에 등록 → 도구 호출 성공률 ≥ 95%
+  - ✅ `lib/sowing/mcp.rb` — DI 싱글턴 (`.repositories` / `.reset!`)
+  - ✅ `lib/sowing/mcp/server.rb` — 공식 `mcp` gem v0.15 래퍼 + stdio transport
+  - ✅ `lib/sowing/mcp/tools/{base,list_memos,search,read_entry,health}.rb` — 4 sensor 도구
+  - ✅ `bin/sowing-mcp` — Claude Desktop/Codex 등 MCP 클라이언트 spawn 진입점
+- **검증**: end-to-end JSON-RPC stdio 호출 — initialize → tools/list → 4개 등록 확인 ✓
+- **spec**: 24건 (server 6 + tools 18). 회귀 902건 통과.
 - **선행**: W9-T01
 
 ### [ ] W9-T03: MCP 도구 확장 — write actuators

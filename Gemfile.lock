@@ -113,6 +113,9 @@ GEM
     io-console (0.8.2)
     io-event (1.15.1)
     json (2.19.5)
+    json-schema (6.2.0)
+      addressable (~> 2.8)
+      bigdecimal (>= 3.1, < 5)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     listen (3.10.0)
@@ -121,6 +124,8 @@ GEM
       rb-inotify (~> 0.9, >= 0.9.10)
     logger (1.7.0)
     matrix (0.4.3)
+    mcp (0.15.0)
+      json-schema (>= 4.1)
     method_source (1.1.0)
     metrics (0.15.0)
     mini_mime (1.1.5)
@@ -300,6 +305,7 @@ DEPENDENCIES
   factory_bot (~> 6.4)
   front_matter_parser (~> 1.0)
   listen (~> 3.9)
+  mcp (~> 0.15)
   pry-byebug (~> 3.10)
   puma (~> 6.4)
   r18n-core (~> 6.0)
@@ -372,11 +378,13 @@ CHECKSUMS
   io-console (0.8.2) sha256=d6e3ae7a7cc7574f4b8893b4fca2162e57a825b223a177b7afa236c5ef9814cc
   io-event (1.15.1) sha256=c644cdcf48254015d63f558bf4492f35471f5bb204a42180ea49752be59b30cc
   json (2.19.5) sha256=218a18553e4801d579ca7e0f5bc72bafd776d7397238a1fb4e74db5b0a812c59
+  json-schema (6.2.0) sha256=e8bff46ed845a22c1ab2bd0d7eccf831c01fe23bb3920caa4c74db4306813666
   language_server-protocol (3.17.0.5) sha256=fd1e39a51a28bf3eec959379985a72e296e9f9acfce46f6a79d31ca8760803cc
   lint_roller (1.1.0) sha256=2c0c845b632a7d172cb849cc90c1bce937a28c5c8ccccb50dfd46a485003cc87
   listen (3.10.0) sha256=c6e182db62143aeccc2e1960033bebe7445309c7272061979bb098d03760c9d2
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   matrix (0.4.3) sha256=a0d5ab7ddcc1973ff690ab361b67f359acbb16958d1dc072b8b956a286564c5b
+  mcp (0.15.0) sha256=64e26fee4ab5a55aba8b166b516a87f663647608a9e11083bb57cb9c74a82def
   method_source (1.1.0) sha256=181301c9c45b731b4769bc81e8860e72f9161ad7d66dd99103c9ab84f560f5c5
   metrics (0.15.0) sha256=61ded5bac95118e995b1bc9ed4a5f19bc9814928a312a85b200abbdac9039072
   mini_mime (1.1.5) sha256=8681b7e2e4215f2a159f9400b5816d85e9d8c6c6b491e96a12797e798f8bccef

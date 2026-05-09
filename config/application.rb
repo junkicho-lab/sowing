@@ -11,6 +11,10 @@ require "zeitwerk"
 require "sinatra/base"
 require "sequel"
 
+# json-schema (mcp gem 의존)의 MultiJSON 폴백 중단 — 표준 stdlib JSON 사용으로 deprecation 메시지 침묵.
+require "json-schema"
+JSON::Validator.use_multi_json = false
+
 # Sowing 모듈 진입점
 module Sowing
   class << self
@@ -59,7 +63,8 @@ module Sowing
         "ulid" => "Ulid",
         "fts_query" => "FtsQuery",
         "db" => "DB",
-        "version" => "VERSION"
+        "version" => "VERSION",
+        "mcp" => "MCP"
       )
 
       @loader.setup

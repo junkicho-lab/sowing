@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 9 (Agent-Native Surface) 진행 중
+- **W9-T02 완료** (2026-05-09): MCP 서버 stdio transport
+  - 공식 `mcp` gem v0.15 채택 — zero-dep stdio, 깔끔한 DSL
+  - `bin/sowing-mcp` 진입점 — Claude Desktop / Codex / ChatGPT 등록 가능
+  - 4개 read-only sensor 도구: `list_memos`, `search`, `read_entry`, `health`
+  - `Sowing::MCP.repositories` DI 싱글턴 — 테스트 격리 + 기본값 자동 폴백
+  - end-to-end JSON-RPC 동작 검증 (initialize → tools/list → 4개 등록)
+  - spec 24건 (server 6 + tools 18)
 - **W9-T01 완료** (2026-05-09): 구조화 audit log
   - `Sowing::Infrastructure::AuditLog` — JSON Lines append-only, mutex 보호, 스레드 안전
   - 스키마: `{ts, actor, action, entry_id, mode, path, old_hash, new_hash}`

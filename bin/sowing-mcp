@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Sowing MCP 서버 — stdio transport 진입점 (W9-T02).
+#
+# Claude Desktop / Codex 등 MCP 클라이언트가 spawn 하여 stdio 로 JSON-RPC 통신.
+#
+# Claude Desktop 설정 예 (~/Library/Application Support/Claude/claude_desktop_config.json):
+#   {
+#     "mcpServers": {
+#       "sowing": {
+#         "command": "/path/to/sowing/bin/sowing-mcp"
+#       }
+#     }
+#   }
+#
+# 도구는 모두 read-only sensor (Phase 9-T02). 쓰기 actuator 는 W9-T03 에서 추가.
+
+require "bundler/setup"
+
+ROOT = File.expand_path("..", __dir__)
+$LOAD_PATH.unshift(File.join(ROOT, "lib"))
+
+require_relative "../config/application"
+
+Sowing::MCP::Server.new.open_stdio
