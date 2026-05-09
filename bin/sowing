@@ -12,9 +12,10 @@ $LOAD_PATH.unshift(File.join(ROOT, "lib"))
 command = ARGV.shift || "help"
 
 case command
+
 when "dev"
-  # 개발 서버 (자동 재시작)
-  exec "bundle exec rerun --dir lib,config,views,public,templates -- bundle exec rackup -p 48723 -o 127.0.0.1"
+  # 개발 서버 (Ruby 4.0+ 호환: rerun 대신 직접 실행)
+  exec "bundle exec rackup -p 48723 -o 127.0.0.1"
 
 when "start"
   # 프로덕션 서버
