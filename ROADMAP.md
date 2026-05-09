@@ -478,7 +478,229 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 
 ---
 
-## 출시 후 즉시 작업 (Week 9~)
+# Phase 2: Software 3.0 전환 (Week 9~24, 16주)
+
+> **근거**: [`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md) — Karpathy의
+> Sequoia Ascent 2026 12 명제로 점검한 결과, Sowing은 agent-native 데이터 레이어는
+> 잘 갖췄으나 agent-facing 표면(MCP·LLM 합성·구조화 로그)이 비어 있음. Phase 2는
+> 이 격차를 메운다.
+>
+> **결정**: [`docs/DECISIONS.md` ADR-013](docs/DECISIONS.md) — Software 3.0 전환
+> 원칙·거부 항목 명시.
+>
+> **변하지 않는 것**: 마크다운 SoT, 결정적 도메인, 검증 가능성, 로컬 우선,
+> 옵시디언 호환, 영구 삭제 금지. Phase 2의 모든 변경은 이 원칙 위에서.
+
+## Phase 2 큰 그림
+
+| Week | Phase | 마일스톤 |
+|------|-------|----------|
+| W9~12 | Phase 9: Agent-Native Surface | 외부 에이전트(Claude/ChatGPT/Codex)가 MCP로 Sowing의 sensors·actuators 호출 가능 |
+| W13~16 | Phase 10: Eval Infrastructure | 한국어 교사 글 100건 eval 코퍼스 + LLM-judge harness |
+| W17~20 | Phase 11: Tier-1 LLM 합성 | 학생별 누적 페이지 + 빠진 공백 알림 (LLM Wiki 패턴 진입) |
+| W21~24 | Phase 12: Tier-2 LLM 합성 | 학기말 회고 합성 + 수업 패턴 + 모순 탐지 |
+
+**핵심 원칙** (Phase 2 모든 작업에 적용):
+1. **Spec-first**: 각 작업은 spec 추가가 먼저
+2. **Verifiability gate**: 회귀 spec 100% 통과 (1.0 깨지면 release block)
+3. **Opt-in**: 모든 LLM 기능은 옵션. 결정적 fallback 항상 존재
+4. **Mutation은 사용자 명시 수락**: 자율 에이전트의 vault 변경 금지
+5. **Audit log 의무**: 모든 mutation은 `.sowing/audit.log` 에 JSON lines 로 기록
+
+---
+
+## Week 9~12: Agent-Native Surface
+
+> **목표**: Sowing의 sensors·actuators를 MCP로 노출. iPhone 17 문제(별도 iOS 앱
+> 없이 ChatGPT 모바일에서 Sowing 사용)를 자연스럽게 해결.
+
+### [ ] W9-T01: 구조화 audit log
+- **출력**:
+  - `Infrastructure::AuditLog` — `.sowing/audit.log` 에 JSON lines 로 모든 mutation 기록
+  - `Persistence#persist!`/`#repersist!` 에서 자동 호출
+  - 스키마: `{ts, actor, action, entry_id, path, old_hash, new_hash}`
+- **검증**: 메모/필기/기록 작성·수정·삭제 5건 → audit.log 5줄 + 각 줄 JSON 파싱 가능
+- **선행**: 없음
+
+### [ ] W9-T02: MCP 서버 — stdio transport
+- **출력**:
+  - `lib/sowing/mcp/server.rb` — MCP 표준 stdio transport
+  - `bin/sowing-mcp` — Claude Desktop/Codex 등 MCP 클라이언트가 spawn하는 진입점
+  - 기본 도구 4종: `list_memos` / `search` / `read_entry` / `health`
+- **검증**: Claude Desktop config에 등록 → 도구 호출 성공률 ≥ 95%
+- **선행**: W9-T01
+
+### [ ] W9-T03: MCP 도구 확장 — write actuators
+- **출력**:
+  - `create_memo(body, tags?)` — Use Case 재사용
+  - `create_note(title, body, category, source, tags?)`
+  - `create_record(title, body, category, tags?)`
+  - `promote(id, to: :note|:record, ...)` — 승격
+  - 모든 mutation은 audit log + 결과 반환 (id·path)
+- **검증**: 외부 에이전트가 메모 생성 → 인덱스 등록 + 마크다운 파일 작성 + audit 기록
+- **선행**: W9-T02
+
+### [ ] W9-T04: MCP 도구 확장 — analytics sensors
+- **출력**:
+  - `stats_summary(date_range?)` — StatsRepo 결과
+  - `tag_cloud(limit?)` — IndexRepo tag_cloud
+  - `wiki_complete(q)` — 자동완성
+  - `recent(mode?, limit?)` — 최근 N건
+- **검증**: 에이전트가 자연어로 "이번 주 통계 보여줘" → MCP stats_summary 호출 → 응답 자연어 가공
+- **선행**: W9-T03
+
+### [ ] W9-T05: agent 지침 문서
+- **출력**:
+  - `docs/AGENT_GUIDE.md` — MCP 서버 등록 방법, 각 도구 입출력 예시, 안전한 사용 패턴
+  - 복붙 가능한 Claude Desktop / Codex 설정 블록
+  - 자주 쓰는 프롬프트 5종 ("이번 주 메모 정리", "민준 학생 관련 기록 모아", 등)
+- **검증**: 새 사용자가 5분 내 MCP 등록 + 첫 도구 호출 성공
+- **선행**: W9-T04
+
+### **🎯 Week 9~12 마일스톤 (Phase 9)**
+**Claude Desktop/ChatGPT/Codex에서 MCP로 Sowing의 sensor·actuator를 호출할 수 있다.
+사용자는 별도 iOS 앱 없이 ChatGPT 모바일에서 "오늘 1교시 학생 발표 자원함" 이라
+말하면 Sowing 메모로 저장된다.**
+
+---
+
+## Week 13~16: Eval Infrastructure
+
+> **목표**: LLM 기능 도입 전에 검증 환경 먼저. Karpathy의 verifiability 원칙
+> (§1.5) — "검증 가능한 것이 자동화된다."
+
+### [ ] W13-T01: 한국어 교사 글 eval 코퍼스 100건
+- **출력**:
+  - `eval/corpus/teacher_writings/` — 메모·필기·기록 100건 (가상 + 옵트인 실제 사용자 기여)
+  - 각 샘플: 입력 + 기대 출력 + 평가 차원 (사실 일치성·간결성·관련성)
+- **검증**: 100건 모두 frontmatter + body + eval 메타데이터 포함
+- **선행**: 없음
+
+### [ ] W13-T02: LLM-judge harness
+- **출력**:
+  - `lib/sowing/eval/judge.rb` — LLM 출력에 점수 매기는 평가 모듈
+  - 차원별 점수 (0~5) + 사람-judge 비교 카파(kappa)
+  - OpenAI/Anthropic/Ollama 백엔드 추상화 (인터페이스 통일)
+- **검증**: 임의 출력 1건 → 점수 + 사유 자동 산출. 카파 ≥ 0.8.
+- **선행**: W13-T01
+
+### [ ] W13-T03: CI eval 통합
+- **출력**:
+  - `bundle exec rake eval:run` — corpus 전체 평가
+  - GitHub Actions에서 모델 버전 변경 시 자동 측정
+  - 결과를 `eval/results/{date}.json` 에 보관
+- **검증**: 의도적 회귀(가짜 LLM 출력 손상) → CI fail
+- **선행**: W13-T02
+
+### [ ] W13-T04: 한국어 교사 도메인 특화 평가 차원
+- **출력**:
+  - 높임말 일관성, 한국식 일자(YYYY-MM-DD vs 한국어), 학생 익명성, 교실 맥락 유지 등 도메인 특화 차원 5개
+  - 각 차원 spec + 100건 코퍼스 검증
+- **검증**: 각 차원이 사람-judge 채점과 카파 ≥ 0.7
+- **선행**: W13-T01, W13-T02
+
+### **🎯 Week 13~16 마일스톤 (Phase 10)**
+**임의의 LLM 출력 1건 입력 → 자동 점수 + 사유. 모델 버전 변경 시 회귀 자동 측정.
+이 인프라 없이 Phase 11 진입 금지.**
+
+---
+
+## Week 17~20: Tier-1 LLM 합성 — 학생 페이지 + 공백 알림
+
+> **목표**: Karpathy의 LLM Wiki 패턴(§1.4) 첫 적용. "이전엔 코드로 못 만들었지만
+> LLM으로는 가능한 것."
+
+### [ ] W17-T01: EntityExtractor Use Case
+- **출력**:
+  - `UseCases::ExtractEntities` — entries 본문에서 학생/주제/장소 추출
+  - 결과는 `IndexRepo#entities` 테이블 (migration 006)
+  - LLM 호출은 옵트인. 결정적 fallback (NER 없이 frontmatter tags만 사용) 동시 제공
+- **검증**: 샘플 12건 + 사용자 글 → 학생 이름 정확률 ≥ 80% (eval 기준)
+- **선행**: Phase 10 완료
+
+### [ ] W17-T02: StudentDigest 합성기
+- **출력**:
+  - `UseCases::SynthesizeStudentDigest` — 학생당 1 마크다운 파일
+  - 저장: `vault/.sowing/synth/students/{이름}.md`
+  - 프론트매터: `is_synth: true`, `synth_at`, `synth_source_count`, `synth_model`
+- **검증**: "민준" 학생 디제스트 → 등장한 메모·기록 모두 인용 + 출처 링크 + 변화 요약
+- **선행**: W17-T01
+
+### [ ] W17-T03: GapDetector
+- **출력**:
+  - 학급 명단(설정에서 입력) vs entities 매칭 → 4주 미언급 학생 알림
+  - 대시보드 새 카드: "지난 4주간 한 번도 등장 안 한 학생 N명"
+  - LLM 호출 없음 (순수 결정적) — eval 코퍼스로 검증만
+- **검증**: 명단 30명 + 엔티티 — 미언급 7명 정확 식별
+- **선행**: W17-T01
+
+### [ ] W17-T04: 합성 결과 UI — 사용자 검토 / 수락 / 거절
+- **출력**:
+  - `/synth` 라우트 — 생성된 디제스트 목록
+  - 각 디제스트는 "이건 LLM 생성입니다" 명시 배지
+  - 수락 → `vault/30_Records/학생기록/` 으로 이동, 거절 → 휴지통
+  - 수락률·거절률 audit log 기록 (Phase 12 fine-tuning 데이터)
+- **검증**: 디제스트 5건 생성 → 사용자가 검토 → 수락/거절 → audit 기록
+- **선행**: W17-T02, W17-T03
+
+### **🎯 Week 17~20 마일스톤 (Phase 11)**
+**학생 디제스트 정확률 ≥ 80%, 사용자 수락률 ≥ 50%. "내가 손으로 못 합쳤을 통찰을
+얻었다" 는 베타 사용자 회고 ≥ 3건.**
+
+---
+
+## Week 21~24: Tier-2 LLM 합성 — 회고·패턴·모순
+
+> **목표**: 더 깊은 합성. 학기말·연말 회고 자동화.
+
+### [ ] W21-T01: SemesterReflection 합성기
+- **출력**:
+  - `UseCases::SynthesizeSemesterReflection` — 입력: 100~500건 entries (3개월~6개월)
+  - 출력: 마크다운 회고 (자주 등장한 학생 / 자주 다룬 주제 / 변화의 순간들 / 잘된 / 아쉬웠던 / 다음 학기 준비)
+  - 청크 분할 + 점진적 합성 (long-context 한계 우회)
+- **검증**: 학기 분량 시뮬레이션 → 길이 500~2000자, 모든 섹션 포함, 인용 출처 정확
+- **선행**: Phase 11 완료
+
+### [ ] W21-T02: LessonPattern 추출
+- **출력**:
+  - 수업 회고 기록(category="수업") 누적 → "잘된 수업 공통점" / "아쉬운 수업 공통점"
+  - 결과는 패턴 카드 (대시보드 또는 `/synth/patterns`)
+- **검증**: 정답 패턴 10개 라벨 → 추출 정확률 ≥ 70%
+- **선행**: W21-T01
+
+### [ ] W21-T03: ContradictionDetector
+- **출력**:
+  - 시간 순 변화 / 논리 비일관성 / 학생 묘사 모순 자동 식별
+  - 예: "민준이는 4월엔 '소극적'으로 5월엔 '적극적'으로 묘사 — 변화 시점 5/5"
+  - 알림 vs 통찰 — 사용자가 모순을 *발견*으로 받아들이도록 톤 조정
+- **검증**: 의도적 모순 시나리오 5종 → 모두 식별
+- **선행**: W17-T01 (entities 활용)
+
+### [ ] W21-T04: 통합 `/synth` 대시보드
+- **출력**:
+  - 학생 디제스트 / 패턴 / 모순 / 회고 한 화면
+  - 각 섹션은 접고 펼침
+  - "이번 주 새로 합성됨" 배지
+- **검증**: 모든 합성 산출물이 한 페이지에서 접근 가능
+- **선행**: W21-T01, W21-T02, W21-T03
+
+### **🎯 Week 21~24 마일스톤 (Phase 12 = MVP+)**
+**한국 교사가 학기말에 Sowing의 합성 회고를 받고 "이걸로 학교 보고서 80% 작성됐다"
+고 말한다. 이 시점에 Sowing은 단순 기록 도구를 넘어 *이해 향상 도구*로 진화한다.**
+
+---
+
+## Phase 2 이후 (Week 25~)
+
+EVALUATION.md §3 의 Phase 13~16 후보:
+- iOS 동반 앱 (SwiftUI, read-mostly, MCP 클라이언트) — Phase 9 MCP 서버 검증 후 가치 명확해지면
+- W8 deferred 작업 정식 진행: Tebako 빌드 검증, macOS DMG codesign·notarize, Windows Inno Setup, Linux AppImage, 베타 테스터 5명
+- 다크 모드, 단축키 사용자 정의, 다국어 (i18n 인프라 활용)
+- 모바일 웹 UX 개선
+
+---
+
+## 출시 후 즉시 작업 (W8 deferred 잔여)
 
 | 우선순위 | 작업 | 예상 |
 |---------|------|------|
@@ -505,8 +727,8 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 
 ### 시간 외 작업 후보 (MVP 범위 외, 잊지 말기)
 
-- 모바일 앱 (Flutter) — Phase 4
-- AI 자동 태그 제안 (Ollama 연동) — Phase 3
-- 음성 메모 → 텍스트 — Phase 3
-- 협업·공유 — Phase 5
-- Daily Note 기능 (ADR-003 재검토 시) — Phase 2 이후
+- 모바일 앱 (Flutter) — **취소**: Phase 9 MCP 서버로 ChatGPT 모바일 통합으로 대체. 별도 앱 불필요 검증.
+- AI 자동 태그 제안 (Ollama 연동) — **재배치**: Phase 11 EntityExtractor의 일부로 흡수 가능
+- 음성 메모 → 텍스트 — Phase 외부 (OS native 음성 입력 활용 권장)
+- 협업·공유 — Phase 5+ (로컬 우선 정책상 우선순위 낮음)
+- Daily Note 기능 (ADR-003 재검토 시) — Phase 11 SemesterReflection의 부산물로 등장 가능

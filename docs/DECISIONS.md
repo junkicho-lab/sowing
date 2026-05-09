@@ -416,6 +416,64 @@ Encoding.default_external = Encoding::UTF_8
 
 ---
 
+## ADR-013: Phase 2 (W9~W24) 는 Software 3.0 전환에 헌정한다
+
+**상태**: Accepted (2026-05-09)
+
+**컨텍스트**
+
+Phase 1 (W1~W8 MVP) 완성 후 [`sowing-docs/EVALUATION.md`](../sowing-docs/EVALUATION.md)
+에서 Karpathy의 Sequoia Ascent 2026 12 명제로 Sowing을 점검. 결과:
+
+- ✅ agent-native **데이터 레이어**(마크다운 SoT, 결정적 도메인, 855 spec, doctor·ConsistencyCheck)는 우연히 잘 갖춤
+- ❌ agent-facing **표면**(MCP 서버, LLM 합성, 구조화 로그, 머신 가독 문서)이 거의 비어 있음
+- ❌ Karpathy가 강조한 "이전엔 코드로 못 만들었지만 LLM으로는 자연스러운" 합성 기능 0
+  - 학생별 누적 페이지, 학기말 회고, 수업 패턴, 모순 탐지, 빠진 공백 알림 등
+
+이 격차는 Sowing의 핵심 가치 제안("교사의 *이해* 향상 도구")을 약하게 만든다.
+v0.1.0은 기록 도구이지만, 진짜 가치는 합성·통찰에서 나온다.
+
+**결정**
+
+Phase 2 (W9~W24, 16주) 는 Software 3.0 전환에 헌정한다:
+
+- **W9~12 Phase 9**: Agent-Native Surface — MCP 서버 + 구조화 audit log + agent 지침 문서
+- **W13~16 Phase 10**: Eval Infrastructure — 한국어 교사 글 100건 코퍼스 + LLM-judge harness + CI 통합
+- **W17~20 Phase 11**: Tier-1 LLM 합성 — EntityExtractor + StudentDigest + GapDetector + 검토 UI
+- **W21~24 Phase 12**: Tier-2 LLM 합성 — SemesterReflection + LessonPattern + ContradictionDetector
+
+**근거**
+
+1. **Karpathy verifiability 원칙(§1.5)**: Sowing은 검증 가능성을 잘 갖췄다(spec·doctor·SoT). LLM 기능은 검증 환경(Phase 10) 위에 얹는다 — Phase 9 → 10 → 11 → 12 순서 의무.
+2. **MenuGen 자기 검토(§1.3)**: 일부 화면은 LLM 직접 변환으로 사라질 수 있음을 인정. 하지만 Sowing의 결정적 동작은 *기본값*, LLM은 *옵션 보강* — 둘 공존.
+3. **Ghosts not animals(§1.11)**: LLM은 도구이지 동물이 아님. 의인화 UI 거부 (챗봇 절대 안 만듦).
+4. **Understanding not thinking(§1.12)**: 사용자가 글을 *대신 쓰는* LLM은 거부. 합성·요약·연결만 — 글은 교사 본인이 쓴다.
+5. **로컬 우선 + 옵트인**: 모든 LLM 기능은 옵션. OpenAI/Anthropic 클라우드 강제 안 함. Ollama 등 로컬 LLM 동등 지원. 사용자 동의 없는 데이터 외부 전송 금지.
+
+**명시적 거부 (Phase 2 전 기간 적용)**
+
+1. ❌ **챗봇 UI** — Sowing 안에 ChatGPT 클론 절대 안 만듦. 외부 에이전트가 MCP로 접근하는 게 정답.
+2. ❌ **자동 글쓰기** — LLM이 사용자 대신 메모/필기/기록 작성 안 함. 합성·요약·연결만.
+3. ❌ **클라우드 LLM 강제** — 옵트인. 로컬 LLM 동등 지원.
+4. ❌ **"AI가 ~ 생각합니다" 의인화 카피** — 도구지 동물 아님 (§1.11).
+5. ❌ **자율 에이전트의 vault 변경** — 모든 mutation은 사용자 명시 수락 필요. Audit log 의무.
+
+**결과**
+
+- ✅ Phase 1의 자산 (마크다운 SoT·결정적 도메인·spec·doctor) 위에 LLM 기능을 안전히 얹는 명확한 길.
+- ✅ "이전엔 불가능했고 이제 자연스러운" 합성 기능 5종 도입 (EVALUATION §1.4).
+- ✅ MCP 서버로 iPhone 17 문제 자연 해결 — ChatGPT 모바일이 Sowing의 sensor·actuator 사용. 별도 iOS 앱 불필요.
+- ⚠ Phase 2 모든 작업은 회귀 spec 100% 통과 의무. 1.0 깨지면 release block.
+- ⚠ LLM 기능은 도메인 코드의 결정적 인터페이스(`Use Case + Result`)로 감싸 격리. chat-style 통합 금지.
+
+**구현 메모**
+
+- ADR 자체는 본 문서 참조용. 실제 작업 분해는 [`ROADMAP.md`](../ROADMAP.md) Phase 9~12 섹션.
+- Phase 2 시작 전 [`sowing-docs/EVALUATION.md`](../sowing-docs/EVALUATION.md) 정독 의무.
+- 새 기여자는 [`KICKOFF.md`](../KICKOFF.md) "Phase 2 진입자" 섹션부터 시작.
+
+---
+
 ## 새 ADR 추가 가이드
 
 새 결정을 기록할 때:

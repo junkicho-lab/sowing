@@ -202,3 +202,104 @@ claude "vault:reindex 작업을 만드는데, 먼저 dry-run 모드를 만들고
 행운을 빕니다 🌱
 
 — 2026-05-07
+
+---
+
+# Phase 2 진입자 안내 (W9~ 시작 시 읽기)
+
+> 본 섹션은 Phase 1 (W1~W8 MVP) 완성 후 Phase 2 (Software 3.0 전환) 부터 합류하는
+> 기여자 / Claude Code 세션 / 운영자를 위한 추가 가이드입니다. 위의 §1~§7 은
+> Phase 1 시점 안내였고, 본 섹션은 **현재(2026-05-09 이후)** 의 상황입니다.
+
+## P2.1 현재 상태 (2026-05-09 기준)
+
+- **Phase 1 완료**: W1~W7 모두 ✅ + W8 부분 (T02 스캐폴드 + T06 doctor + T08 문서).
+- **855건 spec pass / standardrb clean / 5x stress 0 failures**.
+- **13개 컨트롤러 / 86개 라우트 / 3-tier 도메인 (Memo/Note/Record) / 양방향 동기화 / 12종 템플릿 + 12건 샘플 / 4단계 온보딩 + 3분 튜토리얼**.
+- **W8 deferred**: T01 시스템 트레이 / T03 macOS 코드사인 / T04 Windows 인스톨러 / T05 Linux AppImage / T07 베타 테스터.
+
+## P2.2 가장 먼저 읽을 것 (순서 중요)
+
+1. [`sowing-docs/background.md`](sowing-docs/background.md) — Karpathy의 Sequoia Ascent 2026 발표 요약. Phase 2 의 사상적 출발점.
+2. [`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md) — 12 명제로 점검한 Sowing 평가 + Phase 9~12 로드맵 + 명시적 거부 5종.
+3. [`docs/DECISIONS.md`](docs/DECISIONS.md) ADR-013 — Phase 2 전략 결정 + 거부 항목.
+4. [`ROADMAP.md`](ROADMAP.md) "Phase 2: Software 3.0 전환" 섹션 — 작업 분해 (W9~W24).
+5. [`CHANGELOG.md`](CHANGELOG.md) `[Unreleased]` — 직전 작업 누적.
+
+이 5개를 30분 이내에 정독. 그 후에 코드 손대기 시작.
+
+## P2.3 Phase 2 의 변하지 않는 원칙 (ADR-013)
+
+다음 5종은 **절대 거부**:
+1. ❌ 챗봇 UI — Sowing 안에 ChatGPT 클론 안 만듦
+2. ❌ 자동 글쓰기 — LLM이 사용자 대신 글 안 씀 (합성·요약·연결만)
+3. ❌ 클라우드 LLM 강제 — 옵트인. Ollama 등 로컬 LLM 동등 지원
+4. ❌ "AI가 ~ 생각합니다" 의인화 카피
+5. ❌ 자율 에이전트의 vault 변경 — 사용자 명시 수락 + audit log 의무
+
+다음 5종은 **불변 원칙** (Phase 1에서 계승):
+1. ✅ 마크다운 SoT — 옵시디언 호환성
+2. ✅ 결정적 도메인 — 같은 입력 같은 출력
+3. ✅ 검증 가능성 — spec·doctor·ConsistencyCheck
+4. ✅ 로컬 우선 — 외부 서버 강제 안 함
+5. ✅ 영구 삭제 금지 — 휴지통·충돌 백업
+
+## P2.4 Phase 2 첫 작업 (W9-T01 audit log) 시작 절차
+
+1. **상태 확인**:
+   ```sh
+   cd /Users/woodncarpenter/projects/sowing
+   bundle exec rspec | tail -3       # 855 examples, 0 failures 인지 확인
+   bundle exec standardrb | tail -2   # exit=0 인지 확인
+   bin/sowing-doctor | tail -10       # 9개 섹션 모두 정상인지
+   ```
+
+2. **읽기 (필수, 순서대로)**:
+   - `lib/sowing/use_cases/persistence.rb` — `persist!` / `repersist!` 가 mutation 진입점
+   - `lib/sowing/sync/coordinator.rb` — subscribe broadcast hook (audit log 가 이걸 활용 가능)
+   - `lib/sowing/infrastructure/filesystem/safe_writer.rb` — atomic write 패턴
+
+3. **W9-T01 작업** (구조화 audit log):
+   - 새 파일: `lib/sowing/infrastructure/audit_log.rb`
+   - 통합 지점: `Persistence#update_index!` 끝에서 audit_log.append
+   - 형식: JSON lines, `.sowing/audit.log` 에 append-only
+   - 스키마: `{ts, actor, action, entry_id, path, old_hash, new_hash}`
+   - spec 추가: 메모 작성 → 1줄, 수정 → 1줄, 삭제 → 1줄. JSON 파싱 가능. ts ISO8601.
+
+4. **검증**:
+   - `bundle exec rspec` — 신규 spec 통과 + 회귀 855건 통과
+   - `bundle exec standardrb` — clean
+   - 5x stress — `for i in 1..5; do bundle exec rspec; done` 모두 통과
+
+5. **커밋**: `[W9-T01] 구조화 audit log — JSON lines append-only`
+
+이후 W9-T02 (MCP 서버 stdio transport) 진입. Ruby MCP 라이브러리 조사 또는 직접 구현 결정 필요.
+
+## P2.5 Phase 2 작업 시 추가 검증 게이트
+
+Phase 1 의 게이트(spec / lint / 5x stress) 에 다음 추가:
+
+- **새 LLM 기능마다 eval 통과** (Phase 10 완성 후) — `bundle exec rake eval:run` 카파 ≥ 0.8
+- **agent-facing API 변경 시 OpenAPI 스펙 갱신** — `docs/AGENT_GUIDE.md` 와 동기화
+- **mutation use case 추가 시 audit log 통합** — 누락 시 spec fail 하도록 contract 검증
+
+## P2.6 막힐 때
+
+- **MCP 표준 모름**: [modelcontextprotocol.io](https://modelcontextprotocol.io) 공식 문서. Anthropic SDK 또는 Ruby 직접 구현 가능.
+- **LLM 출력 평가 어떻게**: Phase 10 의 `lib/sowing/eval/judge.rb` 참고. 시작 전이라면 EVALUATION §3 Phase 10 작업 분해부터.
+- **Phase 1 의 이상한 결정**: ADR-001~013 모두 사유 적혀 있음. 그래도 모르면 ADR 작성 후 사용자 확인.
+
+## P2.7 Phase 2 의 영혼
+
+Phase 1 은 "옵시디언 호환성 + 데이터 안전"이 영혼이었습니다. **Phase 2 는 한 가지가 추가됩니다**:
+
+> *"You can outsource your thinking, but you can't outsource your understanding."*
+> — Andrej Karpathy, Sequoia Ascent 2026
+
+LLM 기능은 사용자의 **사고를 대신 해주는 게 아니라**, 손으로는 합칠 수 없었던
+정보를 합쳐 사용자의 *이해를 향상* 시키는 도구입니다. 학생 디제스트는 교사가 절대
+손으로 못 만드는 합성. 그러나 그것을 *해석하고 행동* 하는 것은 여전히 교사의 일.
+
+이 경계를 지키지 못하면 Phase 2는 실패합니다.
+
+— 2026-05-09 (Phase 2 kickoff)

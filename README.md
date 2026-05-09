@@ -39,13 +39,18 @@
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
-## 구현 현황 (Week 8 — 코드·문서 측면 MVP 완성)
+## 구현 현황 — Phase 1 (W1~W8 MVP) 완료, Phase 2 (W9~W24) 진입 준비
 
-> 8주 로드맵의 코드·문서 deliverable은 모두 갖춰졌습니다.
+> **Phase 1 (8주 MVP)**: 코드·문서 deliverable 모두 갖춰졌습니다 (855 spec pass).
 > 실제 OS별 인스톨러 출시(W8-T03·T04·T05) 와 베타 테스터 모집(W8-T07)은
-> Apple Developer 계정·Windows VM·실제 사용자가 필요해 후속 작업으로 분리됩니다.
-> 자세한 한계는 [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md), 출시 절차는
-> [docs/RELEASE.md](docs/RELEASE.md) 참조.
+> Apple Developer 계정·Windows VM·실제 사용자가 필요해 후속 작업으로 분리.
+> [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) · [docs/RELEASE.md](docs/RELEASE.md) 참조.
+>
+> **Phase 2 (W9~W24, 16주)**: [`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md) 의
+> Karpathy 12 명제 점검 결과에 따라 Software 3.0 전환에 헌정. MCP 서버(W9~12) →
+> Eval 인프라(W13~16) → Tier-1 LLM 합성(W17~20) → Tier-2 합성(W21~24).
+> 결정은 [`docs/DECISIONS.md` ADR-013](docs/DECISIONS.md), 진입은
+> [`KICKOFF.md` Phase 2 섹션](KICKOFF.md) 부터.
 
 ### ✅ 동작하는 기능
 
@@ -146,11 +151,11 @@
 | `editor_controller.js` (Stimulus) | CodeMirror 6 + textarea sync + `editor:input` event dispatch + 자동완성 (위키링크 + 태그) |
 | `preview_controller.js` (Stimulus) | 디바운스 + fetch + `Turbo.renderStreamMessage` |
 
-### Week 8 진행 상태
+### Week 8 진행 상태 (Phase 1 마무리)
 
 | 작업 | 상태 | 비고 |
 |------|------|------|
-| W8-T01 시스템 트레이 wrapper | ⏳ Deferred | 비-필수, 브라우저 진입으로 대체 |
+| W8-T01 시스템 트레이 wrapper | ⏳ Deferred | 비-필수, 브라우저 진입으로 대체. Phase 9 MCP가 더 강한 대안 |
 | W8-T02 Tebako 빌드 검증 | 🟡 스캐폴드 | `packaging/` 메타·드라이버 완료, 실제 빌드는 Tebako 환경 필요 |
 | W8-T03 macOS DMG + codesign | ⏳ Deferred | Apple Developer 계정 필요 |
 | W8-T04 Windows Inno Setup | ⏳ Deferred | Windows VM 필요 |
@@ -159,9 +164,9 @@
 | W8-T07 베타 테스터 모집 | ⏳ Deferred | 실제 사용자 5명 필요 |
 | W8-T08 출시 준비 | 🟡 문서 완료 | CHANGELOG / RELEASE / KNOWN_ISSUES, GitHub Release는 바이너리 후 |
 
-상세 일정은 [ROADMAP.md](ROADMAP.md) 참조.
+상세 일정은 [ROADMAP.md](ROADMAP.md) 참조 — Phase 1 (W1~W8) 과 Phase 2 (W9~W24) 모두 동일 문서에 정리됨.
 
-## 8주 개발 요약
+## Phase 1 — 8주 개발 요약 (W1~W8 완료)
 
 | 주 | 마일스톤 | 핵심 deliverable |
 |----|---------|------------------|
@@ -174,7 +179,25 @@
 | W7 | 온보딩 + 샘플 + 가이드 | 4단계 마법사, 12종 샘플 시드, 3분 인터랙티브 튜토리얼, 동기화 가이드 4종, 설정 화면 |
 | W8 | 패키징 + QA (코드·문서) | Tebako 빌드 스캐폴드, doctor 9섹션, CHANGELOG / RELEASE / KNOWN_ISSUES |
 
-**규모**: 13개 컨트롤러 · 86개 라우트 · 855건 spec pass · standardrb 0 issue · 5x stress 0 failures.
+**Phase 1 규모**: 13개 컨트롤러 · 86개 라우트 · 855건 spec pass · standardrb 0 issue · 5x stress 0 failures.
+
+## Phase 2 — Software 3.0 전환 (W9~W24, 진행 예정)
+
+| Week | Phase | 마일스톤 |
+|------|-------|----------|
+| W9~12 | Phase 9: Agent-Native Surface | MCP 서버 + audit log + agent 지침 — 외부 에이전트(Claude/ChatGPT/Codex)가 Sowing 직접 사용 |
+| W13~16 | Phase 10: Eval Infrastructure | 한국어 교사 글 100건 코퍼스 + LLM-judge harness + CI 통합 |
+| W17~20 | Phase 11: Tier-1 LLM 합성 | 학생별 누적 페이지 + 빠진 공백 알림 (LLM Wiki 패턴 진입) |
+| W21~24 | Phase 12: Tier-2 LLM 합성 | 학기말 회고 합성 + 수업 패턴 + 모순 탐지 |
+
+**기반**: Karpathy의 [Sequoia Ascent 2026 발표](sowing-docs/background.md) 12 명제로 Sowing 점검 결과 ([`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md)). 결정은 [ADR-013](docs/DECISIONS.md), 작업 분해는 [`ROADMAP.md`](ROADMAP.md) Phase 2 섹션, 진입자 안내는 [`KICKOFF.md` Phase 2](KICKOFF.md) 참조.
+
+**명시적 거부 5종** (Phase 2 전 기간):
+1. ❌ 챗봇 UI 절대 안 만듦
+2. ❌ 자동 글쓰기 거부 (LLM이 사용자 대신 글 안 씀)
+3. ❌ 클라우드 LLM 강제 안 함 (옵트인 + 로컬 LLM 동등 지원)
+4. ❌ "AI가 ~ 생각합니다" 의인화 카피
+5. ❌ 자율 에이전트의 vault 변경 (사용자 명시 수락 + audit log 의무)
 
 ## 문서
 
@@ -184,8 +207,11 @@
 | [CLAUDE.md](CLAUDE.md) | Claude Code | 코드 작성 컨벤션 |
 | [docs/SPEC.md](docs/SPEC.md) | 모든 기여자 | 전체 기술 명세 |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | 모든 기여자 | 아키텍처 의사결정 기록 |
-| [ROADMAP.md](ROADMAP.md) | 모든 기여자 | 8주 MVP 일정 및 작업 분해 |
+| [ROADMAP.md](ROADMAP.md) | 모든 기여자 | Phase 1 (W1~W8 완료) + Phase 2 (W9~W24 진행 예정) 작업 분해 |
+| [KICKOFF.md](KICKOFF.md) | 신규 기여자 | Phase 1 첫 한 시간 + Phase 2 진입자 가이드 |
 | [CHANGELOG.md](CHANGELOG.md) | 사용자·기여자 | 버전별 변경 이력 |
+| [sowing-docs/background.md](sowing-docs/background.md) | Phase 2 기여자 | Karpathy Sequoia Ascent 2026 발표 — Phase 2 사상적 출발점 |
+| [sowing-docs/EVALUATION.md](sowing-docs/EVALUATION.md) | Phase 2 기여자 | 12 명제 Sowing 평가 + Phase 9~12 로드맵 + 명시적 거부 |
 | [docs/RELEASE.md](docs/RELEASE.md) | 운영자 | 출시 절차 / 핫픽스 / 롤백 |
 | [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) | 사용자 | 알려진 한계 (패키징·기능·보안·성능) |
 | [packaging/README.md](packaging/README.md) | 운영자 | Tebako 빌드 단계 + OS별 deferred 항목 |
