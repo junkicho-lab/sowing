@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Phase 11 (Tier-1 LLM 합성) 진행 중
+### Phase 12 (Tier-2 LLM 합성) 진행 중
+- **W21-T01 완료** (2026-05-10): SemesterReflection 합성기 — 학기 회고 자동 합성 (청크 분할)
+  - `Sowing::UseCases::SynthesizeSemesterReflection` — 입력: 학기 분량 entries (default 6개월)
+  - 두 모드:
+    - **결정적**: 모드별 카운트 + top-N 학생/카테고리 + 월별 청크 타임라인 (위키링크 인용 보존). LLM 미사용 1급.
+    - **LLM 옵트인**: 월 단위 청크 → 청크별 요약 → 종합 prompt (long-context 한계 우회 — backend 의 작은 context window 도 안전). 5 섹션 출력 (이번 학기 흐름 / 변화의 순간들 / 잘된 점 / 아쉬웠던 점 / 다음 학기 준비)
+  - 저장: `vault/.sowing/synth/reflections/{semester_label}.md` (`.sowing/` prefix watcher 회피)
+  - frontmatter 8키: `is_synth` / `synth_target: "semester:{label}"` / `synth_at` / `synth_source_count` / `synth_period_since` / `synth_period_until` / `synth_model` / `title`
+  - 입력 가드: `MIN_ENTRIES=5` (회고 가치) / `MAX_ENTRIES=1000` (안전, token 폭발 방지) → `Failure(:no_entries)` / `Failure(:too_many_entries)`
+  - default window: 6개월 (`DEFAULT_WINDOW_DAYS=180`, 한국 학기 분량) — `since`/`until` 명시 시 override
+  - LLM 실패 시 결정적 fallback (Phase 11 패턴 동일) — 사용자에게 빈 결과보다 나음
+  - audit `with_actor("agent")` 블록 — Thread-local 스택 활용 (Phase 11 합성기 패턴 그대로 확장)
+  - top 학생 추출 — `entity_mentions ⨝ entities` 조인 (Phase 11 W17-T01 인프라 재사용)
+  - spec 14건 (결정적 4 + 가드 3 + LLM 4 + 엣지 3): 학기 시뮬레이션 / frontmatter 8키 / 5 섹션 / 월별 청크 시간순 / since-until 기본값 / 6번 backend.chat 호출 / LLM 실패 fallback / 멱등 / vault 파일 누락 graceful
+  - 회귀: 1095 → 1109 (+14). lint clean. `rake eval:run` 회귀 0. 5× stress 안정.
+
+### Phase 11 (Tier-1 LLM 합성) 완료 (W17-T01 ~ T04, 2026-05-10)
 - **W17-T04 완료** (2026-05-10): 합성 결과 검토 UI — `/synth` 라우트 + 수락/거절
   - `Sowing::Controllers::SynthController` — 5 라우트
     - `GET /synth` — 디제스트 카드 목록 (LLM 합성 배지·모델 라벨·합성 시각·출처 수)

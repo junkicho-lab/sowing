@@ -750,12 +750,22 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 
 > **목표**: 더 깊은 합성. 학기말·연말 회고 자동화.
 
-### [ ] W21-T01: SemesterReflection 합성기
+### [x] W21-T01: SemesterReflection 합성기 — 완료 (2026-05-10)
 - **출력**:
-  - `UseCases::SynthesizeSemesterReflection` — 입력: 100~500건 entries (3개월~6개월)
-  - 출력: 마크다운 회고 (자주 등장한 학생 / 자주 다룬 주제 / 변화의 순간들 / 잘된 / 아쉬웠던 / 다음 학기 준비)
-  - 청크 분할 + 점진적 합성 (long-context 한계 우회)
-- **검증**: 학기 분량 시뮬레이션 → 길이 500~2000자, 모든 섹션 포함, 인용 출처 정확
+  - `Sowing::UseCases::SynthesizeSemesterReflection` — 입력: 5~1000건 entries (`MIN_ENTRIES=5` / `MAX_ENTRIES=1000` 가드)
+  - 두 모드:
+    - **결정적**: 통계(모드별·카테고리·top 학생) + 월별 청크 + 위키링크 인용 (LLM 미사용 1급)
+    - **LLM 옵트인**: 청크 분할 (월 단위) → 청크별 요약 → 종합 prompt (long-context 한계 우회). LLM 실패 시 결정적 fallback
+  - 저장: `vault/.sowing/synth/reflections/{semester_label}.md` (`.sowing/` prefix → watcher 인덱싱 회피)
+  - frontmatter 8키: `is_synth: true` / `synth_target: "semester:{label}"` / `synth_at` / `synth_source_count` / `synth_period_since` / `synth_period_until` / `synth_model` / `title`
+  - LLM 출력 섹션: 이번 학기 흐름 / 변화의 순간들 / 잘된 점 / 아쉬웠던 점 / 다음 학기 준비
+  - `since`/`until` 명시 시 그 범위, 미지정 시 default = 최근 6개월 (`DEFAULT_WINDOW_DAYS=180`)
+  - audit `with_actor("agent")` 통합 (Phase 11 패턴 그대로 — synth_* audit 은 SynthController 가 처리)
+- **검증**: spec 14 examples (결정적 4 + 가드 3 + LLM 4 + 엣지 3). 5× 안정.
+  - 학기 분량 시뮬레이션 (10건 entries, 3~7월) → 5 결정적 섹션 모두 포함, 위키링크 인용 정확
+  - LLM 모드: 5 청크 + 1 종합 = 6 backend.chat 호출 검증
+  - LLM 실패 → 결정적 fallback 검증
+  - 멱등 (atomic 덮어쓰기) + vault 파일 누락 시 graceful
 - **선행**: Phase 11 완료
 
 ### [ ] W21-T02: LessonPattern 추출
