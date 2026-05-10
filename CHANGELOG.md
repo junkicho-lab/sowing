@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 12 (Tier-2 LLM 합성) 진행 중
+- **W21-T02 완료** (2026-05-10): LessonPattern 추출 — 잘된/아쉬웠던 수업 후보 인용
+  - `Sowing::UseCases::ExtractLessonPatterns` — 수업 카테고리 entries → 긍정/부정 신호어 매칭 → 패턴 후보 인용 모음
+  - 두 모드:
+    - **결정적**: 문장 단위 키워드 매칭 (POSITIVE 19종: 잘됐/성공/활기/집중/흥미/참여/효과적/만족/보람/자발/적극/협력/몰입/감동 등 / NEGATIVE 17종: 어려웠/힘들/산만/부족/아쉬웠/실패/혼란/지루/소극적/시간 부족/효과 적었/처졌 등). **부정 표현 5자 윈도 필터** — `안`/`못`/`없`/`지 못`/`하지 못` 직후·앞 5자 안에 키워드 있으면 매칭 무효화 ("잘 안 됐다" → "잘" 무효)
+    - **LLM 옵트인**: 1차 필터된 인용 → 단일 종합 prompt (청크 분할 없음, 인용 수가 제한적이라 단일로 충분) → 패턴 후보 + "다음 수업에 시도할 만한 것" 섹션
+  - 저장: `vault/.sowing/synth/patterns/lessons.md` (학생 디제스트가 학생당 1 파일인 것과 대비, 패턴은 단일 파일에 누적 재합성)
+  - frontmatter 9키: 기존 6키 + `synth_period_since` / `synth_period_until` / `synth_categories` (분석 대상 카테고리 목록)
+  - 기본 카테고리 (`DEFAULT_LESSON_CATEGORIES`): `수업` / `수업회고` / `lessons` / `도덕` / `도덕수업` — `categories:` 인자로 override
+  - 가드: `MIN_ENTRIES=3` / `MAX_ENTRIES=500` / `EXCERPT_LIMIT=200` / `TOP_PATTERN_N=8`
+  - 정직성 (ADR-013): "패턴이다" 단정 안 함, 후보 인용만 모음. 결정적 모드 trailer 명시 — "각 인용은 후보일 뿐 — 사용자가 검토 후 *발견* 으로 받아들일 것" (LLM 단정 거부, 자율 판단 0)
+  - LLM 실패 → 결정적 fallback (Phase 11 패턴)
+  - audit `with_actor("agent")` — Thread-local 스택 (Phase 11~12 합성기 패턴)
+  - spec 17건 (결정적 5: 작성/frontmatter/긍정 매칭/부정 매칭/trailer + 카테고리/가드 4: 기본 카테고리/사용자 정의/no_entries/too_many_entries + LLM 4: 1회 호출/synth_model/agent actor/실패 fallback + 엣지 3: 빈 후보/멱등/vault 파일 누락 graceful) + 부정 윈도 검증 1
+  - 회귀: 1109 → 1126 (+17). lint clean. `rake eval:run` 회귀 0. 5× stress 안정.
 - **W21-T01 완료** (2026-05-10): SemesterReflection 합성기 — 학기 회고 자동 합성 (청크 분할)
   - `Sowing::UseCases::SynthesizeSemesterReflection` — 입력: 학기 분량 entries (default 6개월)
   - 두 모드:

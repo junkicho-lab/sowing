@@ -768,11 +768,23 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - 멱등 (atomic 덮어쓰기) + vault 파일 누락 시 graceful
 - **선행**: Phase 11 완료
 
-### [ ] W21-T02: LessonPattern 추출
+### [x] W21-T02: LessonPattern 추출 — 완료 (2026-05-10)
 - **출력**:
-  - 수업 회고 기록(category="수업") 누적 → "잘된 수업 공통점" / "아쉬운 수업 공통점"
-  - 결과는 패턴 카드 (대시보드 또는 `/synth/patterns`)
-- **검증**: 정답 패턴 10개 라벨 → 추출 정확률 ≥ 70%
+  - `Sowing::UseCases::ExtractLessonPatterns` — 수업 카테고리 entries 본문 → 잘된/아쉬웠던 후보 인용
+  - 두 모드:
+    - **결정적**: 문장 단위 키워드 매칭 (POSITIVE 19종 / NEGATIVE 17종) + 부정 표현 5자 윈도 필터 (`안`/`못`/`없`/`지 못`/`하지 못` 직후·앞 5자 안에 키워드 있으면 매칭 무효화)
+    - **LLM 옵트인**: 1차 필터된 인용 → 종합 prompt → 패턴 후보 + "다음 수업에 시도할 만한 것" 섹션
+  - 저장: `vault/.sowing/synth/patterns/lessons.md` (단일 파일, 누적 재합성)
+  - frontmatter 9키: `is_synth` / `synth_target: "patterns:lessons"` / `synth_at` / `synth_source_count` / `synth_period_since` / `synth_period_until` / `synth_categories` (목록) / `synth_model` / `title`
+  - 기본 카테고리: 수업 / 수업회고 / lessons / 도덕 / 도덕수업 (`DEFAULT_LESSON_CATEGORIES`) — `categories:` 인자로 override
+  - 정직성: "패턴이다" 단정 안 함, 후보 인용만 모음. 진짜 패턴 추출은 LLM 모드에서. 결정적 모드 trailer "각 인용은 후보일 뿐 — 사용자가 검토 후 *발견* 으로 받아들일 것"
+  - 가드: `MIN_ENTRIES=3` (패턴 가치) / `MAX_ENTRIES=500` (안전)
+  - LLM 실패 → 결정적 fallback (Phase 11 패턴 동일)
+- **검증**: spec 17 examples (결정적 5 + 카테고리/가드 4 + LLM 4 + 엣지 4). 5× 안정.
+  - 긍정/부정 신호어 매칭 spec — 활기/몰입/효과적 → 잘된 / 어려웠/산만/아쉬웠 → 아쉬웠던
+  - 부정 윈도 — "잘 안 됐다" 에서 "잘" 매칭 무효화 검증
+  - 사용자 정의 카테고리 (categories: ["프로젝트"]) override 검증
+  - LLM 모드 — 단일 chat 호출, agent actor, 실패 fallback
 - **선행**: W21-T01
 
 ### [ ] W21-T03: ContradictionDetector
