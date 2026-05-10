@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# 출시 전 게이트 한 번에 실행 (docs/RELEASE.md §1 자동화).
+#
+# 사용:
+#   ./bin/sowing-release-check
+#
+# 각 단계 실패 시 즉시 종료 + 안내 메시지.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+green() { printf "\033[32m✅ %s\033[0m\n" "$*"; }
+yellow() { printf "\033[33m⚠  %s\033[0m\n" "$*"; }
+red() { printf "\033[31m❌ %s\033[0m\n" "$*" >&2; }
+bold() { printf "\033[1m%s\033[0m\n" "$*"; }
+
+VERSION="$(ruby -r ./lib/sowing/version -e 'print Sowing::VERSION')"
+
+bold "🚀 Sowing 출시 게이트 — v${VERSION}"
+echo "─────────────────────────────────────"
+
+# ─── 1. spec ───
+bold "[1/6] rspec 전체"
+spec_summary="$(bundle exec rspec --format progress 2>&1 | grep -E 'examples,.*failures' | tail -1)"
+echo "  $spec_summary"
+if echo "$spec_summary" | grep -q "0 failures"; then
+  green "rspec 통과"
+else
+  red "rspec 실패 — 출시 중단"
+  exit 1
+fi
+
+# ─── 2. lint ───
+bold ""
+bold "[2/6] standardrb"
+if bundle exec standardrb 2>&1; then
+  green "lint clean"
+else
+  red "lint 실패 — bundle exec standardrb --fix 후 재시도"
+  exit 1
+fi
+
+# ─── 3. 5x stress ───
+bold ""
+bold "[3/6] 5x stress (전체 spec)"
+fail_count=0
+for i in 1 2 3 4 5; do
+  summary="$(bundle exec rspec 2>&1 | grep -E 'examples,.*failures' | tail -1)"
+  if echo "$summary" | grep -q "0 failures"; then
+    echo "  run $i: ✅ $summary"
+  else
+    echo "  run $i: ❌ (flake) $summary"
+    fail_count=$((fail_count + 1))
+  fi
+done
+if [ $fail_count -ge 2 ]; then
+  red "stress 5회 중 ${fail_count}회 실패 — flake 조사 필요"
+  exit 1
+fi
+green "stress 통과 (${fail_count} flake / 5)"
+
+# ─── 4. doctor ───
+bold ""
+bold "[4/6] sowing-doctor"
+if bin/sowing-doctor 2>&1 | grep -q "발견된 문제 없음"; then
+  green "doctor 0 issues"
+else
+  yellow "doctor 가 issue 보고 — 출시 가능하지만 검토 권장:"
+  bin/sowing-doctor 2>&1 | tail -10
+fi
+
+# ─── 5. eval ───
+bold ""
+bold "[5/6] rake eval:run (회귀 검사)"
+if bundle exec rake eval:run 2>&1 | tail -15 | grep -q "❌"; then
+  red "eval 회귀 감지 — CHANGELOG / 모델 변경 검토 필요"
+  bundle exec rake eval:run 2>&1 | tail -15
+  exit 1
+fi
+green "eval 회귀 0"
+
+# ─── 6. version / CHANGELOG ───
+bold ""
+bold "[6/6] version + CHANGELOG 정합성"
+
+if grep -q "## \[${VERSION}\]" CHANGELOG.md; then
+  green "CHANGELOG.md 에 [${VERSION}] 섹션 존재"
+else
+  red "CHANGELOG.md 에 [${VERSION}] 섹션 없음 — 추가 후 재실행"
+  exit 1
+fi
+
+if [ -n "$(git status --porcelain)" ]; then
+  yellow "uncommitted 변경사항 있음 — 출시 전 commit 권장:"
+  git status --short | head
+fi
+
+# ─── 결과 ───
+echo ""
+echo "─────────────────────────────────────"
+green "🎉 모든 게이트 통과 — 출시 준비 완료"
+echo ""
+bold "다음 단계:"
+echo ""
+echo "  git tag -a v${VERSION} -m \"v${VERSION} — \""
+echo "  git push origin v${VERSION}"
+echo ""
+echo ".github/workflows/release.yml 가 자동 진행:"
+echo "  1. cross-platform source artifact 빌드 (macOS/Ubuntu/Windows)"
+echo "  2. Docker 이미지 GHCR push (ghcr.io/junkicho-lab/sowing:${VERSION} + :latest)"
+echo "  3. GitHub Release 생성 + 모든 artifact 첨부"
+echo ""
+echo "진행 모니터: https://github.com/junkicho-lab/sowing/actions"

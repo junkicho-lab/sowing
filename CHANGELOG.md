@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+(다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
+
+## [0.1.0] - 2026-05-10 — 첫 정식 release (MVP + Phase 9~12 + 확장 + 베타 인프라 + 4 설치 경로)
+
+**Sowing 의 첫 GitHub Release.** Phase 1 (W1~W8 MVP) 부터 Phase 12 (W21~W24
+Tier-2 LLM 합성), 8 확장 합성기, 베타 검증 인프라, 4 즉시 설치 경로까지 모두
+포함. 1332 spec pass, lint clean, eval 회귀 0.
+
+**규모**: 14 컨트롤러 / 91 라우트 / 12 LLM 합성기 (`/synth` 12 type) + 12 MCP
+도구 + 100 eval corpus + 12 평가 차원 + Phase 11~12 audit preference 데이터
+누적 인프라. 4 설치 경로 (Docker / sowing-install / 소스 / Homebrew Tap).
+
 ### 패키징·배포 인프라 — 4 즉시 가능한 설치 경로 (2026-05-10)
 - KICKOFF P2.4 옵션 B (W8 deferred 패키징) 의 *외부 리소스 없이 즉시 가능한* 5 deliverable. Apple Developer 계정·Windows VM·Tebako runtime 필요한 정식 인스톨러는 그대로 deferred.
 - **Dockerfile** + **`docker-compose.yml`** + **`.dockerignore`**:
@@ -532,7 +544,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `packaging/` Tebako 빌드 스캐폴드 (W8-T02)
 - `bin/sowing dev`: rerun 의존 제거, rackup 직접 실행 (Ruby 4.0+ 호환)
 
-## [0.1.0] - MVP (W1~W6 핵심 기능)
+## Phase 1 MVP 핵심 (W1~W6, 위 [0.1.0] 에 포함된 역사적 deliverable)
+
+> 본 섹션은 v0.1.0 release 의 일부 — Phase 1 첫 6주에 작성된 핵심 기능 모음.
+> [0.1.0] 위쪽 섹션이 Phase 9~12 + 확장·베타·패키징 등 *후속* 변경사항.
+
+### Phase 1 — W1~W6 deliverables
 
 ### Domain & Storage
 - Memo / Note / Record 3종 도메인 (메모 → 필기 → 기록 인지 모델)
