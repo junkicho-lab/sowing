@@ -8,6 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 12 (Tier-2 LLM 합성) 진행 중
+- **W21-T03 완료** (2026-05-10): ContradictionDetector — 학생 묘사 시간순 변화 후보
+  - `Sowing::UseCases::DetectContradictions` — 학생 mention 시간순 분석 → 반의어 차원 양 끝 매칭 → 변화 후보 + 방향(향상/후퇴)
+  - 4 차원 (`ANTONYM_DIMENSIONS`):
+    - **참여도**: low(소극/조용/발표 안/시선 안/듣는 역할) ↔ high(적극/자원/주도/활발/능동)
+    - **집중도**: low(산만/딴짓/멍하/집중력 부족) ↔ high(집중/몰입/차분/진지)
+    - **이해도**: low(어려워/못 따라/부진/헤매/헷갈) ↔ high(잘 이해/또래 이상/빠르게 풀)
+    - **협력성**: low(혼자/외톨이/갈등/다툼) ↔ high(협력/모둠 잘/친구들과 잘/사회자 역할)
+  - 두 모드:
+    - **결정적**: 학생당 시간순 entry → 본문 문장 분리 → 학생 이름 포함 문장만 분석 → 차원별 low/high 매칭 → 양 끝 모두 등장 시 변화 후보 (향상/후퇴 방향 자동 판정 — 시간 순서 기반)
+    - **LLM 옵트인**: 1차 후보 → 종합 prompt → 변화 시점 + 가능한 분기점 사건 + 다음 관찰 제안
+  - 톤 (ADR-013 자율 판단 0):
+    - "모순" 대신 *변화·발견* (con-001 corpus notes 와 일치 — "비판이 아니라 통찰로")
+    - 결정적 trailer "각 변화는 후보일 뿐 — 사용자가 검토 후 *발견* 으로 받아들일 것"
+    - LLM prompt 도 "단정 금지 — 분기점은 본문에 명시된 사건만"
+    - 인용 근거(entry path + 문장 + 날짜) 항상 양 끝 함께 제시
+  - 저장: `vault/.sowing/synth/contradictions/observations.md` (단일 파일, 학생 전체 누적)
+  - frontmatter 9키: 기본 6키 + `synth_period_since` / `synth_period_until` / `synth_students` (분석된 학생 이름 배열)
+  - 가드: `MIN_OBSERVATIONS=1` (1명만 변화 보여도 의미 — gap 알림과 비슷, 적극적 톤) / `MIN_MENTIONS_PER_STUDENT=2` (변화 추적 가능 최소) / `EXCERPT_LIMIT=200`
+  - 결정적 모드 한계 인정: 반의어 사전 외 어휘 미탐지 (예: "내성적/외향적"). false positive 가능성 — 같은 차원 다른 맥락 사용 시 변화로 오인 → 사용자 검토 의무화
+  - LLM 실패 → 결정적 fallback (Phase 11~12 합성기 패턴 동일)
+  - audit `with_actor("agent")` 통합
+  - **의도적 모순 시나리오 5종 spec 검증** (ROADMAP 검증 기준 충족):
+    1. 참여도 향상 (발표 안 → 자원)
+    2. 집중도 향상 (산만 → 집중)
+    3. 이해도 향상 (어려워 → 또래 이상)
+    4. 협력성 향상 (혼자 → 모둠 잘)
+    5. 후퇴 방향 (적극 → 소극, 화살표 → 후퇴 표시)
+  - spec 18건 (의도 시나리오 5 + 산출물 형식 3 + 가드·엣지 7 + LLM 3)
+  - 회귀: 1126 → 1144 (+18). lint clean. `rake eval:run` 회귀 0. 5× stress 안정.
 - **W21-T02 완료** (2026-05-10): LessonPattern 추출 — 잘된/아쉬웠던 수업 후보 인용
   - `Sowing::UseCases::ExtractLessonPatterns` — 수업 카테고리 entries → 긍정/부정 신호어 매칭 → 패턴 후보 인용 모음
   - 두 모드:

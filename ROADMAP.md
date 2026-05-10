@@ -787,12 +787,34 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - LLM 모드 — 단일 chat 호출, agent actor, 실패 fallback
 - **선행**: W21-T01
 
-### [ ] W21-T03: ContradictionDetector
+### [x] W21-T03: ContradictionDetector — 완료 (2026-05-10)
 - **출력**:
-  - 시간 순 변화 / 논리 비일관성 / 학생 묘사 모순 자동 식별
-  - 예: "민준이는 4월엔 '소극적'으로 5월엔 '적극적'으로 묘사 — 변화 시점 5/5"
-  - 알림 vs 통찰 — 사용자가 모순을 *발견*으로 받아들이도록 톤 조정
-- **검증**: 의도적 모순 시나리오 5종 → 모두 식별
+  - `Sowing::UseCases::DetectContradictions` — 학생 mention 시간순 분석 → 반의어 차원 매칭 → 변화 후보
+  - 4 차원 (`ANTONYM_DIMENSIONS`):
+    - **참여도**: 소극/조용/발표 안 ↔ 적극/자원/주도
+    - **집중도**: 산만/딴짓/멍하 ↔ 집중/몰입/차분
+    - **이해도**: 어려워/못 따라/부진 ↔ 잘 이해/또래 이상/빠르게 풀
+    - **협력성**: 혼자/외톨이/갈등 ↔ 협력/모둠 잘/사회자 역할
+  - 두 모드:
+    - **결정적**: 학생당 시간순 mention → 본문 문장 단위 차원 매칭 → 양 끝(low+high) 모두 등장 시 변화 후보 + 방향(향상/후퇴) 표시
+    - **LLM 옵트인**: 1차 후보 → 종합 prompt → 변화 시점·분기점 사건·다음 관찰 제안
+  - 톤: "모순" 대신 *변화·발견* — 사용자가 비판이 아닌 통찰로 받아들이도록 (ADR-013 자율 판단 0)
+  - 인용 근거: 변화 양 끝 entry path + 문장 + 날짜 항상 함께 제시 (자율 판단 0)
+  - 저장: `vault/.sowing/synth/contradictions/observations.md` (단일 파일, 학생 전체 누적)
+  - frontmatter 9키: 기본 6키 + `synth_period_since` / `synth_period_until` / `synth_students` (분석된 학생 목록)
+  - 가드: `MIN_OBSERVATIONS=1` (1명만 변화 보여도 의미) / `MIN_MENTIONS_PER_STUDENT=2` (변화 추적 가능)
+  - LLM 실패 → 결정적 fallback
+- **검증**: spec 18 examples
+  - **의도적 모순 시나리오 5종 모두 식별** (ROADMAP 검증 기준 충족):
+    1. 참여도 (발표 안 → 자원, 향상)
+    2. 집중도 (산만 → 집중, 향상)
+    3. 이해도 (어려워 → 또래 이상, 향상)
+    4. 협력성 (혼자 → 모둠 잘, 향상)
+    5. 후퇴 방향 (적극 → 소극, 후퇴 표시)
+  - 산출물 형식 3 (Success/frontmatter 9키/톤)
+  - 가드·엣지 7 (no_observations/매칭 0/mention 1건/여러 학생 동시/이름 없는 entry/vault 누락 graceful/멱등)
+  - LLM 3 (1회 호출/agent actor/실패 fallback)
+  - 5× 안정. 1126 → 1144 (+18). lint clean. eval 회귀 0.
 - **선행**: W17-T01 (entities 활용)
 
 ### [ ] W21-T04: 통합 `/synth` 대시보드
