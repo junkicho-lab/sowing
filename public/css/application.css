@@ -2134,3 +2134,111 @@ pre code {
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+/* ─── 합성 통합 대시보드 (W21-T04) ─── */
+
+.synth-badge--type {
+  background: rgba(45, 95, 63, 0.08);
+  color: var(--color-primary);
+  border-color: rgba(45, 95, 63, 0.3);
+}
+
+.synth-badge--recent {
+  background: #ffe9b3;
+  color: #6b4c00;
+  border-color: #d4a017;
+  animation: synthBadgePulse 2s ease-in-out infinite;
+}
+
+@keyframes synthBadgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.synth-section {
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 6px;
+  margin: var(--space-3) 0;
+  background: var(--color-surface, #fff);
+  overflow: hidden;
+}
+
+.synth-section[open] {
+  border-left: 3px solid var(--color-primary);
+}
+
+.synth-section__summary {
+  cursor: pointer;
+  padding: var(--space-3);
+  font-size: 1.05rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  list-style: none;
+  user-select: none;
+}
+
+.synth-section__summary::-webkit-details-marker { display: none; }
+
+.synth-section__summary::after {
+  content: "▸";
+  margin-left: auto;
+  color: var(--color-muted);
+  transition: transform 0.15s;
+}
+
+.synth-section[open] .synth-section__summary::after {
+  transform: rotate(90deg);
+}
+
+.synth-section__icon {
+  font-size: 1.3rem;
+}
+
+.synth-section__count {
+  color: var(--color-muted);
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+.synth-section__body {
+  padding: 0 var(--space-3) var(--space-3);
+  border-top: 1px solid var(--color-border, #e0e0e0);
+}
+
+.synth-section__generate {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--color-border, #e0e0e0);
+}
+
+.synth-generate-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+
+.synth-generate-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  gap: 4px;
+}
+
+.synth-generate-form input {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  min-width: 180px;
+}
+
+.synth-generate-form__hint {
+  flex-basis: 100%;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  margin-top: var(--space-1);
+}

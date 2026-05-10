@@ -817,17 +817,41 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - 5× 안정. 1126 → 1144 (+18). lint clean. eval 회귀 0.
 - **선행**: W17-T01 (entities 활용)
 
-### [ ] W21-T04: 통합 `/synth` 대시보드
+### [x] W21-T04: 통합 `/synth` 대시보드 — 완료 (2026-05-10)
 - **출력**:
-  - 학생 디제스트 / 패턴 / 모순 / 회고 한 화면
-  - 각 섹션은 접고 펼침
-  - "이번 주 새로 합성됨" 배지
-- **검증**: 모든 합성 산출물이 한 페이지에서 접근 가능
+  - `Sowing::Controllers::SynthController` 전면 리팩토링 — 4 type 통합 (`SYNTH_TYPES` 상수)
+    - `students` (Phase 11) / `reflections` (W21-T01) / `patterns` (W21-T02) / `contradictions` (W21-T03)
+    - 각 type 마다: subdir, label, icon, accept_category, target_prefix 정의
+  - 라우트 통합:
+    - `GET /synth` — 4 섹션 통합 대시보드 (각 섹션 `<details>` 접고 펼침, 카드 있으면 자동 open)
+    - `GET /synth/:type/:slug` — 통합 상세 (메타 dl 8키, type 배지, 카테고리/학생/기간 표시)
+    - `POST /synth/:type/:slug/accept` — type별 accept_category 매핑 → Record 생성 + persist!
+    - `POST /synth/:type/:slug/reject` — 휴지통 + audit (entry_id prefix는 type별 target_prefix)
+    - `POST /synth/students/:slug/generate` (기존)
+    - `POST /synth/reflections/generate` — semester_label/since/until 폼
+    - `POST /synth/patterns/lessons/generate` — 매개변수 0
+    - `POST /synth/contradictions/observations/generate` — 매개변수 0
+  - **"이번 주 새로 합성됨" 배지** (`recently_synthed?` 헬퍼) — synth_at 7일 이내 시 펄스 애니메이션 노란색 배지
+  - 카테고리 매핑: students→학생기록 / reflections→학기회고 / patterns→수업기록 / contradictions→학생기록
+  - 백워드 호환: 기존 `/synth/students/:slug/{accept,reject,generate}` 라우트 유지
+  - views/synth/{index,show}.erb 전면 갱신 + .synth-section + .synth-badge--recent + .synth-generate-form CSS
+- **검증**: spec 22 examples (대시보드 4 + 상세 5 + 수락 4 + 거절 2 + 생성 5 + ADR-013 1 + 배지 1)
+  - 모든 합성 산출물 4 type 한 페이지 접근 검증
+  - "이번 주 새로 합성" 배지 — 카드별 정확 등장 검증
+  - reject audit entry_id prefix 4 type 모두 검증
+  - 알 수 없는 type → 404
+  - reflections 폼 — semester_label 필수 검증
+  - 회귀 1144 → 1166 (+22). lint clean. eval 회귀 0. 5× 안정.
 - **선행**: W21-T01, W21-T02, W21-T03
 
-### **🎯 Week 21~24 마일스톤 (Phase 12 = MVP+)**
+### **🎯 Week 21~24 마일스톤 (Phase 12 = MVP+)** — 코드 deliverable ✅ 달성 (2026-05-10)
 **한국 교사가 학기말에 Sowing의 합성 회고를 받고 "이걸로 학교 보고서 80% 작성됐다"
 고 말한다. 이 시점에 Sowing은 단순 기록 도구를 넘어 *이해 향상 도구*로 진화한다.**
+
+**달성 상태**:
+- 코드/인프라: ✅ 완료 — 4 task (T01~T04) 모두 완료, 1166 spec pass, lint clean, eval 회귀 0
+- 사용자 검증 ("80% 작성됐다" 회고): 실 사용자 데이터 수집 후 측정. 현재는 audit `:synth_accept`/`:synth_reject` 카운터로 측정 가능한 인프라만 갖춤 — 실 사용 후 확인.
+- **Phase 2 (Software 3.0 전환) 코드 deliverable 모두 완료**: Phase 9 (MCP) + Phase 10 (Eval) + Phase 11 (Tier-1) + Phase 12 (Tier-2) — 855 → 1166 spec (+311).
 
 ---
 

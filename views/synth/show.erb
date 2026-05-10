@@ -8,6 +8,7 @@
   <header class="synth-detail__header">
     <div class="synth-detail__badges">
       <span class="synth-badge synth-badge--llm">LLM 합성</span>
+      <span class="synth-badge synth-badge--type"><%= h(@type_meta[:icon]) %> <%= h(@type_meta[:label]) %></span>
       <% if @synth[:fm]["synth_model"] %>
         <span class="synth-badge synth-badge--model"><%= h(@synth[:fm]["synth_model"]) %></span>
       <% end %>
@@ -26,6 +27,21 @@
         <dt>대상</dt>
         <dd><code><%= h(@synth[:fm]["synth_target"]) %></code></dd>
       <% end %>
+      <% if @synth[:fm]["synth_period_since"] && @synth[:fm]["synth_period_until"] %>
+        <dt>기간</dt>
+        <dd>
+          <%= h(@synth[:fm]["synth_period_since"][0, 10]) %>
+          ~ <%= h(@synth[:fm]["synth_period_until"][0, 10]) %>
+        </dd>
+      <% end %>
+      <% if @synth[:fm]["synth_categories"] %>
+        <dt>분석 카테고리</dt>
+        <dd><%= h((@synth[:fm]["synth_categories"] || []).join(" · ")) %></dd>
+      <% end %>
+      <% if @synth[:fm]["synth_students"] %>
+        <dt>분석된 학생</dt>
+        <dd><%= h((@synth[:fm]["synth_students"] || []).join(" · ")) %></dd>
+      <% end %>
     </dl>
   </header>
 
@@ -35,25 +51,39 @@
 
   <footer class="synth-detail__actions">
     <p class="synth-detail__warn">
-      <strong>주의</strong>: 합성물은 자동 작성된 초안입니다. 수락 시 정식 기록(30_Records)으로 이동하므로,
+      <strong>주의</strong>: 합성물은 자동 작성된 초안입니다. 수락 시 정식 기록(30_Records/<%= h(@type_meta[:accept_category]) %>)으로 이동하므로,
       반드시 인용 정확성·표현 적절성을 직접 확인해 주세요.
     </p>
     <div class="synth-detail__buttons">
-      <form action="/synth/students/<%= h(@synth[:slug]) %>/accept" method="post"
+      <form action="/synth/<%= h(@type) %>/<%= h(@synth[:slug]) %>/accept" method="post"
             style="display:inline"
-            onsubmit="return confirm('수락 — 정식 기록(30_Records/{YYYY}/학생기록)으로 이동합니다. 계속할까요?');">
+            onsubmit="return confirm('수락 — 정식 기록(30_Records/{YYYY}/<%= h(@type_meta[:accept_category]) %>)으로 이동합니다. 계속할까요?');">
         <button type="submit" class="button button--primary">수락 (정식 기록으로)</button>
       </form>
-      <form action="/synth/students/<%= h(@synth[:slug]) %>/reject" method="post"
+      <form action="/synth/<%= h(@type) %>/<%= h(@synth[:slug]) %>/reject" method="post"
             style="display:inline"
             onsubmit="return confirm('거절 — 휴지통(.sowing/trash)으로 이동합니다. 계속할까요?');">
         <button type="submit" class="button button--danger">거절 (휴지통)</button>
       </form>
-      <form action="/synth/students/<%= h(@synth[:slug]) %>/generate" method="post"
-            style="display:inline"
-            onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다. 계속할까요?');">
-        <button type="submit" class="button button--ghost">재생성</button>
-      </form>
+      <% if @type == "students" %>
+        <form action="/synth/students/<%= h(@synth[:slug]) %>/generate" method="post"
+              style="display:inline"
+              onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다. 계속할까요?');">
+          <button type="submit" class="button button--ghost">재생성</button>
+        </form>
+      <% elsif @type == "patterns" %>
+        <form action="/synth/patterns/lessons/generate" method="post"
+              style="display:inline"
+              onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다. 계속할까요?');">
+          <button type="submit" class="button button--ghost">재생성</button>
+        </form>
+      <% elsif @type == "contradictions" %>
+        <form action="/synth/contradictions/observations/generate" method="post"
+              style="display:inline"
+              onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다. 계속할까요?');">
+          <button type="submit" class="button button--ghost">재생성</button>
+        </form>
+      <% end %>
     </div>
   </footer>
 </section>

@@ -4,10 +4,17 @@ require "front_matter_parser"
 
 module Sowing
   module Controllers
-    # 합성 결과 검토 UI (W17-T04).
+    # 합성 결과 검토 UI — 통합 /synth 대시보드 (W17-T04 + W21-T04).
     #
-    # vault/.sowing/synth/students/*.md 의 LLM 합성 디제스트를 사용자가 검토 → 수락/거절.
-    # 수락: 정식 Record entry 로 변환 + 30_Records/{YYYY}/학생기록/ 이동 (Persistence#persist!)
+    # vault/.sowing/synth/{type}/*.md 의 LLM/결정적 합성 산출물을 사용자가 검토 → 수락/거절.
+    # 4 type 통합 (W21-T04, Phase 12 마지막 task):
+    #   - students/        — Phase 11 학생 디제스트
+    #   - reflections/     — Phase 12 학기 회고 (W21-T01)
+    #   - patterns/        — Phase 12 수업 패턴 후보 (W21-T02)
+    #   - contradictions/  — Phase 12 학생 묘사 변화 후보 (W21-T03)
+    #
+    # 수락: 정식 Record entry 로 변환 + 30_Records/{YYYY}/{category}/ 이동
+    #   - synth_target 의 prefix 로 category 자동 매핑
     # 거절: 휴지통 (.sowing/trash) 이동
     #
     # 모든 결정은 audit log 에 기록 — Phase 11~12 의 사용자 선호 데이터 (preference dataset)
@@ -20,9 +27,48 @@ module Sowing
     class SynthController < ApplicationController
       include UseCases::Persistence
 
+      # 4 합성 type — slug 검증 + URL 라우팅 + category 매핑 한 곳에서 관리.
+      # `accept_category` 는 수락 시 정식 Record 의 category 로 매핑.
+      SYNTH_TYPES = {
+        "students" => {
+          subdir: "students",
+          label: "학생 디제스트",
+          icon: "👤",
+          accept_category: "학생기록",
+          target_prefix: "student:"
+        },
+        "reflections" => {
+          subdir: "reflections",
+          label: "학기 회고",
+          icon: "📅",
+          accept_category: "학기회고",
+          target_prefix: "semester:"
+        },
+        "patterns" => {
+          subdir: "patterns",
+          label: "수업 패턴 후보",
+          icon: "🧩",
+          accept_category: "수업기록",
+          target_prefix: "patterns:"
+        },
+        "contradictions" => {
+          subdir: "contradictions",
+          label: "학생 묘사 변화",
+          icon: "🔄",
+          accept_category: "학생기록",
+          target_prefix: "contradictions:"
+        }
+      }.freeze
+
+      RECENT_DAYS = 7  # "이번 주 새로 합성됨" 배지 기준
+
       helpers do
-        def synth_dir
-          Infrastructure::Paths.vault_dir.join(".sowing/synth/students")
+        def synth_root
+          Infrastructure::Paths.vault_dir.join(".sowing/synth")
+        end
+
+        def synth_subdir(type)
+          synth_root.join(SYNTH_TYPES.fetch(type)[:subdir])
         end
 
         def synth_vault_repo
@@ -48,18 +94,34 @@ module Sowing
           }
         end
 
-        def list_synth_students
-          return [] unless synth_dir.exist?
-          Dir.glob(synth_dir.join("*.md")).sort.map { |p| parse_synth_file(p) }
+        def list_synth(type)
+          dir = synth_subdir(type)
+          return [] unless dir.exist?
+          Dir.glob(dir.join("*.md")).sort.map { |p| parse_synth_file(p) }
         end
 
-        def synth_target_or_404(slug)
-          target = synth_dir.join("#{slug}.md")
+        # 4 type 의 모든 파일을 한 번에 — 통합 dashboard 입구.
+        def list_all_synth
+          SYNTH_TYPES.keys.to_h { |type| [type, list_synth(type)] }
+        end
+
+        def synth_target_or_404(type, slug)
+          halt_with_404("알 수 없는 합성 type: #{type}") unless SYNTH_TYPES.key?(type)
+          target = synth_subdir(type).join("#{slug}.md")
           if target.exist?
             target
           else
-            halt_with_404("합성 결과를 찾을 수 없습니다: #{slug}")
+            halt_with_404("합성 결과를 찾을 수 없습니다: #{type}/#{slug}")
           end
+        end
+
+        # synth_at 이 최근 RECENT_DAYS 이내면 "새로 합성됨" 배지.
+        def recently_synthed?(synth)
+          ts = synth[:fm]["synth_at"]
+          return false if ts.nil?
+          Time.parse(ts.to_s) >= (Time.now - RECENT_DAYS * 86_400)
+        rescue
+          false
         end
 
         def halt_with_404(message)
@@ -68,17 +130,29 @@ module Sowing
           @message = message
           halt erb(:"errors/404", layout: :"layouts/application")
         end
+
+        # 통합 redirect — type-aware. 사용자 인풋 학생 이름·라벨이 한국어인 경우 escape 필수.
+        def redirect_to_synth_show(type, slug)
+          redirect "/synth/#{type}/#{Rack::Utils.escape(slug)}"
+        end
       end
 
+      # ─── 통합 대시보드 ───
       get "/synth" do
         @page_title = "합성 결과 검토"
-        @students = list_synth_students
+        @all_synth = list_all_synth
+        @synth_types = SYNTH_TYPES
         @flash = session.delete(:flash)
         erb :"synth/index", layout: :"layouts/application"
       end
 
-      get "/synth/students/:slug" do
-        target = synth_target_or_404(params["slug"])
+      # ─── 상세 (4 type 통합) ───
+      get "/synth/:type/:slug" do
+        type = params["type"]
+        slug = params["slug"]
+        target = synth_target_or_404(type, slug)
+        @type = type
+        @type_meta = SYNTH_TYPES.fetch(type)
         @synth = parse_synth_file(target)
         @page_title = @synth[:fm]["title"] || @synth[:slug]
         @body_html = markdown_to_html(@synth[:body])
@@ -86,6 +160,9 @@ module Sowing
         erb :"synth/show", layout: :"layouts/application"
       end
 
+      # ─── 생성 (type-specific) ───
+
+      # 학생 디제스트 — slug = 학생 이름
       post "/synth/students/:slug/generate" do
         student_name = params["slug"]
         result = UseCases::SynthesizeStudentDigest.new.call(student_name: student_name)
@@ -96,50 +173,115 @@ module Sowing
             mode: "record",
             path: ".sowing/synth/students/#{student_name}.md"
           )
-          session[:flash] = "디제스트 생성 완료: #{student_name}"
-          redirect "/synth/students/#{Rack::Utils.escape(student_name)}"
+          session[:flash] = "학생 디제스트 생성: #{student_name}"
+          redirect_to_synth_show("students", student_name)
         else
           session[:flash] = "생성 실패 (#{result.failure}) — 학생 entity·mention 확인 필요"
           redirect "/synth"
         end
       end
 
-      post "/synth/students/:slug/accept" do
+      # 학기 회고 — semester_label 폼 입력 (since/until 옵션)
+      post "/synth/reflections/generate" do
+        label = params["semester_label"].to_s.strip
+        if label.empty?
+          session[:flash] = "학기 라벨이 필요합니다 (예: 2026-1)"
+          redirect "/synth"
+          next
+        end
+        result = UseCases::SynthesizeSemesterReflection.new.call(
+          semester_label: label,
+          since: params["since"].to_s.strip.empty? ? nil : params["since"],
+          until_time: params["until_time"].to_s.strip.empty? ? nil : params["until_time"]
+        )
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:semester:#{label}",
+            mode: "record",
+            path: ".sowing/synth/reflections/#{label}.md"
+          )
+          session[:flash] = "학기 회고 생성: #{label}"
+          redirect_to_synth_show("reflections", label)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — entries 수 확인 필요"
+          redirect "/synth"
+        end
+      end
+
+      # 수업 패턴 — 고정 slug "lessons"
+      post "/synth/patterns/lessons/generate" do
+        result = UseCases::ExtractLessonPatterns.new.call
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:patterns:lessons",
+            mode: "record",
+            path: ".sowing/synth/patterns/lessons.md"
+          )
+          session[:flash] = "수업 패턴 생성 완료"
+          redirect_to_synth_show("patterns", "lessons")
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 수업 카테고리 entries 확인"
+          redirect "/synth"
+        end
+      end
+
+      # 학생 변화 — 고정 slug "observations"
+      post "/synth/contradictions/observations/generate" do
+        result = UseCases::DetectContradictions.new.call
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:contradictions:observations",
+            mode: "record",
+            path: ".sowing/synth/contradictions/observations.md"
+          )
+          session[:flash] = "학생 변화 후보 생성 완료"
+          redirect_to_synth_show("contradictions", "observations")
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 학생 entity mention 확인"
+          redirect "/synth"
+        end
+      end
+
+      # ─── 수락 (4 type 통합) ───
+      post "/synth/:type/:slug/accept" do
+        type = params["type"]
         slug = params["slug"]
-        target = synth_target_or_404(slug)
+        target = synth_target_or_404(type, slug)
         synth = parse_synth_file(target)
 
-        # 정식 Record entry 로 변환 + persist (audit :create 가 자동 기록됨)
         @vault_repo = synth_vault_repo
         @index_repo = synth_index_repo
-        record = build_record_from_synth(synth)
+        record = build_record_from_synth(synth, type)
         persist!(record)
 
-        # synth-specific audit (Phase 11~12 preference 데이터)
         synth_audit_log.append(
           action: :synth_accept,
           entry_id: record.id.to_s,
           mode: "record",
-          path: ".sowing/synth/students/#{slug}.md"
+          path: ".sowing/synth/#{SYNTH_TYPES.fetch(type)[:subdir]}/#{slug}.md"
         )
 
-        # 원본 synth 파일 제거 (수락 후 검토 대상 아님). 휴지통 안 거침 — 새 record 가 보존된 형태.
         File.unlink(target) if target.exist?
-        session[:flash] = "수락: 30_Records/{YYYY}/학생기록/ 으로 이동했습니다."
+        cat = SYNTH_TYPES.fetch(type)[:accept_category]
+        session[:flash] = "수락: 30_Records/{YYYY}/#{cat}/ 으로 이동했습니다."
         redirect "/synth"
       end
 
-      post "/synth/students/:slug/reject" do
+      # ─── 거절 (4 type 통합) ───
+      post "/synth/:type/:slug/reject" do
+        type = params["type"]
         slug = params["slug"]
-        target = synth_target_or_404(slug)
+        target = synth_target_or_404(type, slug)
 
-        # vault 기준 상대경로로 휴지통 이동
         rel = target.relative_path_from(Infrastructure::Paths.vault_dir)
         synth_vault_repo.delete(rel)
 
         synth_audit_log.append(
           action: :synth_reject,
-          entry_id: "synth:student:#{slug}",
+          entry_id: "synth:#{SYNTH_TYPES.fetch(type)[:target_prefix]}#{slug}",
           mode: "record",
           path: rel.to_s
         )
@@ -149,16 +291,18 @@ module Sowing
 
       private
 
-      def build_record_from_synth(synth)
+      # synth_target 의 prefix 와 type 으로 적절한 Record 생성.
+      def build_record_from_synth(synth, type)
+        meta = SYNTH_TYPES.fetch(type)
         target_str = synth[:fm]["synth_target"].to_s
-        student_name = target_str.sub(/^student:/, "")
-        title = synth[:fm]["title"] || "학생 관찰: #{student_name}"
+        target_value = target_str.sub(/^#{Regexp.escape(meta[:target_prefix])}/, "")
+        title = synth[:fm]["title"] || "#{meta[:label]}: #{target_value}"
 
         Domain::Record.new(
           id: Domain::ValueObjects::Ulid.generate,
           title: title,
           body: synth[:body].to_s.strip,
-          category: "학생기록",
+          category: meta[:accept_category],
           created_at: Time.now,
           updated_at: Time.now,
           tags: Domain::ValueObjects::TagSet.new([])

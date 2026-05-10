@@ -2,7 +2,7 @@
   <header class="synth__header">
     <h1 id="synth_index_heading">합성 결과 검토</h1>
     <p class="synth__lede">
-      LLM 또는 결정적 합성으로 만든 학생 디제스트입니다.
+      LLM 또는 결정적 합성으로 만든 4종 산출물입니다.
       검토 후 정식 기록으로 <strong>수락</strong>하거나, 휴지통으로 <strong>거절</strong>하세요.
     </p>
     <p class="synth__notice">
@@ -15,57 +15,133 @@
     <div class="alert alert--info" role="status"><%= h(@flash) %></div>
   <% end %>
 
-  <% if @students.empty? %>
+  <% total_count = @all_synth.values.map(&:size).sum %>
+  <% if total_count.zero? %>
     <div class="empty-state empty-state--inline">
       <p>현재 검토 대기 중인 합성 결과가 없습니다.</p>
       <p class="empty-state__hint">
-        학생 entity 가 인덱싱된 뒤(메모·필기·기록에 등장) 디제스트를 생성할 수 있습니다.
-        생성은 학생 상세 화면 또는 MCP 도구로 진행됩니다.
+        아래 4 종 합성기로 첫 디제스트를 생성해 보세요.
       </p>
     </div>
-  <% else %>
-    <ul class="synth-list">
-      <% @students.each do |s| %>
-        <li class="synth-card">
-          <header class="synth-card__header">
-            <h2 class="synth-card__title">
-              <a href="/synth/students/<%= h(s[:slug]) %>">
-                <%= h(s[:fm]["title"] || s[:slug]) %>
-              </a>
-            </h2>
-            <div class="synth-card__meta">
-              <span class="synth-badge synth-badge--llm">LLM 합성</span>
-              <% if s[:fm]["synth_model"] %>
-                <span class="synth-card__model"><%= h(s[:fm]["synth_model"]) %></span>
-              <% end %>
-              <% if s[:fm]["synth_at"] %>
-                <time datetime="<%= h(s[:fm]["synth_at"]) %>"><%= h(s[:fm]["synth_at"][0, 10]) %></time>
-              <% end %>
-              <% if s[:fm]["synth_source_count"] %>
-                <span class="synth-card__sources">출처 <%= s[:fm]["synth_source_count"] %>건</span>
-              <% end %>
-            </div>
-          </header>
+  <% end %>
 
-          <p class="synth-card__excerpt">
-            <%= h(s[:body].to_s.strip[0, 160]) %><%= "…" if s[:body].to_s.strip.length > 160 %>
-          </p>
+  <% @synth_types.each do |type, meta| %>
+    <% items = @all_synth[type] %>
+    <details class="synth-section" <%= "open" if items.any? %>>
+      <summary class="synth-section__summary">
+        <span class="synth-section__icon"><%= meta[:icon] %></span>
+        <span class="synth-section__label"><%= h(meta[:label]) %></span>
+        <span class="synth-section__count">(<%= items.size %>건)</span>
+      </summary>
 
-          <div class="synth-card__actions">
-            <a href="/synth/students/<%= h(s[:slug]) %>" class="button button--ghost">자세히 보기</a>
-            <form action="/synth/students/<%= h(s[:slug]) %>/accept" method="post"
-                  style="display:inline"
-                  onsubmit="return confirm('수락 — 정식 기록(30_Records/{YYYY}/학생기록)으로 이동합니다. 계속할까요?');">
-              <button type="submit" class="button button--primary">수락</button>
+      <div class="synth-section__body">
+        <% if items.empty? %>
+          <p class="empty-state__hint">아직 생성된 <%= h(meta[:label]) %>이 없습니다.</p>
+        <% else %>
+          <ul class="synth-list">
+            <% items.each do |s| %>
+              <li class="synth-card">
+                <header class="synth-card__header">
+                  <h3 class="synth-card__title">
+                    <a href="/synth/<%= h(type) %>/<%= h(s[:slug]) %>">
+                      <%= h(s[:fm]["title"] || s[:slug]) %>
+                    </a>
+                  </h3>
+                  <div class="synth-card__meta">
+                    <span class="synth-badge synth-badge--llm">LLM 합성</span>
+                    <% if recently_synthed?(s) %>
+                      <span class="synth-badge synth-badge--recent">이번 주 새로 합성</span>
+                    <% end %>
+                    <% if s[:fm]["synth_model"] %>
+                      <span class="synth-card__model"><%= h(s[:fm]["synth_model"]) %></span>
+                    <% end %>
+                    <% if s[:fm]["synth_at"] %>
+                      <time datetime="<%= h(s[:fm]["synth_at"]) %>"><%= h(s[:fm]["synth_at"][0, 10]) %></time>
+                    <% end %>
+                    <% if s[:fm]["synth_source_count"] %>
+                      <span class="synth-card__sources">출처 <%= s[:fm]["synth_source_count"] %>건</span>
+                    <% end %>
+                  </div>
+                </header>
+
+                <p class="synth-card__excerpt">
+                  <%= h(s[:body].to_s.strip[0, 160]) %><%= "…" if s[:body].to_s.strip.length > 160 %>
+                </p>
+
+                <div class="synth-card__actions">
+                  <a href="/synth/<%= h(type) %>/<%= h(s[:slug]) %>" class="button button--ghost">자세히 보기</a>
+                  <form action="/synth/<%= h(type) %>/<%= h(s[:slug]) %>/accept" method="post"
+                        style="display:inline"
+                        onsubmit="return confirm('수락 — 정식 기록(30_Records/{YYYY}/<%= h(meta[:accept_category]) %>)으로 이동합니다. 계속할까요?');">
+                    <button type="submit" class="button button--primary">수락</button>
+                  </form>
+                  <form action="/synth/<%= h(type) %>/<%= h(s[:slug]) %>/reject" method="post"
+                        style="display:inline"
+                        onsubmit="return confirm('거절 — 휴지통(.sowing/trash)으로 이동합니다. 계속할까요?');">
+                    <button type="submit" class="button button--danger">거절</button>
+                  </form>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        <% end %>
+
+        <%# 생성 폼 — type별 별도 디자인 %>
+        <div class="synth-section__generate">
+          <% case type
+             when "students" %>
+            <form action="/synth/students/__SLUG__/generate" method="post" class="synth-generate-form"
+                  data-controller="synth-student-form">
+              <label>
+                학생 이름 (entity 인덱싱 필수):
+                <input type="text" name="student_name" required placeholder="예: 민준"
+                       data-action="input->synth-student-form#updateAction">
+              </label>
+              <button type="submit" class="button button--ghost">생성/재생성</button>
+              <small class="synth-generate-form__hint">학생이 본문에 등장한 entries 가 없으면 실패합니다.</small>
             </form>
-            <form action="/synth/students/<%= h(s[:slug]) %>/reject" method="post"
-                  style="display:inline"
-                  onsubmit="return confirm('거절 — 휴지통(.sowing/trash)으로 이동합니다. 계속할까요?');">
-              <button type="submit" class="button button--danger">거절</button>
+          <% when "reflections" %>
+            <form action="/synth/reflections/generate" method="post" class="synth-generate-form">
+              <label>
+                학기 라벨:
+                <input type="text" name="semester_label" required placeholder="예: 2026-1">
+              </label>
+              <label>
+                시작 (선택, default = 6개월 전):
+                <input type="datetime-local" name="since">
+              </label>
+              <label>
+                종료 (선택, default = 지금):
+                <input type="datetime-local" name="until_time">
+              </label>
+              <button type="submit" class="button button--ghost">생성/재생성</button>
+              <small class="synth-generate-form__hint">기간 내 entries 가 5건 미만이면 실패합니다.</small>
             </form>
-          </div>
-        </li>
-      <% end %>
-    </ul>
+          <% when "patterns" %>
+            <form action="/synth/patterns/lessons/generate" method="post" class="synth-generate-form">
+              <button type="submit" class="button button--ghost">생성/재생성 (수업 카테고리 기준)</button>
+              <small class="synth-generate-form__hint">기본 카테고리: 수업 / 수업회고 / lessons / 도덕 / 도덕수업.</small>
+            </form>
+          <% when "contradictions" %>
+            <form action="/synth/contradictions/observations/generate" method="post" class="synth-generate-form">
+              <button type="submit" class="button button--ghost">생성/재생성 (학생 변화 후보)</button>
+              <small class="synth-generate-form__hint">학생당 mention 2건 이상 + 반의어 차원 매칭이 필요합니다.</small>
+            </form>
+          <% end %>
+        </div>
+      </div>
+    </details>
   <% end %>
 </section>
+
+<%# 학생 디제스트 폼 — JS 없이 동작하는 fallback (action URL 에 학생 이름 끼워넣기) %>
+<script type="module">
+  document.querySelectorAll('[data-controller="synth-student-form"]').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      const input = form.querySelector('input[name="student_name"]')
+      const slug = encodeURIComponent(input.value.trim())
+      if (!slug) { e.preventDefault(); return }
+      form.action = `/synth/students/${slug}/generate`
+    })
+  })
+</script>

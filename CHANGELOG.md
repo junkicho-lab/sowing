@@ -7,7 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Phase 12 (Tier-2 LLM 합성) 진행 중
+### Phase 12 (Tier-2 LLM 합성) 완료 (W21-T01 ~ T04, 2026-05-10)
+- **W21-T04 완료** (2026-05-10): 통합 `/synth` 대시보드 — 4 type (디제스트·회고·패턴·변화) 한 화면
+  - `Sowing::Controllers::SynthController` 전면 리팩토링 — `SYNTH_TYPES` 상수로 4 type 메타데이터 통합 관리
+    - 각 type: `subdir` / `label` / `icon` / `accept_category` / `target_prefix`
+  - 통합 라우트:
+    - `GET /synth` — 4 섹션 통합 대시보드 (각 섹션 `<details>` 접고 펼침, items 있으면 자동 open)
+    - `GET /synth/:type/:slug` — 통합 상세 (메타 dl 8키 — synth_period_since/until, synth_categories, synth_students 등 type별 메타도 자동 표시)
+    - `POST /synth/:type/:slug/accept` — type별 accept_category 매핑 (학생기록/학기회고/수업기록/학생기록) → Record + `Persistence#persist!`
+    - `POST /synth/:type/:slug/reject` — `.sowing/trash` 휴지통 mv + audit (entry_id prefix=type별 target_prefix)
+    - `POST /synth/students/:slug/generate` (기존 — 학생 이름)
+    - `POST /synth/reflections/generate` — `semester_label` 필수 + `since`/`until` 옵션 폼
+    - `POST /synth/patterns/lessons/generate` — 매개변수 0 (고정 slug)
+    - `POST /synth/contradictions/observations/generate` — 매개변수 0 (고정 slug)
+  - **"이번 주 새로 합성됨" 배지** (`recently_synthed?` 헬퍼, `RECENT_DAYS=7`) — 7일 이내 synth_at 시 노란색 펄스 애니메이션 배지
+  - 카테고리 매핑 (수락 시):
+    - students → 30_Records/{YYYY}/학생기록/
+    - reflections → 30_Records/{YYYY}/학기회고/
+    - patterns → 30_Records/{YYYY}/수업기록/
+    - contradictions → 30_Records/{YYYY}/학생기록/
+  - 백워드 호환: 기존 `/synth/students/:slug/{accept,reject,generate}` 라우트 유지 — 새 `:type/:slug` 패턴이 자동 매칭
+  - views/synth/{index,show}.erb 전면 갱신 + 4 섹션 collapsible UI + 4 type별 생성 폼 + type 배지
+  - CSS: `.synth-section` (collapsible) + `.synth-badge--type` + `.synth-badge--recent` (펄스 애니메이션) + `.synth-generate-form`
+  - bin/sowing-doctor: 16번째 진단 섹션 "[Tier-2 LLM 합성 (Phase 12)]" 신규 — 3 use case + SynthController::SYNTH_TYPES 4 type + 4 디렉토리 카운트
+  - spec 22건 (대시보드 4 + 상세 5 + 수락 4 + 거절 2 + 생성 5 + ADR-013 자율 mutation 0 검증 1 + 배지 1)
+    - 모든 합성 산출물 4 type 한 페이지 접근 검증
+    - "이번 주 새로 합성" 배지 카드별 정확 등장 — `body.scan` 으로 카드 영역 분리 검증
+    - reject audit entry_id prefix 4 type 모두 검증 (semester:/student:/patterns:/contradictions:)
+    - 알 수 없는 type → 404, 알려진 type slug 누락 → 404
+    - reflections 폼 — semester_label 빈 입력 시 합성 시도 안 함 (audit 변동 0)
+  - 회귀: 1144 → 1166 (+22). lint clean. `rake eval:run` 회귀 0. 5× stress 안정 (32/32 × 5).
 - **W21-T03 완료** (2026-05-10): ContradictionDetector — 학생 묘사 시간순 변화 후보
   - `Sowing::UseCases::DetectContradictions` — 학생 mention 시간순 분석 → 반의어 차원 양 끝 매칭 → 변화 후보 + 방향(향상/후퇴)
   - 4 차원 (`ANTONYM_DIMENSIONS`):

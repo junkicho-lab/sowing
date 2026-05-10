@@ -471,6 +471,40 @@ rescue => e
   puts "  ❌ Phase 11 진단 실패: #{e.message}"
 end
 
+# 16. Tier-2 LLM 합성 (Phase 12)
+puts "\n[Tier-2 LLM 합성 (Phase 12)]"
+begin
+  uc_check = {
+    "SynthesizeSemesterReflection (W21-T01)" => Sowing::UseCases.const_defined?(:SynthesizeSemesterReflection),
+    "ExtractLessonPatterns (W21-T02)" => Sowing::UseCases.const_defined?(:ExtractLessonPatterns),
+    "DetectContradictions (W21-T03)" => Sowing::UseCases.const_defined?(:DetectContradictions)
+  }
+  uc_check.each do |label, ok|
+    puts ok ? "  ✅ #{label}" : "  ⚠  #{label} 누락"
+    issues << "Phase 12 use case 누락: #{label}" unless ok
+  end
+
+  # 통합 /synth 대시보드 (W21-T04) — SynthController 의 SYNTH_TYPES 확인
+  if Sowing::Controllers::SynthController.const_defined?(:SYNTH_TYPES)
+    types = Sowing::Controllers::SynthController::SYNTH_TYPES.keys
+    if types.size == 4
+      puts "  ✅ /synth 통합 대시보드 (W21-T04) — 4 type: #{types.join(", ")}"
+    else
+      puts "  ⚠  SynthController::SYNTH_TYPES — #{types.size}/4 type (#{types.join(", ")})"
+    end
+  end
+
+  # 합성 디렉토리 4종 카운트
+  synth_root = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/synth")
+  %w[students reflections patterns contradictions].each do |t|
+    dir = synth_root.join(t)
+    count = dir.exist? ? Dir.glob(dir.join("*.md")).size : 0
+    puts "  #{t.ljust(15)} #{count}건"
+  end
+rescue => e
+  puts "  ❌ Phase 12 진단 실패: #{e.message}"
+end
+
 puts "\n#{"─" * 60}"
 if issues.empty?
   puts "✅ 진단 완료 — 발견된 문제 없음"
