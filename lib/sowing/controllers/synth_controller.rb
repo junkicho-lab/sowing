@@ -64,6 +64,20 @@ module Sowing
           icon: "🤝",
           accept_category: "상담",
           target_prefix: "consultation:"
+        },
+        "assessments" => {
+          subdir: "assessments",
+          label: "평가 추이",
+          icon: "📊",
+          accept_category: "평가기록",
+          target_prefix: "assessment:"
+        },
+        "trainings" => {
+          subdir: "trainings",
+          label: "연수 적용 추적",
+          icon: "🎓",
+          accept_category: "연수기록",
+          target_prefix: "training:"
         }
       }.freeze
 
@@ -253,6 +267,51 @@ module Sowing
           redirect_to_synth_show("consultations", student_name)
         else
           session[:flash] = "생성 실패 (#{result.failure}) — 학생 entity·상담 entries 확인"
+          redirect "/synth"
+        end
+      end
+
+      # 평가 추이 — slug = 학생 이름 (since/until 옵션)
+      post "/synth/assessments/:slug/generate" do
+        student_name = params["slug"]
+        result = UseCases::SynthesizeAssessmentTrend.new.call(
+          student_name: student_name,
+          since: params["since"].to_s.strip.empty? ? nil : params["since"],
+          until_time: params["until_time"].to_s.strip.empty? ? nil : params["until_time"]
+        )
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:assessment:#{student_name}",
+            mode: "record",
+            path: ".sowing/synth/assessments/#{student_name}.md"
+          )
+          session[:flash] = "평가 추이 생성: #{student_name}"
+          redirect_to_synth_show("assessments", student_name)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 학생 entity·평가 entries 확인"
+          redirect "/synth"
+        end
+      end
+
+      # 연수 적용 추적 — slug = 연수 노트 entry id
+      post "/synth/trainings/:slug/generate" do
+        training_id = params["slug"]
+        followup = params["followup_days"].to_s.strip
+        kwargs = {training_id: training_id}
+        kwargs[:followup_days] = followup.to_i if followup.match?(/\A\d+\z/)
+        result = UseCases::ExtractTrainingApplications.new.call(**kwargs)
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:training:#{training_id}",
+            mode: "record",
+            path: ".sowing/synth/trainings/#{training_id}.md"
+          )
+          session[:flash] = "연수 적용 추적 생성: #{training_id}"
+          redirect_to_synth_show("trainings", training_id)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 연수 노트(category=trainings) entry id 확인"
           redirect "/synth"
         end
       end

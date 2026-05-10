@@ -478,7 +478,9 @@ begin
     "SynthesizeSemesterReflection (W21-T01)" => Sowing::UseCases.const_defined?(:SynthesizeSemesterReflection),
     "ExtractLessonPatterns (W21-T02)" => Sowing::UseCases.const_defined?(:ExtractLessonPatterns),
     "DetectContradictions (W21-T03)" => Sowing::UseCases.const_defined?(:DetectContradictions),
-    "SynthesizeParentConsultation (확장 #1)" => Sowing::UseCases.const_defined?(:SynthesizeParentConsultation)
+    "SynthesizeParentConsultation (확장 #1)" => Sowing::UseCases.const_defined?(:SynthesizeParentConsultation),
+    "SynthesizeAssessmentTrend (확장 #2)" => Sowing::UseCases.const_defined?(:SynthesizeAssessmentTrend),
+    "ExtractTrainingApplications (확장 #3)" => Sowing::UseCases.const_defined?(:ExtractTrainingApplications)
   }
   uc_check.each do |label, ok|
     puts ok ? "  ✅ #{label}" : "  ⚠  #{label} 누락"
@@ -491,9 +493,9 @@ begin
     puts "  ✅ /synth 통합 대시보드 — #{types.size} type: #{types.join(", ")}"
   end
 
-  # 합성 디렉토리 5종 카운트 (Phase 12 4종 + 확장 합성기 #1 consultations)
+  # 합성 디렉토리 7종 카운트 (Phase 12 4종 + 확장 #1·#2·#3)
   synth_root = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/synth")
-  %w[students reflections patterns contradictions consultations].each do |t|
+  %w[students reflections patterns contradictions consultations assessments trainings].each do |t|
     dir = synth_root.join(t)
     count = dir.exist? ? Dir.glob(dir.join("*.md")).size : 0
     puts "  #{t.ljust(15)} #{count}건"

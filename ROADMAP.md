@@ -874,18 +874,27 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - 회귀 1166 → 1188 (+22). lint clean. eval 회귀 0. 5× 안정.
 - **선행**: Phase 11 (W17-T01 entities), Phase 12 (W21-T04 통합 /synth)
 
-### [ ] 확장 합성기 #2 — 평가 누적 (후보)
+### [x] 확장 합성기 #2 — 평가 누적 (2026-05-10)
 - **출력**:
-  - `Sowing::UseCases::SynthesizeAssessmentTrend` — 단원/평가 카테고리 entries → 학생별 학습 성취 추이
-  - 입력: records 의 `category ∈ ["평가", "단원평가"]` + 학생 entity
-- **검증**: 단원별 학생 성취 시간순 정확 표시
+  - `Sowing::UseCases::SynthesizeAssessmentTrend` — 학생 1명 + 6개월 → 단원평가 누적 추이
+  - 입력: 학생 entity + records `category ∈ DEFAULT_ASSESSMENT_CATEGORIES` (평가/단원평가) + 학생 mention 중 평가 키워드 본문 만족
+  - 단원 라벨 자동 추출 (평가 키워드 직전 어절) + 강점/약점 분류 (Phase 12 LessonPattern 패턴 재사용 + 부정 윈도 5자 필터)
+  - 두 모드: 결정적 (시간순 인용 + 분류) + LLM 옵트인 (4 섹션 — 단원별 추이 / 강점 / 보강 필요 / 다음 우선순위)
+  - 저장: `vault/.sowing/synth/assessments/{학생명}.md`, frontmatter 11키 (synth_units 포함)
+  - `SynthController::SYNTH_TYPES` 6 type 으로 확장 (assessments 추가, accept_category=평가기록)
+- **검증**: 단원별 시간순 정확 표시 + 강점/약점 카운트. spec 22건 (use case 18 + 대시보드 4). 회귀 1188 → 1206 (+18). lint clean. eval 회귀 0.
 - **선행**: 확장 #1
 
-### [ ] 확장 합성기 #3 — 연수 흡수 (후보)
+### [x] 확장 합성기 #3 — 연수 흡수 (2026-05-10)
 - **출력**:
-  - `Sowing::UseCases::ExtractTrainingApplications` — 연수 노트 (note category=trainings) ↔ 실제 수업 entries 매칭
-  - 연수 후 며칠 안에 적용된 사례 발견
-- **검증**: 의도 시나리오 3종 (연수 후 즉시 적용 / 한 달 후 적용 / 미적용)
+  - `Sowing::UseCases::ExtractTrainingApplications` — 연수 노트 1건 + 후속 90일 → 키워드 매칭 적용 사례
+  - 입력: notes 의 `category="trainings"` 1건 + 그 후 N일 entries
+  - 매칭 알고리즘: 연수 본문 → 한국어 어절 분리 → 조사 제거 (`KOREAN_PARTICLES` 18종) → 불용어 제거 (`STOPWORDS` 35종) → 빈도 상위 12 키워드 → 후속 entries 문장 단위 매칭 + D+N 일 차 (달력 일수)
+  - 두 모드: 결정적 (키워드 + D+N 인용) + LLM 옵트인 (4 섹션 — 핵심 요약 / 적용된 사례 / 미적용 영역 / 다음 적용 후보)
+  - 저장: `vault/.sowing/synth/trainings/{training_id}.md` (연수 1건당 1 파일)
+  - frontmatter 11키 (synth_keywords + synth_unmatched_keywords + synth_followup_days 포함)
+  - `SynthController::SYNTH_TYPES` 7 type 으로 확장 (trainings 추가, accept_category=연수기록)
+- **검증**: 의도 시나리오 3종 (연수 후 즉시 적용 / 한 달 후 적용 / 미적용) 모두 spec 통과. spec 27건 (use case 21 + 대시보드 5 + 시나리오 3 포함). 회귀 1206 → 1236 (+30). lint clean. eval 회귀 0.
 - **선행**: 확장 #1
 
 ---

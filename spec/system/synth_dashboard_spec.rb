@@ -378,6 +378,125 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
     end
   end
 
+  describe "확장 #2 — assessments type" do
+    it "GET /synth — 평가 추이 섹션 표시 + generate 폼" do
+      get "/synth"
+      expect(last_response).to be_ok
+      expect(last_response.body).to include("평가 추이")
+      expect(last_response.body).to include("/synth/assessments/__SLUG__/generate")
+    end
+
+    it "수락 → category=평가기록" do
+      seed_synth("assessments", "민준", "synth_target" => "assessment:민준")
+      post "/synth/assessments/#{esc("민준")}/accept"
+      expect(last_response).to be_redirect
+      year = Time.now.year
+      expect(vault_dir.join("30_Records", year.to_s, "평가기록")).to exist
+    end
+
+    it "거절 → audit entry_id=synth:assessment:민준" do
+      seed_synth("assessments", "민준", "synth_target" => "assessment:민준")
+      post "/synth/assessments/#{esc("민준")}/reject"
+      reject = audit_log.read_all.find { |r| r["action"] == "synth_reject" }
+      expect(reject["entry_id"]).to eq("synth:assessment:민준")
+    end
+
+    it "POST /synth/assessments/:slug/generate — 학생 entity + 평가 entries 충분" do
+      eid = db[:entities].insert(
+        type: "student", name: "민준",
+        first_seen_at: Time.now.iso8601, last_seen_at: Time.now.iso8601,
+        mention_count: 1
+      )
+      FileUtils.mkdir_p(vault_dir.join("30_Records/2026/평가"))
+      2.times do |i|
+        path = "30_Records/2026/평가/01ATSYS00000000000000B0#{i + 1}.md"
+        File.write(vault_dir.join(path),
+          "---\nid: 01ATSYS00000000000000B0#{i + 1}\nmode: record\ncategory: 평가\ncreated_at: '2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00'\nupdated_at: '2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00'\n---\n\n민준 단원평가 잘 풀었다.")
+        db[:entries].insert(
+          id: "01ATSYS00000000000000B0#{i + 1}", mode: "record", path: path,
+          category: "평가",
+          created_at: "2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00",
+          updated_at: "2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00",
+          file_mtime: Time.now.to_i, file_hash: "deadbeef00000000",
+          word_count: 4, indexed_at: Time.now.iso8601
+        )
+        db[:entity_mentions].insert(entity_id: eid, entry_id: "01ATSYS00000000000000B0#{i + 1}")
+      end
+
+      post "/synth/assessments/#{esc("민준")}/generate"
+      expect(last_response).to be_redirect
+      expect(synth_root.join("assessments/민준.md")).to exist
+      gen = audit_log.read_all.find { |r| r["action"] == "synth_generate" }
+      expect(gen["entry_id"]).to eq("synth:assessment:민준")
+    end
+  end
+
+  describe "확장 #3 — trainings type" do
+    it "GET /synth — 연수 적용 추적 섹션 표시 + generate 폼" do
+      get "/synth"
+      expect(last_response).to be_ok
+      expect(last_response.body).to include("연수 적용 추적")
+      expect(last_response.body).to include("/synth/trainings/__SLUG__/generate")
+    end
+
+    it "수락 → category=연수기록" do
+      seed_synth("trainings", "01TRACCEPT00000000000000",
+        "synth_target" => "training:01TRACCEPT00000000000000")
+      post "/synth/trainings/01TRACCEPT00000000000000/accept"
+      expect(last_response).to be_redirect
+      year = Time.now.year
+      expect(vault_dir.join("30_Records", year.to_s, "연수기록")).to exist
+    end
+
+    it "POST /synth/trainings/:slug/generate — 연수 노트 entry 존재 시" do
+      tid = "01TRSYSGEN0000000000000A"
+      FileUtils.mkdir_p(vault_dir.join("20_Notes/trainings"))
+      File.write(vault_dir.join("20_Notes/trainings/#{tid}.md"),
+        "---\nid: #{tid}\nmode: note\ncategory: trainings\ntitle: 협동학습 연수\ncreated_at: '2026-04-01T09:00:00+09:00'\nupdated_at: '2026-04-01T09:00:00+09:00'\n---\n\n협동학습 모둠 사회자 차시 카드.")
+      db[:entries].insert(
+        id: tid, mode: "note", path: "20_Notes/trainings/#{tid}.md",
+        category: "trainings", title: "협동학습 연수",
+        created_at: "2026-04-01T09:00:00+09:00", updated_at: "2026-04-01T09:00:00+09:00",
+        file_mtime: Time.now.to_i, file_hash: "deadbeef00000000",
+        word_count: 5, indexed_at: Time.now.iso8601
+      )
+
+      post "/synth/trainings/#{tid}/generate"
+      expect(last_response).to be_redirect
+      expect(synth_root.join("trainings/#{tid}.md")).to exist
+
+      gen = audit_log.read_all.find { |r| r["action"] == "synth_generate" }
+      expect(gen["entry_id"]).to eq("synth:training:#{tid}")
+    end
+
+    it "POST generate — followup_days 폼 입력" do
+      tid = "01TRSYSDAYS000000000000A"
+      FileUtils.mkdir_p(vault_dir.join("20_Notes/trainings"))
+      File.write(vault_dir.join("20_Notes/trainings/#{tid}.md"),
+        "---\nid: #{tid}\nmode: note\ncategory: trainings\ncreated_at: '2026-04-01T09:00:00+09:00'\nupdated_at: '2026-04-01T09:00:00+09:00'\n---\n\n협동학습 모둠.")
+      db[:entries].insert(
+        id: tid, mode: "note", path: "20_Notes/trainings/#{tid}.md",
+        category: "trainings",
+        created_at: "2026-04-01T09:00:00+09:00", updated_at: "2026-04-01T09:00:00+09:00",
+        file_mtime: Time.now.to_i, file_hash: "deadbeef00000000",
+        word_count: 2, indexed_at: Time.now.iso8601
+      )
+
+      post "/synth/trainings/#{tid}/generate", "followup_days" => "30"
+      expect(last_response).to be_redirect
+      fm = FrontMatterParser::Parser.new(:md).call(
+        synth_root.join("trainings/#{tid}.md").read
+      ).front_matter
+      expect(fm["synth_followup_days"]).to eq(30)
+    end
+
+    it "training_id 없음 → 실패 flash" do
+      post "/synth/trainings/01NOTEXIST00000000000000/generate"
+      expect(last_response).to be_redirect
+      expect(last_response.location).to end_with("/synth")
+    end
+  end
+
   describe "ADR-013 — 자율 mutation 0 (4 type 통합 검증)" do
     it "GET /synth + GET /synth/:type/:slug 만으로는 vault·audit 변화 0" do
       seed_synth("students", "민준", "synth_target" => "student:민준")

@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 확장 합성기 #2 — 평가 누적 (2026-05-10)
+- **`Sowing::UseCases::SynthesizeAssessmentTrend`** 신규 — 학생 1명의 단원평가 누적 추이
+  - 입력: 학생 entity + 6개월 window + 평가 카테고리 (default 평가/단원평가)
+  - 학생 이름 + 평가 키워드 (단원/평가/시험/수행/형성평가/단원평가/수행평가) 둘 다 본문 만족 entry 만 포함
+  - 단원 라벨 자동 추출 — 평가 키워드 직전 1~2 어절 = 단원명 ("분수 단원" / "도형 단원평가" / "곱셈 수행평가")
+  - 강점/약점 분류 (Phase 12 LessonPattern 패턴 재사용) — STRENGTH 13종 + WEAKNESS 12종 키워드 + 부정 윈도 5자 필터 ("잘 못 풀었다" 무효)
+  - 두 모드:
+    - **결정적**: 시간순 단원별 인용 + 강점/약점 후보 분류 + 출처 wikilink
+    - **LLM 옵트인**: 4 섹션 (📊 단원별 추이 / 💪 강점 / 🌱 보강 필요 / 📚 다음 학습 우선순위)
+  - 저장: `vault/.sowing/synth/assessments/{학생명}.md`
+  - frontmatter 11키: 기본 + `synth_period_*` + `synth_categories` + `synth_units` (분석된 단원 배열) + `synth_strength_count` / `synth_weakness_count`
+  - 가드: MIN_ENTRIES=2 / MAX_ENTRIES=200 / 6개월 default window
+  - 자율 판단 0: 학생 능력 단정 X — 인용 + 단원명 + 날짜만, 점수·등급은 LLM 가공 안 함
+  - audit `with_actor("agent")` + LLM 실패 fallback
+- **`SynthController::SYNTH_TYPES`** 6 type 으로 확장 — assessments 추가 (label="평가 추이", icon=📊, accept_category=평가기록, target_prefix=assessment:)
+  - 새 generate route: POST /synth/assessments/:slug/generate (slug=학생 이름, since/until 옵션)
+- spec 22건 (use case 18 + 대시보드 4)
+- 회귀: 1188 → 1206 (+18). lint clean. eval 회귀 0.
+
+### 확장 합성기 #3 — 연수 흡수 (2026-05-10)
+- **`Sowing::UseCases::ExtractTrainingApplications`** 신규 — 연수 노트 ↔ 실제 수업 적용 사례 매칭
+  - 입력: 연수 노트 1건 (notes 의 `category="trainings"`, slug=entry id) + 그 후 default 90일 안의 entries
+  - 매칭 알고리즘 (결정적):
+    - 연수 본문에서 한국어 어절 분리 → 조사 제거 (`KOREAN_PARTICLES` 18종) → 불용어 (`STOPWORDS` 35종 — 오늘/학생/우리 등) 제거 → 빈도 상위 12개 키워드
+    - 후속 entries 의 각 문장이 키워드 1개 이상 포함하면 적용 후보 + D+N 일 차 (달력 일수 기반)
+    - entry path 기준 dedupe — 한 entry 가 여러 키워드 매칭돼도 1회만
+  - 두 모드:
+    - **결정적**: 키워드 목록 + D+N 시점별 적용 후보 + wikilink 인용
+    - **LLM 옵트인**: 4 섹션 (📚 연수 핵심 요약 / ✨ 적용된 사례 / 🌱 미적용 영역 / 💡 다음 적용 후보)
+  - 저장: `vault/.sowing/synth/trainings/{training_id}.md` (연수 1건당 1 파일)
+  - frontmatter 11키: 기본 + `synth_training_path` / `synth_training_date` / `synth_followup_days` / `synth_keywords` / `synth_unmatched_keywords`
+  - 본문 상단에 원본 연수 wikilink 명시 — 사용자가 출처 즉시 확인 가능
+  - 가드: MIN_KEYWORD_LENGTH=2 / MAX_KEYWORDS=12 / MAX_FOLLOWUP_ENTRIES=200
+  - 자율 판단 0: 결정적 매칭은 *키워드 일치* 일 뿐 — 진짜 적용은 사용자 판단. trailer "각 매칭은 *후보* 일 뿐 — 실제 적용 여부는 교사 본인이 판단"
+  - audit `with_actor("agent")` + LLM 실패 fallback
+- **`SynthController::SYNTH_TYPES`** 7 type 으로 확장 — trainings 추가 (label="연수 적용 추적", icon=🎓, accept_category=연수기록, target_prefix=training:)
+  - 새 generate route: POST /synth/trainings/:slug/generate (slug=연수 entry id, followup_days 옵션 폼)
+- **ROADMAP 검증 시나리오 3종 모두 spec 통과**:
+  1. 연수 후 즉시 적용 (D+1)
+  2. 한 달 후 적용 (D+30)
+  3. 미적용 (후속 entries 0 + 안내 문구)
+- spec 27건 (use case 21 + 대시보드 5 + 시나리오 3종 use case 안 포함)
+  - 결정적 6 + 시나리오 3 + 가드 5 + LLM 3 + 엣지 4
+- 회귀: 1206 → 1236 (+30 = use case 21 + 대시보드 5 + 추가 시나리오 4). lint clean. eval 회귀 0.
+
 ### 확장 합성기 #1 — 학부모 상담 준비 (2026-05-10)
 - **`Sowing::UseCases::SynthesizeParentConsultation`** 신규 — 학생 1명에 대한 학부모 면담 준비 자료 자동 합성
   - KICKOFF P2.4 옵션 C (확장 합성기 추가) 의 첫 구현. Phase 11~12 합성기 패턴 그대로 확장.

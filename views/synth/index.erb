@@ -146,6 +146,40 @@
               <button type="submit" class="button button--ghost">생성/재생성</button>
               <small class="synth-generate-form__hint">상담 카테고리 entries 또는 학생 mention 2건 이상이 필요합니다.</small>
             </form>
+          <% when "assessments" %>
+            <form action="/synth/assessments/__SLUG__/generate" method="post" class="synth-generate-form"
+                  data-controller="synth-assessment-form">
+              <label>
+                학생 이름:
+                <input type="text" name="student_name" required placeholder="예: 민준"
+                       data-action="input->synth-assessment-form#updateAction">
+              </label>
+              <label>
+                기간 시작 (선택, default = 6개월 전):
+                <input type="datetime-local" name="since">
+              </label>
+              <label>
+                기간 종료 (선택, default = 지금):
+                <input type="datetime-local" name="until_time">
+              </label>
+              <button type="submit" class="button button--ghost">생성/재생성</button>
+              <small class="synth-generate-form__hint">평가 카테고리 entries 또는 학생 mention 2건 이상 + 평가 키워드 본문 매칭이 필요합니다.</small>
+            </form>
+          <% when "trainings" %>
+            <form action="/synth/trainings/__SLUG__/generate" method="post" class="synth-generate-form"
+                  data-controller="synth-training-form">
+              <label>
+                연수 노트 entry ID (notes/trainings/*.md):
+                <input type="text" name="training_id" required placeholder="예: 01ABCD..."
+                       data-action="input->synth-training-form#updateAction">
+              </label>
+              <label>
+                추적 기간 (일, default 90):
+                <input type="number" name="followup_days" min="7" max="365" placeholder="90">
+              </label>
+              <button type="submit" class="button button--ghost">생성/재생성</button>
+              <small class="synth-generate-form__hint">연수 노트 본문에서 핵심 키워드 추출 → 후속 entries 와 매칭. 키워드 명확할수록 정확.</small>
+            </form>
           <% end %>
         </div>
       </div>
@@ -170,6 +204,22 @@
       if (!slug) { e.preventDefault(); return }
       // since/until 폼 인풋은 기본 name 으로 그대로 전송
       form.action = `/synth/consultations/${slug}/generate`
+    })
+  })
+  document.querySelectorAll('[data-controller="synth-assessment-form"]').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      const input = form.querySelector('input[name="student_name"]')
+      const slug = encodeURIComponent(input.value.trim())
+      if (!slug) { e.preventDefault(); return }
+      form.action = `/synth/assessments/${slug}/generate`
+    })
+  })
+  document.querySelectorAll('[data-controller="synth-training-form"]').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      const input = form.querySelector('input[name="training_id"]')
+      const slug = encodeURIComponent(input.value.trim())
+      if (!slug) { e.preventDefault(); return }
+      form.action = `/synth/trainings/${slug}/generate`
     })
   })
 </script>
