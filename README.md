@@ -28,16 +28,51 @@
 - Listen gem (파일시스템 감시)
 - Tebako 단일 실행파일 패키징 (스캐폴드 완료, 빌드 환경 준비 중)
 
-## 시작하기
+## 시작하기 — 4 가지 설치 경로
 
-### 사용자 (출시 후)
+### 1. Docker (가장 빠름, 5초)
 
-[Releases 페이지](https://github.com/junkicho-lab/sowing/releases) 가 준비되면 OS별 인스톨러를 다운로드하세요.
-현재는 소스 빌드만 가능합니다 — [SETUP.md](SETUP.md) 참조.
+```sh
+git clone https://github.com/junkicho-lab/sowing.git
+cd sowing
+docker compose up -d
+# 브라우저: http://127.0.0.1:48723
+```
 
-### 개발자
+vault 는 `./vault/` 에 자동 생성. 다른 경로: `SOWING_VAULT_HOST=~/Documents/MyVault docker compose up -d`
 
-[`SETUP.md`](SETUP.md) 를 참조하세요.
+### 2. 한 줄 스크립트 (Ruby 3.3+ 있는 경우)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/junkicho-lab/sowing/main/bin/sowing-install | bash
+```
+
+자동: OS 탐지 / Ruby 검증 / clone (`~/.sowing/app`) / bundle install / db:setup / doctor 진단.
+
+### 3. 소스 직접 (개발자)
+
+```sh
+git clone https://github.com/junkicho-lab/sowing.git
+cd sowing
+bundle install
+bundle exec rake db:setup
+bin/sowing dev
+```
+
+자세한 셋업: [SETUP.md](SETUP.md)
+
+### 4. Homebrew Tap (macOS, Tap 게시 후)
+
+```sh
+brew tap junkicho-lab/sowing
+brew install sowing
+```
+
+Tap 저장소 게시 진행 중. Formula 미리보기: [packaging/homebrew/sowing.rb](packaging/homebrew/sowing.rb)
+
+### 정식 OS 인스톨러 (출시 후)
+
+[Releases 페이지](https://github.com/junkicho-lab/sowing/releases) — macOS DMG / Windows MSI / Linux AppImage. 신호 인증서 등 외부 리소스 필요해 진행 중. 자세한 패키징 매트릭스: [packaging/README.md](packaging/README.md).
 
 ## 구현 현황 — Phase 1 (MVP) + Phase 9~12 모두 완료 (Software 3.0 전환 끝)
 

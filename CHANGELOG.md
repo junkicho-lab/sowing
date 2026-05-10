@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 패키징·배포 인프라 — 4 즉시 가능한 설치 경로 (2026-05-10)
+- KICKOFF P2.4 옵션 B (W8 deferred 패키징) 의 *외부 리소스 없이 즉시 가능한* 5 deliverable. Apple Developer 계정·Windows VM·Tebako runtime 필요한 정식 인스톨러는 그대로 deferred.
+- **Dockerfile** + **`docker-compose.yml`** + **`.dockerignore`**:
+  - Multi-stage build (builder/runtime), ruby:3.3-slim 베이스
+  - 한국어 locale (C.UTF-8) + Asia/Seoul timezone
+  - 기본 포트 48723, 헬스체크 30초 간격 (`/health` 폴링)
+  - 첫 부팅 시 `db:setup` 자동 실행
+  - vault 호스트 마운트 (`./vault → /vault`), data named volume (`sowing-data → /data`)
+  - rackup `0.0.0.0` 바인딩 (bin/sowing dev 가 127.0.0.1 hardcode 라 컨테이너용 분리)
+  - 5초 셋업 — `docker compose up -d`
+- **`bin/sowing-install`** (curl-installable bootstrap):
+  - macOS / Linux 자동 OS 탐지 (Windows 는 WSL2/Docker 안내)
+  - Ruby 3.3+ 검증, Bundler 자동 설치
+  - 저장소 clone (`~/.sowing/app`) 또는 업데이트 (기존 발견 시)
+  - bundle install (production only) + db:setup
+  - sowing-doctor 진단 + 첫 실행 안내 (alias 등록 가이드)
+  - 사용: `curl -fsSL https://raw.githubusercontent.com/junkicho-lab/sowing/main/bin/sowing-install | bash`
+- **`packaging/homebrew/sowing.rb`** — Homebrew Tap formula (Apple Developer 계정 불필요):
+  - `brew tap junkicho-lab/sowing && brew install sowing`
+  - `depends_on "ruby" ~> 3.3` + `sqlite` + `libyaml`
+  - `bin/sowing` / `bin/sowing-doctor` / `bin/sowing-mcp` shim 자동 등록
+  - 첫 실행 안내 + 기본 vault 위치 표시
+  - `.standard.yml` exclude 추가 (Homebrew DSL 의 Pathname `/` 연산자 관례)
+- **`.github/workflows/build.yml`** — Cross-platform CI 빌드 매트릭스:
+  - macOS / Ubuntu / Windows runner 3종에서 매 push/PR 시
+  - Ruby 3.3 setup → bundle → spec → lint → doctor → source ZIP artifact (14일)
+  - Docker 이미지 빌드 + 컨테이너 healthcheck (`/health` 30초 폴링)
+  - Windows 는 lint/doctor 일부 건너뜀 (인코딩 호환 검증 추후)
+- **`bin/sowing-doctor` 환경 섹션 확장**: 설치 모드 자동 탐지
+  - `/.dockerenv` 존재 → "docker"
+  - `~/.sowing/app/` 안 → "sowing-install"
+  - `Cellar/` 또는 `HOMEBREW_PREFIX` → "homebrew"
+  - `.git/` 존재 → "source (git clone)"
+  - 그 외 → "unknown"
+- **`packaging/README.md` 전면 갱신** — 현재 상태 매트릭스:
+  - ✅ 완료: Docker / sowing-install / 소스 / GitHub Actions CI
+  - 🟡 부분: Homebrew Tap (formula 작성, Tap 저장소 별도) / Tebako 스캐폴드
+  - ⏳ Deferred: macOS DMG / Windows Inno Setup / Linux AppImage / 시스템 트레이 (외부 리소스 필요)
+- **`README.md` 시작하기 섹션 전면 갱신**:
+  - "현재는 소스 빌드만" → 4 가지 설치 경로 (Docker / sowing-install / 소스 / Homebrew Tap)
+  - 각 경로의 명령 + vault 위치 안내
+- 검증:
+  - 1332 spec pass (코드 변경 없음 — 인프라만 추가)
+  - lint clean
+  - 시 sowing-doctor: 새 "설치 모드: source (git clone)" 라인 정상 출력
+  - GitHub Actions 트리거는 다음 push/PR 시 자동 검증
+
 ### 베타 사용자 검증 인프라 (2026-05-10)
 - **`Sowing::UseCases::ComputeSynthMetrics`** 신규 — `vault/.sowing/audit.log` JSON Lines 분석 → 합성기 사용 지표 집계
   - synth_generate / synth_accept / synth_reject 이벤트만 필터

@@ -442,17 +442,24 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 ### [~] W8-T02: Tebako 빌드 스캐폴드 — 부분 완료 (2026-05-09)
 - ✅ `packaging/tebako.yml` — 빌드 메타데이터
 - ✅ `packaging/build.sh` — Linux/macOS/Windows 드라이버
-- ✅ `packaging/README.md` — 사전 요구사항·단계 안내
+- ✅ `packaging/README.md` — 사전 요구사항·단계 안내 + 현재 상태 매트릭스 (2026-05-10 갱신)
 - ⏳ 실제 빌드는 Tebako 바이너리 + Docker 환경에서 수동 진행 필요
+- ✅ **대안 4 경로 즉시 가능** (2026-05-10):
+  - Docker (`Dockerfile` + `docker-compose.yml`) — 5초 셋업, Tebako 불필요
+  - `bin/sowing-install` — curl-installable bootstrap (macOS/Linux, Ruby 3.3+)
+  - 소스 직접 (`SETUP.md`)
+  - Homebrew Tap formula (`packaging/homebrew/sowing.rb`, Tap 게시 후)
+- ✅ **`.github/workflows/build.yml`** — 3 OS CI 매트릭스 (macOS/Ubuntu/Windows) + Docker 이미지 빌드 + 컨테이너 헬스체크
 
 ### [-] W8-T03: macOS DMG + codesign + notarize — Deferred (Apple Developer 계정 필요)
-- 우회: 소스 빌드(`bundle install && bin/sowing dev`). KNOWN_ISSUES.md 명시.
+- 우회 (즉시 가능): Docker / sowing-install / Homebrew Tap (모두 codesign 불필요).
+- KNOWN_ISSUES.md 명시.
 
 ### [-] W8-T04: Windows Inno Setup 인스톨러 — Deferred (Windows VM 필요)
-- 우회: WSL2에서 Linux 빌드 사용.
+- 우회 (즉시 가능): WSL2 + sowing-install, 또는 Docker Desktop on Windows.
 
 ### [-] W8-T05: Linux AppImage — Deferred (linuxdeploy 환경 검증 필요)
-- 우회: Tebako 단일 바이너리 직접 실행.
+- 우회 (즉시 가능): Docker, 또는 sowing-install (apt/dnf/pacman 환경 모두 지원).
 
 ### [x] W8-T06: 진단 도구 `bin/sowing-doctor` 완성 — 완료 (2026-05-09)
 - 환경(Ruby/인코딩) + 경로(권한·디스크 여유) + DB(SQLite 버전·FTS5 정합성) + 볼트

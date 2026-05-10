@@ -19,6 +19,17 @@ puts "  Ruby:        #{RUBY_VERSION} (#{RUBY_PLATFORM})"
 puts "  Sowing:      #{Sowing::VERSION}"
 puts "  SOWING_ENV:  #{Sowing.env}"
 puts "  Encoding:    external=#{Encoding.default_external.name}"
+
+# 패키징 모드 탐지 — 사용자가 어떤 경로로 설치했는지 진단
+install_mode =
+  if File.exist?("/.dockerenv") then "docker"
+  elsif ENV["SOWING_INSTALL_DIR"] && Dir.pwd.start_with?(ENV["SOWING_INSTALL_DIR"]) then "sowing-install"
+  elsif Dir.pwd.start_with?(File.join(ENV["HOME"].to_s, ".sowing/app")) then "sowing-install"
+  elsif File.exist?(File.join(__dir__, "..", "Cellar")) || ENV["HOMEBREW_PREFIX"] then "homebrew"
+  elsif File.exist?(File.join(__dir__, "..", ".git")) then "source (git clone)"
+  else "unknown"
+  end
+puts "  설치 모드:    #{install_mode}"
 if Encoding.default_external != Encoding::UTF_8
   issues << "외부 인코딩이 UTF-8이 아님 — 한국어 파일명/내용이 깨질 수 있음. LANG=ko_KR.UTF-8 설정 권장"
 end

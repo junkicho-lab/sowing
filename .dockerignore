@@ -1,0 +1,33 @@
+# Sowing Docker build 시 컨테이너에 포함할 필요 없는 항목.
+# .gitignore 와 비슷하지만 docker context 전송량 최소화 목적.
+
+.git/
+.github/
+.claude/
+.gitignore
+
+# 테스트
+spec/
+.rspec_status
+examples.txt
+
+# 로컬 개발 산출물
+log/
+tmp/
+node_modules/
+coverage/
+dist/
+*.gem
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# 로컬 vault·data — 컨테이너에서는 볼륨 마운트로 주입
+SowingVault/
+data/
+
+# 패키징 산출물 (이미지 안에서 다시 빌드 안 함)
+packaging/dist/

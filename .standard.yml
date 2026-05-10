@@ -2,3 +2,4 @@ ruby_version: 3.3
 ignore:
   - 'db/migrations/**/*'
   - 'vendor/**/*'
+  - 'packaging/homebrew/**/*'  # Homebrew DSL — Pathname `/` 연산자 관례 (표준 Ruby 와 다름)
