@@ -59,6 +59,45 @@ RSpec.describe "튜토리얼 (W7-T04)", type: :request do
       get "/tutorial"
       expect(last_response.body).to include("4단계")
     end
+
+    it "?step=N query param 으로 임의 단계 점프 (자동 진행 우회)" do
+      # 모든 entries 시드 — 자동 진행은 step 4 로 이동
+      post "/memos", body: "메모"
+      post "/notes",
+        "title" => "필기", "body" => "본문",
+        "category" => "lessons", "source" => "교과서"
+      post "/records",
+        "title" => "기록", "body" => "본문", "category" => "회고"
+
+      # ?step=1 로 1단계 안내 다시 보기
+      get "/tutorial?step=1"
+      expect(last_response.body).to include("1단계")
+
+      # ?step=2 로 2단계
+      get "/tutorial?step=2"
+      expect(last_response.body).to include("2단계")
+    end
+
+    it "자동 진행 시 안내 문구 + entries 카운트 표시" do
+      post "/memos", body: "기존 메모"
+      get "/tutorial"
+      # auto_jumped 안내 표시
+      expect(last_response.body).to include("자동 이동")
+      expect(last_response.body).to match(/메모 1.*필기.*기록/)
+    end
+
+    it "progress nav 의 각 step 이 클릭 링크 (?step=N)" do
+      get "/tutorial"
+      expect(last_response.body).to include('href="/tutorial?step=1"')
+      expect(last_response.body).to include('href="/tutorial?step=4"')
+    end
+
+    it "범위 밖 ?step= 값은 무시 (자동 진행 결과 step 사용)" do
+      post "/memos", body: "메모"
+      get "/tutorial?step=99"
+      # step 99 무시, 자동 진행으로 step 2
+      expect(last_response.body).to include("2단계")
+    end
   end
 
   describe "수동 진행 (POST /tutorial/next)" do

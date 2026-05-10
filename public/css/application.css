@@ -2293,3 +2293,25 @@ pre code {
   letter-spacing: -2px;
   color: var(--color-primary);
 }
+
+/* ─── Tutorial step nav 클릭 가능 (fix) ─── */
+.tutorial__step-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 4px 6px;
+  transition: background 0.1s;
+}
+
+.tutorial__step-link:hover {
+  background: rgba(45, 95, 63, 0.08);
+}
+
+.tutorial__step-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

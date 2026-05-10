@@ -32,16 +32,19 @@ module Sowing
 
       def load
         return DEFAULTS.dup unless File.exist?(path)
-        DEFAULTS.merge(JSON.parse(File.read(path)))
-      rescue JSON::ParserError
-        # 손상된 파일은 기본값 반환 (앱 부팅 막지 않음).
+        # encoding: "UTF-8" 명시 — LANG 미설정 GUI 컨텍스트(예: Sowing.app 더블클릭,
+        # 일부 cron 환경) 에서 File.read 가 US-ASCII 로 읽어 한글 settings 깨짐 방지.
+        DEFAULTS.merge(JSON.parse(File.read(path, encoding: "UTF-8")))
+      rescue JSON::ParserError, Encoding::InvalidByteSequenceError
+        # 손상된 파일 또는 인코딩 오류 → 기본값 반환 (앱 부팅 막지 않음).
         DEFAULTS.dup
       end
 
       def save(hash)
         FileUtils.mkdir_p(Paths.data_dir)
         merged = DEFAULTS.merge(hash)
-        File.write(path, JSON.pretty_generate(merged))
+        # 한글 학생 이름 등이 깨지지 않도록 UTF-8 명시 (NFC 정규화는 호출 측 책임).
+        File.write(path, JSON.pretty_generate(merged), encoding: "UTF-8")
         merged
       end
 

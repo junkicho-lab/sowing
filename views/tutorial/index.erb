@@ -12,14 +12,24 @@
     <ol class="tutorial__steps">
       <% (1..@step_total).each do |i| %>
         <li class="tutorial__step <%= 'tutorial__step--current' if i == @step %> <%= 'tutorial__step--done' if i < @step %>">
-          <span class="tutorial__step-num"><%= i %></span>
-          <span class="tutorial__step-label">
-            <%= ["메모", "필기 승격", "기록 승격", "완료"][i - 1] %>
-          </span>
+          <a href="/tutorial?step=<%= i %>" class="tutorial__step-link">
+            <span class="tutorial__step-num"><%= i %></span>
+            <span class="tutorial__step-label">
+              <%= ["메모", "필기 승격", "기록 승격", "완료"][i - 1] %>
+            </span>
+          </a>
         </li>
       <% end %>
     </ol>
   </nav>
+
+  <% if @auto_jumped %>
+    <div class="alert alert--info" role="status">
+      <strong>이미 사용 흔적이 있어 <%= @step %>단계로 자동 이동했어요.</strong>
+      <small>(메모 <%= @counts[:memo] %> · 필기 <%= @counts[:note] %> · 기록 <%= @counts[:record] %>건)</small>
+      처음부터 보려면 위의 <strong>1</strong> 을 클릭하세요.
+    </div>
+  <% end %>
 
   <article class="tutorial__card">
     <% if @step == 1 %>

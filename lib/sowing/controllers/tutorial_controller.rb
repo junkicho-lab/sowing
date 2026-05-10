@@ -40,13 +40,33 @@ module Sowing
       get "/tutorial" do
         @page_title = "첫 메모 튜토리얼"
         # 자동 진행: 현재 step이 자동 감지로 완료되어 있으면 다음으로 점프.
-        current = user_settings.load["tutorial_step"].to_i.clamp(1, STEP_TOTAL)
-        while current < STEP_TOTAL && tutorial_step_done?(current)
-          current += 1
-          user_settings.update(tutorial_step: current)
+        saved_step = user_settings.load["tutorial_step"].to_i.clamp(1, STEP_TOTAL)
+        auto_advanced_to = saved_step
+        while auto_advanced_to < STEP_TOTAL && tutorial_step_done?(auto_advanced_to)
+          auto_advanced_to += 1
         end
-        @step = current
+        # saved_step 이 자동 진행됐으면 settings 에도 저장 (재진입 시 일관성).
+        user_settings.update(tutorial_step: auto_advanced_to) if auto_advanced_to != saved_step
+
+        # 사용자가 ?step=N 으로 임의 단계 점프 가능 — 자동 진행으로 1~3 단계가
+        # 건너뛰어졌어도 progress nav 클릭으로 다시 볼 수 있음.
+        requested = params["step"].to_i
+        @step =
+          if requested.between?(1, STEP_TOTAL)
+            requested
+          else
+            auto_advanced_to
+          end
+        # auto-jump 가 일어났다면 view 에 안내용 컨텍스트 제공
+        @auto_jumped = (auto_advanced_to > saved_step) && requested.zero?
+        @auto_advanced_to = auto_advanced_to
+
         @step_total = STEP_TOTAL
+        @counts = {
+          memo: tutorial_index_repo.count(mode: :memo),
+          note: tutorial_index_repo.count(mode: :note),
+          record: tutorial_index_repo.count(mode: :record)
+        }
         @completed_at = user_settings.load["tutorial_completed_at"]
         erb :"tutorial/index", layout: :"layouts/application"
       end
