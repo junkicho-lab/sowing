@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 확장 합성기 #4 — 주간 회고 (2026-05-10)
+- **`Sowing::UseCases::SynthesizeWeeklyReview`** 신규 — 한 주 단위 자동 회고
+  - 학기 회고(W21-T01)와 학생 디제스트(W17-T02) 사이의 빠진 호흡. 매주 일요일 트리거 가능.
+  - 입력: 최근 7일 entries (default = 자동 ISO 주, 월요일 ~ 일요일)
+  - `week_label` / `since` / `until_time` 모두 nil 이면 `clock.now` 기준 자동 ISO 주 (예: "2026-W19")
+  - 결정적 출력 4 섹션:
+    - 📅 이번 주 요약 (모드별 카운트 + 카테고리)
+    - 📊 일별 작성 빈도 (한국 요일 라벨 — 월/화/수… + 막대 `▌`)
+    - 👥 자주 등장한 학생 (top 5 — entity_mentions ⨝ entities)
+    - ☐ 미완료 task (본문 `- [ ]` / `* [ ]` 패턴 추출, `- [x]` 완료 제외)
+  - LLM 출력 4 섹션 (🌊 흐름 / 💡 작은 발견 / ☐ 미해결 / 🎯 다음 주 우선순위)
+  - 저장: `vault/.sowing/synth/weekly/{YYYY-WW}.md` (ISO 주 라벨)
+  - frontmatter 8키: 기본 + `synth_period_*` + `synth_incomplete_task_count`
+  - 가드: MIN_ENTRIES=1 (적게 쓴 주의 알림 가치도 인정) / MAX_ENTRIES=200
+  - task 20개 초과 시 첫 20개만 + "그 외 N건" 안내
+  - 자율 판단 0: "잘했다/못했다" 단정 X — 통계 + 인용 + task 만 객관적으로
+  - audit `with_actor("agent")` + LLM 실패 fallback
+- **`SynthController::SYNTH_TYPES`** 8 type 으로 확장 — weekly 추가 (label="주간 회고", icon=📆, accept_category=주간회고, target_prefix=week:)
+  - 새 generate route: POST /synth/weekly/generate (week_label/since/until 모두 옵션)
+- spec 17건 (결정적 5 + 인자 명시 2 + 가드 2 + task 패턴 1 + LLM 3 + 엣지 4)
+
+### 확장 합성기 #5 — 고립 메모 발견 (2026-05-10)
+- **`Sowing::UseCases::DetectOrphanEntries`** 신규 — backlink 0건 entries 식별
+  - W3 위키링크 그래프 인프라 위에 얹는 발견 도구. "쓴 적 있는데 어떤 다른 글에서도 인용 안 했다 = 잠재적 통찰 / 미발견 패턴".
+  - 입력: 1년 lookback (default) + IndexRepo.links_to(id) = 0건인 entries
+  - `exclude_modes` 인자로 mode 별 제외 가능 (예: memo 제외 → 정식 글만)
+  - 결정적 출력:
+    - 🌊 고립 entries 목록 (시간순 + mode 아이콘 + outbound 링크 수 표시)
+    - 모드별·카테고리별·태그별 분포 (클러스터 발견 단서)
+    - 본문 첫 문장 발췌 + wikilink 출처
+  - LLM 출력 3 섹션 (🌊 고립 패턴 / 🔗 연결 후보 제안 / 💭 본질적 고립 인정)
+  - 저장: `vault/.sowing/synth/orphans/observations.md` (단일 파일, 누적 갱신)
+  - frontmatter 9키: 기본 + `synth_period_*` + `synth_excluded_modes` + `synth_orphan_tags`
+  - 가드: MIN_ORPHANS=1 / MAX_ORPHANS=100 (한 화면 의미)
+  - 자율 판단 0: "이 글이 고립이다" 만 표시. 연결은 사용자 판단. trailer "본질적으로 고립일 수도 있어요"
+  - **broken link (target_id NULL) 처리** — 깨진 위키링크는 backlink 으로 카운트 안 됨 (자기 자신은 여전히 고립)
+  - audit `with_actor("agent")` + LLM 실패 fallback
+- **`SynthController::SYNTH_TYPES`** 9 type 으로 확장 — orphans 추가 (label="고립 entries 관찰", icon=🌊, accept_category=메모회고, target_prefix=orphans:)
+  - 새 generate route: POST /synth/orphans/observations/generate (매개변수 0)
+- spec 15건 (결정적 5 + 가드 4 + LLM 3 + 엣지 3)
+
+### 확장 합성기 #4 + #5 통합 검증
+- views/synth/{index,show}.erb: weekly + orphans 섹션·폼·재생성 버튼 추가
+- bin/sowing-doctor: Phase 12 진단 섹션에 use case 5종(확장 #1~#5) + 9 디렉토리 카운트
+- 대시보드 spec 8건 신규 (weekly 4 + orphans 4)
+- 기존 7 type spec 백워드 호환 무수정 통과 (32+5+10 = 47건)
+- 회귀: 1236 → 1276 (+40 = weekly 17 + orphans 15 + dashboard 8). lint clean. `rake eval:run` 회귀 0. 5× stress 안정 (76/76 × 5).
+
 ### 확장 합성기 #2 — 평가 누적 (2026-05-10)
 - **`Sowing::UseCases::SynthesizeAssessmentTrend`** 신규 — 학생 1명의 단원평가 누적 추이
   - 입력: 학생 entity + 6개월 window + 평가 카테고리 (default 평가/단원평가)

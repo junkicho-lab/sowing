@@ -497,6 +497,89 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
     end
   end
 
+  describe "확장 #4 — weekly type" do
+    it "GET /synth — 주간 회고 섹션 + generate 폼 (week_label/since/until)" do
+      get "/synth"
+      expect(last_response).to be_ok
+      expect(last_response.body).to include("주간 회고")
+      expect(last_response.body).to include('action="/synth/weekly/generate"')
+      expect(last_response.body).to include('name="week_label"')
+    end
+
+    it "수락 → category=주간회고" do
+      seed_synth("weekly", "2026-W19", "synth_target" => "week:2026-W19")
+      post "/synth/weekly/2026-W19/accept"
+      expect(last_response).to be_redirect
+      year = Time.now.year
+      expect(vault_dir.join("30_Records", year.to_s, "주간회고")).to exist
+    end
+
+    it "POST /synth/weekly/generate — 입력 entries 충분 시 생성 + audit" do
+      FileUtils.mkdir_p(vault_dir.join("00_Inbox"))
+      path = "00_Inbox/01WKSYS00000000000000B01.md"
+      File.write(vault_dir.join(path),
+        "---\nid: 01WKSYS00000000000000B01\nmode: memo\ncreated_at: '#{Time.now.iso8601}'\nupdated_at: '#{Time.now.iso8601}'\n---\n\n주간 메모.")
+      db[:entries].insert(
+        id: "01WKSYS00000000000000B01", mode: "memo", path: path,
+        created_at: Time.now.iso8601, updated_at: Time.now.iso8601,
+        file_mtime: Time.now.to_i, file_hash: "deadbeef00000000",
+        word_count: 1, indexed_at: Time.now.iso8601
+      )
+
+      post "/synth/weekly/generate"
+      expect(last_response).to be_redirect
+      gen = audit_log.read_all.find { |r| r["action"] == "synth_generate" }
+      expect(gen["entry_id"]).to start_with("synth:week:")
+    end
+
+    it "POST /synth/weekly/generate — entries 0건 → 실패 flash" do
+      post "/synth/weekly/generate", "since" => "2026-04-01T00:00:00+09:00", "until_time" => "2026-04-07T23:59:59+09:00"
+      expect(last_response).to be_redirect
+      expect(last_response.location).to end_with("/synth")
+    end
+  end
+
+  describe "확장 #5 — orphans type" do
+    it "GET /synth — 고립 entries 섹션 + generate 폼" do
+      get "/synth"
+      expect(last_response).to be_ok
+      expect(last_response.body).to include("고립 entries")
+      expect(last_response.body).to include("/synth/orphans/observations/generate")
+    end
+
+    it "수락 → category=메모회고" do
+      seed_synth("orphans", "observations", "synth_target" => "orphans:observations")
+      post "/synth/orphans/observations/accept"
+      expect(last_response).to be_redirect
+      year = Time.now.year
+      expect(vault_dir.join("30_Records", year.to_s, "메모회고")).to exist
+    end
+
+    it "POST /synth/orphans/observations/generate — entries 0건 → 실패 flash" do
+      post "/synth/orphans/observations/generate"
+      expect(last_response).to be_redirect
+      expect(last_response.location).to end_with("/synth")
+    end
+
+    it "POST generate — backlink 0 entry 1+ 시 → 생성 + audit" do
+      FileUtils.mkdir_p(vault_dir.join("00_Inbox"))
+      path = "00_Inbox/01ORSYS00000000000000C01.md"
+      File.write(vault_dir.join(path),
+        "---\nid: 01ORSYS00000000000000C01\nmode: memo\ncreated_at: '#{Time.now.iso8601}'\nupdated_at: '#{Time.now.iso8601}'\n---\n\n고립 메모.")
+      db[:entries].insert(
+        id: "01ORSYS00000000000000C01", mode: "memo", path: path,
+        created_at: Time.now.iso8601, updated_at: Time.now.iso8601,
+        file_mtime: Time.now.to_i, file_hash: "deadbeef00000000",
+        word_count: 1, indexed_at: Time.now.iso8601
+      )
+
+      post "/synth/orphans/observations/generate"
+      expect(last_response).to be_redirect
+      gen = audit_log.read_all.find { |r| r["action"] == "synth_generate" }
+      expect(gen["entry_id"]).to eq("synth:orphans:observations")
+    end
+  end
+
   describe "ADR-013 — 자율 mutation 0 (4 type 통합 검증)" do
     it "GET /synth + GET /synth/:type/:slug 만으로는 vault·audit 변화 0" do
       seed_synth("students", "민준", "synth_target" => "student:민준")

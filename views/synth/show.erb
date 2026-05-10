@@ -101,6 +101,19 @@
               onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다 (default 90일 추적). 계속할까요?');">
           <button type="submit" class="button button--ghost">재생성</button>
         </form>
+      <% elsif @type == "weekly" %>
+        <form action="/synth/weekly/generate" method="post"
+              style="display:inline"
+              onsubmit="return confirm('재생성 — 이번 ISO 주를 다시 생성합니다. 계속할까요?');">
+          <input type="hidden" name="week_label" value="<%= h(@synth[:slug]) %>">
+          <button type="submit" class="button button--ghost">재생성</button>
+        </form>
+      <% elsif @type == "orphans" %>
+        <form action="/synth/orphans/observations/generate" method="post"
+              style="display:inline"
+              onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다 (default 1년 lookback). 계속할까요?');">
+          <button type="submit" class="button button--ghost">재생성</button>
+        </form>
       <% end %>
     </div>
   </footer>

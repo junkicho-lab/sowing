@@ -885,6 +885,29 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: 단원별 시간순 정확 표시 + 강점/약점 카운트. spec 22건 (use case 18 + 대시보드 4). 회귀 1188 → 1206 (+18). lint clean. eval 회귀 0.
 - **선행**: 확장 #1
 
+### [x] 확장 합성기 #4 — 주간 회고 (2026-05-10)
+- **출력**:
+  - `Sowing::UseCases::SynthesizeWeeklyReview` — 한 주(ISO 주, default 자동) 회고
+  - 학기 회고(W21-T01)와 학생 디제스트(W17-T02) 사이 빠진 호흡. 매주 일요일 트리거 가능.
+  - 결정적: 모드 카운트 + 한국 요일별 작성 빈도 (막대) + top 학생 + 미완료 task (`- [ ]` 추출)
+  - LLM: 4 섹션 (흐름 / 작은 발견 / 미해결 / 다음 주 우선순위)
+  - 저장: `vault/.sowing/synth/weekly/{YYYY-WW}.md`
+  - `SynthController::SYNTH_TYPES` 8 type 으로 확장 (weekly, accept_category=주간회고, target_prefix=week:)
+- **검증**: spec 17건. 회귀 1236 → 1253 (+17). lint clean. eval 회귀 0.
+- **선행**: Phase 12 (entities 활용)
+
+### [x] 확장 합성기 #5 — 고립 메모 발견 (2026-05-10)
+- **출력**:
+  - `Sowing::UseCases::DetectOrphanEntries` — backlink 0건 entries 식별 (W3 위키링크 그래프 활용)
+  - "쓴 적 있는데 어떤 다른 글에서도 인용 안 했다 = 잠재적 통찰". 사용자가 *연결 후보* 검토 → 자기 글 패턴 발견.
+  - 결정적: 고립 entries 시간순 + 모드/카테고리/태그 분포 + outbound 링크 표시
+  - LLM: 3 섹션 (고립 패턴 / 연결 후보 제안 / 본질적 고립 인정)
+  - 저장: `vault/.sowing/synth/orphans/observations.md` (단일 파일)
+  - `exclude_modes` 인자로 mode 제외 가능 (예: memo 제외 → 정식 글만)
+  - `SynthController::SYNTH_TYPES` 9 type 으로 확장 (orphans, accept_category=메모회고, target_prefix=orphans:)
+- **검증**: spec 15건 + broken link 처리 검증. 회귀 1253 → 1268 (+15). lint clean. eval 회귀 0.
+- **선행**: W3 위키링크 그래프
+
 ### [x] 확장 합성기 #3 — 연수 흡수 (2026-05-10)
 - **출력**:
   - `Sowing::UseCases::ExtractTrainingApplications` — 연수 노트 1건 + 후속 90일 → 키워드 매칭 적용 사례

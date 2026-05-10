@@ -180,6 +180,28 @@
               <button type="submit" class="button button--ghost">생성/재생성</button>
               <small class="synth-generate-form__hint">연수 노트 본문에서 핵심 키워드 추출 → 후속 entries 와 매칭. 키워드 명확할수록 정확.</small>
             </form>
+          <% when "weekly" %>
+            <form action="/synth/weekly/generate" method="post" class="synth-generate-form">
+              <label>
+                ISO 주 라벨 (선택, default = 이번 주):
+                <input type="text" name="week_label" placeholder="예: 2026-W19">
+              </label>
+              <label>
+                기간 시작 (선택):
+                <input type="datetime-local" name="since">
+              </label>
+              <label>
+                기간 종료 (선택):
+                <input type="datetime-local" name="until_time">
+              </label>
+              <button type="submit" class="button button--ghost">생성/재생성 (이번 주)</button>
+              <small class="synth-generate-form__hint">아무 입력 없이 누르면 이번 ISO 주 (월~일) 자동 생성.</small>
+            </form>
+          <% when "orphans" %>
+            <form action="/synth/orphans/observations/generate" method="post" class="synth-generate-form">
+              <button type="submit" class="button button--ghost">생성/재생성 (1년 lookback)</button>
+              <small class="synth-generate-form__hint">backlink 0건 entries 식별. 모든 글이 인용·연결돼 있으면 실패 (좋은 일).</small>
+            </form>
           <% end %>
         </div>
       </div>

@@ -78,6 +78,20 @@ module Sowing
           icon: "🎓",
           accept_category: "연수기록",
           target_prefix: "training:"
+        },
+        "weekly" => {
+          subdir: "weekly",
+          label: "주간 회고",
+          icon: "📆",
+          accept_category: "주간회고",
+          target_prefix: "week:"
+        },
+        "orphans" => {
+          subdir: "orphans",
+          label: "고립 entries 관찰",
+          icon: "🌊",
+          accept_category: "메모회고",
+          target_prefix: "orphans:"
         }
       }.freeze
 
@@ -312,6 +326,49 @@ module Sowing
           redirect_to_synth_show("trainings", training_id)
         else
           session[:flash] = "생성 실패 (#{result.failure}) — 연수 노트(category=trainings) entry id 확인"
+          redirect "/synth"
+        end
+      end
+
+      # 주간 회고 — week_label 폼 입력 (없으면 자동 = 이번 ISO 주)
+      post "/synth/weekly/generate" do
+        label = params["week_label"].to_s.strip
+        kwargs = {}
+        kwargs[:week_label] = label unless label.empty?
+        kwargs[:since] = params["since"] unless params["since"].to_s.strip.empty?
+        kwargs[:until_time] = params["until_time"] unless params["until_time"].to_s.strip.empty?
+        result = UseCases::SynthesizeWeeklyReview.new.call(**kwargs)
+        if result.success?
+          target = result.value!
+          slug = target.basename(".md").to_s
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:week:#{slug}",
+            mode: "record",
+            path: ".sowing/synth/weekly/#{slug}.md"
+          )
+          session[:flash] = "주간 회고 생성: #{slug}"
+          redirect_to_synth_show("weekly", slug)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 기간 내 entries 1건 이상 필요"
+          redirect "/synth"
+        end
+      end
+
+      # 고립 entries — 매개변수 0 (default 1년 lookback)
+      post "/synth/orphans/observations/generate" do
+        result = UseCases::DetectOrphanEntries.new.call
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:orphans:observations",
+            mode: "record",
+            path: ".sowing/synth/orphans/observations.md"
+          )
+          session[:flash] = "고립 entries 관찰 생성"
+          redirect_to_synth_show("orphans", "observations")
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 모든 entries 가 인용·연결돼 있음 (좋은 일!)"
           redirect "/synth"
         end
       end
