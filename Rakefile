@@ -141,3 +141,95 @@ namespace :eval do
     end
   end
 end
+
+namespace :stats do
+  desc "합성기 사용 지표 (audit.log 기반). SOWING_SINCE / SOWING_UNTIL 로 기간 지정 가능 (ISO8601)."
+  task :synth_metrics do
+    Sowing.boot!
+    use_case = Sowing::UseCases::ComputeSynthMetrics.new
+    result = use_case.call(
+      since: ENV["SOWING_SINCE"],
+      until_time: ENV["SOWING_UNTIL"]
+    )
+    if result.failure?
+      puts "ℹ  합성 이벤트 없음 (audit.log 에 synth_* action 없음)."
+      puts "   /synth 에서 디제스트 생성·수락·거절 후 재실행."
+      exit 0
+    end
+
+    m = result.value!
+    puts "📊 합성기 사용 지표"
+    puts "─" * 60
+    puts "기간: #{m[:first_event_at].to_s[0, 10]} ~ #{m[:last_event_at].to_s[0, 10]} (#{m[:duration_days]}일)"
+    puts "총 이벤트: #{m[:event_count]}건"
+    puts ""
+
+    t = m[:totals]
+    rate_str = t[:acceptance_rate] ? "#{(t[:acceptance_rate] * 100).round(1)}%" : "(결정된 이벤트 없음)"
+    puts "[전체]"
+    puts "  생성: #{t[:generate]} · 수락: #{t[:accept]} · 거절: #{t[:reject]} · 검토 대기: #{t[:pending]}"
+    puts "  수락률: #{rate_str} (Phase 11 마일스톤 ≥ 50%)"
+    puts ""
+
+    puts "[Type 별]"
+    m[:by_type].sort.each do |type, stats|
+      rate = stats[:acceptance_rate] ? "#{(stats[:acceptance_rate] * 100).round(1)}%" : "—"
+      puts "  #{type.ljust(16)} 생성 #{stats[:generate].to_s.rjust(3)} · 수락 #{stats[:accept].to_s.rjust(3)} · 거절 #{stats[:reject].to_s.rjust(3)} · 대기 #{stats[:pending].to_s.rjust(3)} · 수락률 #{rate}"
+    end
+    puts ""
+
+    if m[:by_week].any?
+      puts "[주별 (최근 8주)]"
+      m[:by_week].last(8).each do |w|
+        bar_g = "▌" * w[:generate]
+        puts "  #{w[:week]} 생성 #{bar_g} #{w[:generate]} · 수락 #{w[:accept]} · 거절 #{w[:reject]}"
+      end
+    end
+  end
+
+  desc "베타 사용자 리포트 (마크다운, stdout). SOWING_SINCE / SOWING_UNTIL 로 기간 지정."
+  task :beta_report do
+    Sowing.boot!
+    result = Sowing::UseCases::ComputeSynthMetrics.new.call(
+      since: ENV["SOWING_SINCE"],
+      until_time: ENV["SOWING_UNTIL"]
+    )
+    if result.failure?
+      puts "# 베타 리포트\n\n_합성 이벤트 없음._"
+      next
+    end
+
+    m = result.value!
+    t = m[:totals]
+    puts "# Sowing 베타 사용 리포트"
+    puts ""
+    puts "**기간**: #{m[:first_event_at].to_s[0, 10]} ~ #{m[:last_event_at].to_s[0, 10]} (#{m[:duration_days]}일)"
+    puts ""
+    puts "## 전체 지표"
+    puts ""
+    puts "| 지표 | 값 |"
+    puts "|------|-----|"
+    puts "| 합성 생성 | #{t[:generate]} |"
+    puts "| 수락 | #{t[:accept]} |"
+    puts "| 거절 | #{t[:reject]} |"
+    puts "| 검토 대기 | #{t[:pending]} |"
+    puts "| **수락률** | #{t[:acceptance_rate] ? "**#{(t[:acceptance_rate] * 100).round(1)}%**" : "—"} |"
+    puts ""
+    puts "**Phase 11 마일스톤 평가**: 수락률 #{(t[:acceptance_rate] && t[:acceptance_rate] >= 0.5) ? "✅ 50% 달성" : "🟡 50% 미달성"}"
+    puts ""
+    puts "## Type 별 활용"
+    puts ""
+    puts "| Type | 생성 | 수락 | 거절 | 대기 | 수락률 |"
+    puts "|------|------|------|------|------|--------|"
+    m[:by_type].sort.each do |type, s|
+      rate = s[:acceptance_rate] ? "#{(s[:acceptance_rate] * 100).round(1)}%" : "—"
+      puts "| #{type} | #{s[:generate]} | #{s[:accept]} | #{s[:reject]} | #{s[:pending]} | #{rate} |"
+    end
+    puts ""
+    puts "## 주별 추이"
+    puts ""
+    puts "| 주 | 생성 | 수락 | 거절 |"
+    puts "|----|------|------|------|"
+    m[:by_week].each { |w| puts "| #{w[:week]} | #{w[:generate]} | #{w[:accept]} | #{w[:reject]} |" }
+  end
+end

@@ -2242,3 +2242,54 @@ pre code {
   font-size: 0.85rem;
   margin-top: var(--space-1);
 }
+
+/* ─── 합성 사용 지표 (베타 검증) ─── */
+
+.synth-metrics__totals {
+  font-size: 1rem;
+}
+
+.synth-metrics__rate {
+  font-size: 1.2rem;
+  color: var(--color-muted);
+}
+
+.synth-metrics__rate--ok {
+  color: var(--color-primary);
+}
+
+.synth-metrics__milestone {
+  margin-left: var(--space-2);
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.synth-metrics__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-2) 0;
+}
+
+.synth-metrics__table th,
+.synth-metrics__table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  text-align: left;
+}
+
+.synth-metrics__table th {
+  font-weight: 600;
+  color: var(--color-muted);
+  background: var(--color-surface, #fafafa);
+}
+
+.synth-metrics__table td:nth-child(n+2):nth-last-child(n+2) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.synth-metrics__bar {
+  font-family: monospace;
+  letter-spacing: -2px;
+  color: var(--color-primary);
+}

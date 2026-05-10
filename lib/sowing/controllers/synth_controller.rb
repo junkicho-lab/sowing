@@ -202,6 +202,21 @@ module Sowing
         erb :"synth/index", layout: :"layouts/application"
       end
 
+      # ─── 사용 지표 (베타 사용자 검증 인프라) ───
+      get "/synth/metrics" do
+        @page_title = "합성 사용 지표"
+        @synth_types = SYNTH_TYPES
+        result = UseCases::ComputeSynthMetrics.new.call
+        if result.success?
+          @metrics = result.value!
+          @no_events = false
+        else
+          @metrics = nil
+          @no_events = true
+        end
+        erb :"synth/metrics", layout: :"layouts/application"
+      end
+
       # ─── 상세 (4 type 통합) ───
       get "/synth/:type/:slug" do
         type = params["type"]

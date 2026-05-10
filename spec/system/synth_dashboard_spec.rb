@@ -704,6 +704,56 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
     end
   end
 
+  describe "GET /synth/metrics — 베타 검증 인프라" do
+    it "이벤트 0건 → 빈 상태 안내" do
+      get "/synth/metrics"
+      expect(last_response).to be_ok
+      expect(last_response.body).to include("아직 합성 이벤트가 없습니다")
+    end
+
+    it "synth_* 이벤트 있을 때 — 전체 + type 별 + 주별 표시" do
+      audit_log.append(action: :synth_generate,
+        entry_id: "synth:students:민준",
+        mode: "record",
+        path: ".sowing/synth/students/민준.md")
+      audit_log.append(action: :synth_accept,
+        entry_id: "01ACPT00000000000000000001",
+        mode: "record",
+        path: ".sowing/synth/students/민준.md")
+      audit_log.append(action: :synth_reject,
+        entry_id: "synth:reflections:2026-1",
+        mode: "record",
+        path: ".sowing/synth/reflections/2026-1.md")
+
+      get "/synth/metrics"
+      expect(last_response).to be_ok
+      # 전체 지표
+      expect(last_response.body).to include("전체 지표")
+      expect(last_response.body).to include("Phase 11 마일스톤")
+      # 수락률 100% (1 accept / 1 decided) — 50% 이상
+      expect(last_response.body).to include("100.0%")
+      expect(last_response.body).to include("✅ Phase 11 마일스톤")
+      # type 별
+      expect(last_response.body).to include("학생 디제스트")
+      expect(last_response.body).to include("학기 회고")
+      # rake CLI 안내
+      expect(last_response.body).to include("rake stats:beta_report")
+    end
+
+    it "수락률 < 50% — 미달성 마커" do
+      audit_log.append(action: :synth_generate,
+        entry_id: "synth:students:a", mode: "record",
+        path: ".sowing/synth/students/a.md")
+      audit_log.append(action: :synth_reject,
+        entry_id: "synth:students:a", mode: "record",
+        path: ".sowing/synth/students/a.md")
+
+      get "/synth/metrics"
+      expect(last_response.body).to include("0.0%")
+      expect(last_response.body).to include("🟡 Phase 11 마일스톤")
+    end
+  end
+
   describe "ADR-013 — 자율 mutation 0 (4 type 통합 검증)" do
     it "GET /synth + GET /synth/:type/:slug 만으로는 vault·audit 변화 0" do
       seed_synth("students", "민준", "synth_target" => "student:민준")

@@ -1,0 +1,114 @@
+<section class="synth-metrics" aria-labelledby="synth_metrics_heading">
+  <p class="synth-detail__back"><a href="/synth">← 합성 결과 목록</a></p>
+
+  <header>
+    <h1 id="synth_metrics_heading">📊 합성 사용 지표</h1>
+    <p class="settings__lede">
+      베타 사용자 검증 도구 — audit.log 의 <code>synth_generate</code> /
+      <code>synth_accept</code> / <code>synth_reject</code> 이벤트를 집계.
+      <strong>Phase 11 마일스톤</strong> 수락률 ≥ 50% 측정용.
+    </p>
+  </header>
+
+  <% if @no_events %>
+    <div class="empty-state empty-state--inline">
+      <p>아직 합성 이벤트가 없습니다.</p>
+      <p class="empty-state__hint">
+        <a href="/synth">/synth</a> 에서 디제스트를 생성·수락·거절하면
+        여기에 자동으로 지표가 표시됩니다.
+      </p>
+    </div>
+  <% else %>
+    <% t = @metrics[:totals] %>
+    <% rate_pct = t[:acceptance_rate] ? (t[:acceptance_rate] * 100).round(1) : nil %>
+
+    <article class="settings__section">
+      <h2>전체 지표</h2>
+      <p class="settings__hint">
+        기간: <%= h(@metrics[:first_event_at].to_s[0, 10]) %> ~ <%= h(@metrics[:last_event_at].to_s[0, 10]) %>
+        (<%= @metrics[:duration_days] %>일, 총 <%= @metrics[:event_count] %> 이벤트)
+      </p>
+      <dl class="settings__info synth-metrics__totals">
+        <dt>합성 생성</dt><dd><%= t[:generate] %>건</dd>
+        <dt>수락</dt><dd><%= t[:accept] %>건</dd>
+        <dt>거절</dt><dd><%= t[:reject] %>건</dd>
+        <dt>검토 대기</dt><dd><%= t[:pending] %>건</dd>
+        <dt>수락률</dt>
+        <dd>
+          <% if rate_pct %>
+            <strong class="synth-metrics__rate <%= "synth-metrics__rate--ok" if rate_pct >= 50 %>">
+              <%= rate_pct %>%
+            </strong>
+            <% if rate_pct >= 50 %>
+              <span class="synth-metrics__milestone">✅ Phase 11 마일스톤 (≥ 50%) 달성</span>
+            <% else %>
+              <span class="synth-metrics__milestone">🟡 Phase 11 마일스톤 (≥ 50%) 미달성</span>
+            <% end %>
+          <% else %>
+            <em>(결정된 이벤트 없음)</em>
+          <% end %>
+        </dd>
+      </dl>
+    </article>
+
+    <article class="settings__section">
+      <h2>Type 별 활용</h2>
+      <table class="synth-metrics__table">
+        <thead>
+          <tr>
+            <th>Type</th><th>생성</th><th>수락</th><th>거절</th><th>대기</th><th>수락률</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @metrics[:by_type].sort.each do |type, s| %>
+            <% type_label = @synth_types[type]&.dig(:label) || type %>
+            <% type_icon = @synth_types[type]&.dig(:icon) || "·" %>
+            <% type_rate = s[:acceptance_rate] ? "#{(s[:acceptance_rate] * 100).round(1)}%" : "—" %>
+            <tr>
+              <td><%= type_icon %> <%= h(type_label) %></td>
+              <td><%= s[:generate] %></td>
+              <td><%= s[:accept] %></td>
+              <td><%= s[:reject] %></td>
+              <td><%= s[:pending] %></td>
+              <td><%= type_rate %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </article>
+
+    <% if @metrics[:by_week].any? %>
+      <article class="settings__section">
+        <h2>주별 추이 (최근 8주)</h2>
+        <table class="synth-metrics__table">
+          <thead>
+            <tr><th>주</th><th>생성</th><th>수락</th><th>거절</th><th>막대</th></tr>
+          </thead>
+          <tbody>
+            <% @metrics[:by_week].last(8).each do |w| %>
+              <tr>
+                <td><%= w[:week] %></td>
+                <td><%= w[:generate] %></td>
+                <td><%= w[:accept] %></td>
+                <td><%= w[:reject] %></td>
+                <td><span class="synth-metrics__bar"><%= "▌" * [w[:generate], 30].min %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </article>
+    <% end %>
+
+    <article class="settings__section">
+      <h2>CLI 리포트</h2>
+      <p class="settings__hint">
+        같은 데이터를 마크다운 파일로 저장하려면:
+      </p>
+      <pre><code>bundle exec rake stats:beta_report &gt; beta-report.md
+# 또는 기간 지정:
+SOWING_SINCE=2026-03-01 SOWING_UNTIL=2026-07-31 bundle exec rake stats:beta_report</code></pre>
+      <p class="settings__hint">베타 모집·운영 안내는
+        <a href="https://github.com/junkicho-lab/sowing/blob/main/docs/BETA_GUIDE.md">docs/BETA_GUIDE.md</a> 참조.</p>
+    </article>
+  <% end %>
+</section>

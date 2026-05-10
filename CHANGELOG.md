@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 베타 사용자 검증 인프라 (2026-05-10)
+- **`Sowing::UseCases::ComputeSynthMetrics`** 신규 — `vault/.sowing/audit.log` JSON Lines 분석 → 합성기 사용 지표 집계
+  - synth_generate / synth_accept / synth_reject 이벤트만 필터
+  - **path 필드에서 type 추출** (`.sowing/synth/{type}/{slug}.md`) — accept entry_id 가 새 Record ULID 라 path 만 신뢰
+  - 출력:
+    - **totals**: generate / accept / reject / pending / **acceptance_rate** (Phase 11 마일스톤 ≥ 50%)
+    - **by_type**: 12 type 별 카운트·수락률
+    - **by_week**: ISO 주별 집계 (시간순)
+    - first_event_at / last_event_at / duration_days / event_count
+  - 가드: 음수 pending 방지 (`[gen - decided, 0].max`) — 재생성 시 generate 가 누적되어도 안전
+  - read-only — vault·DB 변경 없음
+  - since/until 필터로 베타 기간 한정 가능
+  - spec 9건 (Failure / 다른 action 무시 / totals / by_type / by_week / since-until / 엣지 2)
+- **`rake stats:synth_metrics`** — CLI 리포트 (텍스트, 막대 그래프 포함)
+  - `SOWING_SINCE` / `SOWING_UNTIL` 환경 변수로 기간 지정
+  - 전체 + type 별 + 주별 (최근 8주) 표시
+- **`rake stats:beta_report`** — 마크다운 리포트 (stdout)
+  - 인터뷰 자료·운영 보고용
+  - Phase 11 마일스톤 ✅/🟡 자동 평가
+- **`/synth/metrics`** — 실시간 대시보드 (브라우저)
+  - 전체 지표 + Phase 11 마일스톤 마커 + type 별 표 + 주별 추이 + CLI 리포트 안내
+  - `synth-metrics__rate--ok` 50% 이상 색상 강조
+  - 라우트 우선순위 — `/synth` 다음, `/synth/:type/:slug` 이전
+- **views/synth/index.erb**: "📊 사용 지표 보기" 링크 추가
+- **CSS**: `.synth-metrics__rate` (수락률) / `.synth-metrics__milestone` / `.synth-metrics__table` / `.synth-metrics__bar` 스타일
+- **베타 운영 문서 2종**:
+  - `docs/BETA_GUIDE.md` — 베타 테스터용 가이드 (부탁사항 / 마일스톤 기준 / 측정 도구 / ADR-013 약속 / 사적 데이터 보호 / 인터뷰 6 질문)
+  - `docs/BETA_RECRUITMENT.md` — 운영자용 모집 절차 (대상 / 채널 / 모집 글 템플릿 / 선정 후 절차 / 데이터 수집 동의 / ROADMAP 마일스톤 갱신)
+- 대시보드 spec 3건 (이벤트 0건 빈 상태 / 50% 이상 마일스톤 ✅ / 50% 미만 🟡)
+- 회귀: 1320 → 1332 (+12 = use case 9 + dashboard 3). lint clean. eval 회귀 0. 5× stress 안정 (67/67 × 5).
+
+**다음 단계**: 베타 테스터 5명 모집 → 한 학기 사용 → audit.log 분석 + 인터뷰 → ROADMAP Phase 11/12 마일스톤 블록 갱신. 인프라는 모두 준비됨.
+
 ### 확장 합성기 #6 — 수업 시리즈 추적 (2026-05-10)
 - **`Sowing::UseCases::SynthesizeLessonSeries`** 신규 — 단원·주제 키워드 기반 차시별 timeline
   - 한 단원이 5~10차시에 걸쳐 흩어진 entries 를 한 화면에 수집
