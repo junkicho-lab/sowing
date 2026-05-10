@@ -223,9 +223,15 @@ claude "vault:reindex 작업을 만드는데, 먼저 dry-run 모드를 만들고
   - `Sowing::Eval::Judge` + `Kappa` + 4 백엔드 (Fake/OpenAI/Anthropic/Ollama, Net::HTTP only)
   - 5 한국어 도메인 차원 (`Sowing::Eval::KoreanDimensions`)
   - `rake eval:run` + `.github/workflows/eval.yml` (회귀 자동 측정)
-  - **ADR-013 의 Phase 11 진입 조건 충족** — LLM 합성 도구가 본 인프라 위에 안전히 얹힘
-- **1039건 spec pass / standardrb clean / 5x stress 4-5/5** (855 → 1039, +184 from Phase 9·10).
-- **13개 컨트롤러 / 86개 라우트 / 3-tier 도메인 (Memo/Note/Record) / 양방향 동기화 / 12종 템플릿 + 12건 샘플 / 4단계 온보딩 + 3분 튜토리얼 / 12 MCP 도구 / 100 eval corpus / 12 평가 차원**.
+- **Phase 11 (Tier-1 LLM 합성) ✅ 완료** (2026-05-10):
+  - W17-T01 `ExtractEntities` + migration 006 (`entities` UNIQUE(type,name) + `entity_mentions`) — 결정적 whitelist 30 인명 + 조사 패턴 + 과목·장소 사전, LLM 옵트인 NER
+  - W17-T02 `SynthesizeStudentDigest` — 학생당 1 디제스트 (timeline + 인용 결정적 모드 + LLM 변화·패턴 분석 모드), `vault/.sowing/synth/students/` 에 `is_synth: true` frontmatter 로 저장, LLM 실패 시 결정적 fallback
+  - W17-T03 `DetectStudentGaps` + Settings `class_roster` + Dashboard `gap-card` — 4주 미언급 학생 알림 (결정적·LLM 0)
+  - W17-T04 `SynthController` + `/synth` 검토 UI — 수락 → `Domain::Record` + `Persistence#persist!` (audit `:create` + `:synth_accept`) → `30_Records/{YYYY}/학생기록/`. 거절 → `.sowing/trash` + audit `:synth_reject`. 명시적 사용자 클릭만 mutation
+  - `AuditLog::ALLOWED_ACTIONS` — `:synth_generate`/`:synth_accept`/`:synth_reject` 추가 (Phase 12 fine-tuning preference 데이터)
+  - 합성기 패턴 확립: `with_actor("agent")` 블록 + 결정적 fallback + frontmatter `is_synth: true` + `.sowing/synth/` 격리 (watcher 인덱싱 회피, 사용자 글과 명확 구분)
+- **1095건 spec pass / standardrb clean / 5x stress 안정** (855 → 1095, +240 from Phase 9·10·11).
+- **14개 컨트롤러 / 91개 라우트 / 3-tier 도메인 (Memo/Note/Record) + 합성 격리 (.sowing/synth) / 양방향 동기화 / 12종 템플릿 + 12건 샘플 / 4단계 온보딩 + 3분 튜토리얼 / 12 MCP 도구 / 100 eval corpus / 12 평가 차원 / Phase 11 합성기 3종 + entities/entity_mentions 테이블 + /synth 검토 UI**.
 - **W8 deferred**: T01 시스템 트레이 / T03 macOS 코드사인 / T04 Windows 인스톨러 / T05 Linux AppImage / T07 베타 테스터.
 
 ## P2.2 가장 먼저 읽을 것 (순서 중요)
@@ -254,45 +260,48 @@ claude "vault:reindex 작업을 만드는데, 먼저 dry-run 모드를 만들고
 4. ✅ 로컬 우선 — 외부 서버 강제 안 함
 5. ✅ 영구 삭제 금지 — 휴지통·충돌 백업
 
-## P2.4 Phase 11 첫 작업 (W17-T01 EntityExtractor) 시작 절차
+## P2.4 Phase 12 첫 작업 (W21-T01 SemesterReflection) 시작 절차
 
-> **Phase 9·10 모두 완료**. Phase 11 (Tier-1 LLM 합성, W17~20) 진입 가능.
-> ADR-013: "LLM 기능은 Phase 10 검증 환경 위에 얹는다" — 충족. eval/corpus +
-> Judge + KoreanDimensions 가 회귀 가드 역할.
+> **Phase 9·10·11 모두 완료**. Phase 12 (Tier-2 LLM 합성, W21~24) 진입 가능.
+> Phase 11 의 합성기 패턴(`with_actor("agent")` + 결정적 fallback + `is_synth`
+> frontmatter + `.sowing/synth/` 격리 + `/synth` 검토 UI 의 수락/거절 audit) 을
+> 그대로 확장. 학생 1명 단위(Phase 11) → 학기 단위(Phase 12) 로 합성 범위 확대.
 
 1. **상태 확인**:
    ```sh
    cd /Users/woodncarpenter/projects/sowing
-   bundle exec rspec | tail -3        # 1039 examples, 0 failures 인지 확인
-   bundle exec standardrb | tail -2    # exit=0 인지 확인
-   bin/sowing-doctor | tail -20        # MCP / Audit / Eval 섹션 정상 확인
+   bundle exec rspec | tail -3         # 1095 examples, 0 failures 확인
+   bundle exec standardrb | tail -2    # exit=0 확인
+   bin/sowing-doctor | tail -25        # MCP / Audit / Eval / Phase 11 섹션 정상
    bundle exec rake eval:run           # FakeBackend baseline 회귀 확인 (선택)
    ```
 
 2. **읽기 (필수, 순서대로)**:
-   - `sowing-docs/EVALUATION.md` §3 Phase 11 작업 분해 + §1.4 LLM Wiki 패턴 의도
-   - `lib/sowing/eval/judge.rb` + `lib/sowing/eval/runner.rb` — 합성기를 어떻게 평가할 것인지
-   - `eval/corpus/teacher_writings/hand_crafted/ent-001.md` ~ `ent-003.md` — entity_extraction 시드
-   - `lib/sowing/repositories/index_repo.rb` `find_samples` / `recent_across` — entities 테이블 추가 시 패턴 참고
+   - `sowing-docs/EVALUATION.md` §3 Phase 12 작업 분해 (회고·패턴·모순 합성)
+   - `lib/sowing/use_cases/synthesize_student_digest.rb` — Phase 11 합성기 패턴 참고 (frontmatter, deterministic fallback, LLM prompt 분리)
+   - `lib/sowing/controllers/synth_controller.rb` — `/synth` UI 가 학생 디제스트와 학기 회고를 어떻게 동시에 다룰지 (synth_target prefix `student:` vs `semester:` 등)
+   - `eval/corpus/teacher_writings/` — `task_type: reflection` / `contradiction` case 들 (Phase 12 검증 기반)
 
-3. **W17-T01 작업** (EntityExtractor Use Case + entities 테이블):
-   - migration 006: `entities` (id, type=student|subject|location, name, first_seen_at, last_seen_at, mention_count)
-   - migration 006: `entity_mentions` (entity_id, entry_id, position) — 인용 출처 추적
-   - 새 use case: `Sowing::UseCases::ExtractEntities`
-     - 결정적 fallback: frontmatter tags + 정규식 (한국어 학생 이름 패턴)
-     - LLM 옵트인: backend 주입 시 본문에서 NER, 결과 audit log 에 actor=agent 마킹
-     - Phase 10 의 `Sowing::Eval::Backends::Base` 그대로 재사용
-   - spec: ent-001~ent-003 시드에서 정확률 측정 (Judge + 100건 corpus 회귀)
+3. **W21-T01 작업** (SemesterReflection 합성기):
+   - 새 use case: `Sowing::UseCases::SynthesizeSemesterReflection`
+     - 입력: 100~500건 entries (3~6 개월 범위)
+     - 출력: 마크다운 회고 (자주 등장한 학생 / 자주 다룬 주제 / 변화의 순간들 / 잘된 / 아쉬웠던 / 다음 학기 준비)
+     - 청크 분할 + 점진적 합성 (long-context 한계 우회)
+   - 저장: `vault/.sowing/synth/reflections/{semester_label}.md`
+     - frontmatter: `is_synth: true`, `synth_target: "semester:2026-1"`, `synth_at`, `synth_source_count`, `synth_model`
+   - `SynthController` 확장 — `/synth/reflections/:slug` 라우트 추가 (또는 통합 목록)
+   - audit `:synth_generate`/`:synth_accept`/`:synth_reject` 그대로 재사용
 
 4. **검증**:
-   - eval 코퍼스 entity_extraction task case 들에서 factuality·coverage ≥ 4점 평균
-   - `bundle exec rspec` — 회귀 1039건 + 신규 spec 통과
+   - eval 코퍼스 reflection task case 에서 coverage·structure·korean_consistency ≥ 4점 평균
+   - 청크 분할 결정성 (같은 입력 → 같은 청크 경계) spec 화
+   - `bundle exec rspec` — 회귀 1095건 + 신규 spec 통과
    - `bundle exec rake eval:run` — 차원 평균 하락 없음 (regressed=false)
-   - lint clean. 5x stress 4-5/5.
+   - lint clean. 5x stress 안정.
 
-5. **커밋**: `[W17-T01] EntityExtractor + entities 테이블 (migration 006)`
+5. **커밋**: `[W21-T01] SemesterReflection 합성기 — 학기 회고 자동 합성 (청크 분할)`
 
-이후 W17-T02 (StudentDigest 합성기), W17-T03 (GapDetector), W17-T04 (검토 UI) 진입.
+이후 W21-T02 (LessonPattern 추출), W21-T03 (ContradictionDetector), W21-T04 (eval 종합 회귀) 진입.
 
 ## P2.5 Phase 2 작업 시 추가 검증 게이트
 

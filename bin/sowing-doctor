@@ -400,6 +400,77 @@ rescue => e
   puts "  ❌ Eval 진단 실패: #{e.message}"
 end
 
+# 15. Tier-1 LLM 합성 (Phase 11)
+puts "\n[Tier-1 LLM 합성 (Phase 11)]"
+begin
+  db = Sowing::Infrastructure::DB.connection
+
+  # entities 테이블 (W17-T01)
+  if db.table_exists?(:entities) && db.table_exists?(:entity_mentions)
+    student_count = db[:entities].where(type: "student").count
+    mention_count = db[:entity_mentions].count
+    puts "  ✅ entities/entity_mentions 테이블 — student #{student_count}명, mention #{mention_count}건"
+  else
+    puts "  ⚠  entities/entity_mentions 테이블 누락 — `bundle exec rake db:migrate` 필요"
+    issues << "Phase 11 entities 테이블 누락 — db:migrate"
+  end
+
+  # 합성기 use case 등록 확인 (W17-T02·T03)
+  uc_check = {
+    "ExtractEntities (W17-T01)" => Sowing::UseCases.const_defined?(:ExtractEntities),
+    "SynthesizeStudentDigest (W17-T02)" => Sowing::UseCases.const_defined?(:SynthesizeStudentDigest),
+    "DetectStudentGaps (W17-T03)" => Sowing::UseCases.const_defined?(:DetectStudentGaps)
+  }
+  uc_check.each do |label, ok|
+    puts ok ? "  ✅ #{label}" : "  ⚠  #{label} 누락"
+    issues << "Phase 11 use case 누락: #{label}" unless ok
+  end
+
+  # /synth 컨트롤러 (W17-T04)
+  if Sowing::Controllers.const_defined?(:SynthController)
+    puts "  ✅ SynthController (W17-T04) — /synth 검토 UI 등록"
+  else
+    puts "  ⚠  SynthController 누락 — config/routes.rb 확인"
+    issues << "Phase 11 SynthController 누락"
+  end
+
+  # 합성 디렉토리 (.sowing/synth/students/) 상태
+  synth_dir = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/synth/students")
+  if synth_dir.exist?
+    pending = Dir.glob(synth_dir.join("*.md")).size
+    puts "  검토 대기 중인 합성 디제스트: #{pending}건 (`/synth` 에서 확인)"
+  else
+    puts "  검토 대기 중인 합성 디제스트: 0건 (디렉토리 미생성, 정상)"
+  end
+
+  # 학급 명단 (W17-T03 GapDetector 입력)
+  roster = Sowing::Infrastructure::Settings.load["class_roster"]
+  if roster.is_a?(Array) && !roster.empty?
+    puts "  ✅ class_roster #{roster.size}명 — 대시보드 gap-card 활성"
+  else
+    puts "  학급 명단 미설정 — `/settings` 에서 등록하면 4주 미언급 학생 알림 표시"
+  end
+
+  # audit synth_* 액션 확인 (Phase 12 fine-tuning preference 데이터)
+  audit_path = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/audit.log")
+  if audit_path.exist?
+    synth_actions = audit_path.each_line
+      .lazy
+      .map { |l| JSON.parse(l)["action"] rescue nil }
+      .select { |a| a&.start_with?("synth_") }
+      .group_by(&:itself)
+      .transform_values(&:count)
+    if synth_actions.any?
+      summary = synth_actions.map { |k, v| "#{k} #{v}" }.join(", ")
+      puts "  audit synth_* 이벤트: #{summary}"
+    else
+      puts "  audit synth_* 이벤트: 0건 (아직 합성 검토 이력 없음)"
+    end
+  end
+rescue => e
+  puts "  ❌ Phase 11 진단 실패: #{e.message}"
+end
+
 puts "\n#{"─" * 60}"
 if issues.empty?
   puts "✅ 진단 완료 — 발견된 문제 없음"

@@ -735,9 +735,14 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: `spec/system/synth_spec.rb` 10 examples (목록/상세/수락/거절/재생성/404/ADR-013 자율 mutation 0 검증) — 5× 안정. 전체 1095 examples 0 fail.
 - **선행**: W17-T02, W17-T03
 
-### **🎯 Week 17~20 마일스톤 (Phase 11)**
+### **🎯 Week 17~20 마일스톤 (Phase 11)** — 코드 deliverable ✅ 달성 (2026-05-10)
 **학생 디제스트 정확률 ≥ 80%, 사용자 수락률 ≥ 50%. "내가 손으로 못 합쳤을 통찰을
 얻었다" 는 베타 사용자 회고 ≥ 3건.**
+
+**달성 상태**:
+- 코드/인프라: ✅ 완료 — 4 task (T01~T04) 모두 완료, 1095 spec pass, lint clean, eval 회귀 0
+- 정확률·수락률·베타 회고: 실제 사용자 데이터 수집 후 측정 (Phase 12 마무리 시점). 현재는
+  audit `:synth_accept`/`:synth_reject` 카운터로 측정 가능한 인프라만 갖춤 — 실 사용 후 확인.
 
 ---
 
