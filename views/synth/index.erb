@@ -127,6 +127,25 @@
               <button type="submit" class="button button--ghost">생성/재생성 (학생 변화 후보)</button>
               <small class="synth-generate-form__hint">학생당 mention 2건 이상 + 반의어 차원 매칭이 필요합니다.</small>
             </form>
+          <% when "consultations" %>
+            <form action="/synth/consultations/__SLUG__/generate" method="post" class="synth-generate-form"
+                  data-controller="synth-consultation-form">
+              <label>
+                학생 이름:
+                <input type="text" name="student_name" required placeholder="예: 민준"
+                       data-action="input->synth-consultation-form#updateAction">
+              </label>
+              <label>
+                기간 시작 (선택, default = 6개월 전):
+                <input type="datetime-local" name="since">
+              </label>
+              <label>
+                기간 종료 (선택, default = 지금):
+                <input type="datetime-local" name="until_time">
+              </label>
+              <button type="submit" class="button button--ghost">생성/재생성</button>
+              <small class="synth-generate-form__hint">상담 카테고리 entries 또는 학생 mention 2건 이상이 필요합니다.</small>
+            </form>
           <% end %>
         </div>
       </div>
@@ -142,6 +161,15 @@
       const slug = encodeURIComponent(input.value.trim())
       if (!slug) { e.preventDefault(); return }
       form.action = `/synth/students/${slug}/generate`
+    })
+  })
+  document.querySelectorAll('[data-controller="synth-consultation-form"]').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      const input = form.querySelector('input[name="student_name"]')
+      const slug = encodeURIComponent(input.value.trim())
+      if (!slug) { e.preventDefault(); return }
+      // since/until 폼 인풋은 기본 name 으로 그대로 전송
+      form.action = `/synth/consultations/${slug}/generate`
     })
   })
 </script>

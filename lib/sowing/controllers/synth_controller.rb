@@ -57,6 +57,13 @@ module Sowing
           icon: "🔄",
           accept_category: "학생기록",
           target_prefix: "contradictions:"
+        },
+        "consultations" => {
+          subdir: "consultations",
+          label: "학부모 상담 준비",
+          icon: "🤝",
+          accept_category: "상담",
+          target_prefix: "consultation:"
         }
       }.freeze
 
@@ -223,6 +230,29 @@ module Sowing
           redirect_to_synth_show("patterns", "lessons")
         else
           session[:flash] = "생성 실패 (#{result.failure}) — 수업 카테고리 entries 확인"
+          redirect "/synth"
+        end
+      end
+
+      # 학부모 상담 준비 — slug = 학생 이름 (since/until 옵션)
+      post "/synth/consultations/:slug/generate" do
+        student_name = params["slug"]
+        result = UseCases::SynthesizeParentConsultation.new.call(
+          student_name: student_name,
+          since: params["since"].to_s.strip.empty? ? nil : params["since"],
+          until_time: params["until_time"].to_s.strip.empty? ? nil : params["until_time"]
+        )
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:consultation:#{student_name}",
+            mode: "record",
+            path: ".sowing/synth/consultations/#{student_name}.md"
+          )
+          session[:flash] = "학부모 상담 준비 생성: #{student_name}"
+          redirect_to_synth_show("consultations", student_name)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 학생 entity·상담 entries 확인"
           redirect "/synth"
         end
       end

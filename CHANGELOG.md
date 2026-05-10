@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 확장 합성기 #1 — 학부모 상담 준비 (2026-05-10)
+- **`Sowing::UseCases::SynthesizeParentConsultation`** 신규 — 학생 1명에 대한 학부모 면담 준비 자료 자동 합성
+  - KICKOFF P2.4 옵션 C (확장 합성기 추가) 의 첫 구현. Phase 11~12 합성기 패턴 그대로 확장.
+  - 입력 3 갈래 통합:
+    1. records 의 `category ∈ DEFAULT_CONSULTATION_CATEGORIES` (default: 상담/학부모상담)
+    2. notes 의 `category ∈ DEFAULT_CONSULTATION_NOTE_CATEGORIES` (default: meetings)
+    3. 학생 entity mention entries 중 본문에 `DEFAULT_CONSULTATION_KEYWORDS` 포함 (default: 학부모/면담/상담/부모님/가정)
+  - 3 갈래 통합 후 entry id 기준 UNIQUE → 학생 이름 또는 상담 키워드 본문 필터 → 시간순 정렬
+  - 두 모드:
+    - **결정적**: 시간순 인용 모음 + mode 아이콘 (💭/📝/📖) + 카테고리 라벨 + 출처 wikilink. trailer "원자료 — 교사의 직접 판단·맥락이 우선"
+    - **LLM 옵트인**: 4 섹션 출력 (🌱 학생 강점 / 🔄 변화·성장 / 💬 학부모와 공유할 만한 관찰 / 🤝 가정에서 함께 시도해 볼 만한 것). prompt: "단정·낙인·사적 평가 금지", "본문에 없는 사실 만들기 금지", 가정 제안은 "~을 함께 해보면 어떨까요" 톤
+  - 저장: `vault/.sowing/synth/consultations/{학생명}.md`
+  - frontmatter 9키: 기본 6키 + `synth_period_since` / `synth_period_until` / `synth_categories`
+  - 가드: `MIN_ENTRIES=2` / `MAX_ENTRIES=200` / `EXCERPT_LIMIT=200` / 6개월 default window
+  - LLM 실패 → 결정적 fallback (Phase 11~12 패턴 동일)
+  - audit `with_actor("agent")` Thread-local 스택 통합
+  - **자율 판단 0** (ADR-013): "이 학생은 ~한 학생입니다" 단정 X — 인용 + 출처 + 날짜만. 학부모와 공유 가능한 *관찰* 만 (사적 추측·심리 분석 금지)
+- **`SynthController::SYNTH_TYPES`** 5 type 으로 확장
+  - `consultations` 추가 (subdir/label="학부모 상담 준비"/icon=🤝/accept_category=상담/target_prefix="consultation:")
+  - 새 generate route: `POST /synth/consultations/:slug/generate` (slug=학생 이름, since/until 옵션 폼)
+  - accept 시 → `30_Records/{YYYY}/상담/` 으로 저장
+  - 기존 4 type 백워드 호환 — 모든 기존 spec 무수정 통과
+- **views**:
+  - index.erb: 학부모 상담 generate 폼 (학생 이름 + since/until) + JS fallback (학생 이름 → action URL escape)
+  - show.erb: consultations type 재생성 버튼
+- **bin/sowing-doctor**: Phase 12 진단 섹션에 SynthesizeParentConsultation use case + consultations 디렉토리 카운트 추가
+- spec 22건 (use case 17 + 대시보드 5 신규)
+  - 결정적 5: Success/frontmatter 9키/본문 wikilink/시간순 정렬/trailer 톤
+  - 입력 필터링 2: 학생 이름·키워드 필터 / 사용자 정의 categories
+  - 가드 4: entity_not_found / no_entries / too_many_entries / default 6개월 window
+  - LLM 3: 1회 호출 / agent actor / 실패 fallback
+  - 엣지 3: 멱등 / vault 누락 graceful / 중복 입력 1회만
+  - 대시보드 통합 5: generate route / 학생 없음 fail / accept→상담 카테고리 / reject audit / 5 섹션 표시
+- 회귀: 1166 → 1188 (+22). lint clean. `rake eval:run` 회귀 0. 5× stress 안정.
+
 ### Phase 12 (Tier-2 LLM 합성) 완료 (W21-T01 ~ T04, 2026-05-10)
 - **W21-T04 완료** (2026-05-10): 통합 `/synth` 대시보드 — 4 type (디제스트·회고·패턴·변화) 한 화면
   - `Sowing::Controllers::SynthController` 전면 리팩토링 — `SYNTH_TYPES` 상수로 4 type 메타데이터 통합 관리

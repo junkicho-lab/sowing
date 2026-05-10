@@ -313,6 +313,71 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
     end
   end
 
+  describe "POST /synth/consultations/:slug/generate (확장 합성기 #1)" do
+    it "학생 entity + 상담 entries 충분 시 → 생성 + audit + redirect to detail" do
+      # 학생 entity + 상담 record 2건 시드
+      eid = db[:entities].insert(
+        type: "student", name: "민준",
+        first_seen_at: Time.now.iso8601, last_seen_at: Time.now.iso8601,
+        mention_count: 1
+      )
+      FileUtils.mkdir_p(vault_dir.join("30_Records/2026/상담"))
+      2.times do |i|
+        path = "30_Records/2026/상담/01PCCSYS000000000000P00#{i + 1}.md"
+        File.write(vault_dir.join(path),
+          "---\nid: 01PCCSYS000000000000P00#{i + 1}\nmode: record\ncategory: 상담\ncreated_at: '2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00'\nupdated_at: '2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00'\n---\n\n민준 학부모 면담.")
+        db[:entries].insert(
+          id: "01PCCSYS000000000000P00#{i + 1}", mode: "record", path: path,
+          category: "상담",
+          created_at: "2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00",
+          updated_at: "2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00",
+          file_mtime: Time.now.to_i, file_hash: "deadbeef00000000",
+          word_count: 2, indexed_at: Time.now.iso8601
+        )
+        db[:entity_mentions].insert(entity_id: eid, entry_id: "01PCCSYS000000000000P00#{i + 1}")
+      end
+
+      post "/synth/consultations/#{esc("민준")}/generate"
+      expect(last_response).to be_redirect
+      expect(synth_root.join("consultations/민준.md")).to exist
+
+      gen = audit_log.read_all.find { |r| r["action"] == "synth_generate" }
+      expect(gen["entry_id"]).to eq("synth:consultation:민준")
+    end
+
+    it "학생 entity 없음 → 실패 flash" do
+      post "/synth/consultations/#{esc("없는학생")}/generate"
+      expect(last_response).to be_redirect
+      expect(last_response.location).to end_with("/synth")
+    end
+  end
+
+  describe "consultations type 통합 — accept/reject" do
+    it "수락 → category=상담 (학생기록과 별도)" do
+      seed_synth("consultations", "민준", "synth_target" => "consultation:민준")
+      post "/synth/consultations/#{esc("민준")}/accept"
+      expect(last_response).to be_redirect
+
+      year = Time.now.year
+      record_dir = vault_dir.join("30_Records", year.to_s, "상담")
+      expect(record_dir).to exist
+    end
+
+    it "거절 → audit entry_id=synth:consultation:민준" do
+      seed_synth("consultations", "민준", "synth_target" => "consultation:민준")
+      post "/synth/consultations/#{esc("민준")}/reject"
+      reject = audit_log.read_all.find { |r| r["action"] == "synth_reject" }
+      expect(reject["entry_id"]).to eq("synth:consultation:민준")
+    end
+
+    it "GET /synth — 5 섹션 모두 표시 (consultations 추가)" do
+      get "/synth"
+      expect(last_response).to be_ok
+      expect(last_response.body).to include("학부모 상담 준비")
+      expect(last_response.body).to include("/synth/consultations/")
+    end
+  end
+
   describe "ADR-013 — 자율 mutation 0 (4 type 통합 검증)" do
     it "GET /synth + GET /synth/:type/:slug 만으로는 vault·audit 변화 0" do
       seed_synth("students", "민준", "synth_target" => "student:민준")

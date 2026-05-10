@@ -477,26 +477,23 @@ begin
   uc_check = {
     "SynthesizeSemesterReflection (W21-T01)" => Sowing::UseCases.const_defined?(:SynthesizeSemesterReflection),
     "ExtractLessonPatterns (W21-T02)" => Sowing::UseCases.const_defined?(:ExtractLessonPatterns),
-    "DetectContradictions (W21-T03)" => Sowing::UseCases.const_defined?(:DetectContradictions)
+    "DetectContradictions (W21-T03)" => Sowing::UseCases.const_defined?(:DetectContradictions),
+    "SynthesizeParentConsultation (확장 #1)" => Sowing::UseCases.const_defined?(:SynthesizeParentConsultation)
   }
   uc_check.each do |label, ok|
     puts ok ? "  ✅ #{label}" : "  ⚠  #{label} 누락"
     issues << "Phase 12 use case 누락: #{label}" unless ok
   end
 
-  # 통합 /synth 대시보드 (W21-T04) — SynthController 의 SYNTH_TYPES 확인
+  # 통합 /synth 대시보드 — SynthController 의 SYNTH_TYPES 확인
   if Sowing::Controllers::SynthController.const_defined?(:SYNTH_TYPES)
     types = Sowing::Controllers::SynthController::SYNTH_TYPES.keys
-    if types.size == 4
-      puts "  ✅ /synth 통합 대시보드 (W21-T04) — 4 type: #{types.join(", ")}"
-    else
-      puts "  ⚠  SynthController::SYNTH_TYPES — #{types.size}/4 type (#{types.join(", ")})"
-    end
+    puts "  ✅ /synth 통합 대시보드 — #{types.size} type: #{types.join(", ")}"
   end
 
-  # 합성 디렉토리 4종 카운트
+  # 합성 디렉토리 5종 카운트 (Phase 12 4종 + 확장 합성기 #1 consultations)
   synth_root = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/synth")
-  %w[students reflections patterns contradictions].each do |t|
+  %w[students reflections patterns contradictions consultations].each do |t|
     dir = synth_root.join(t)
     count = dir.exist? ? Dir.glob(dir.join("*.md")).size : 0
     puts "  #{t.ljust(15)} #{count}건"

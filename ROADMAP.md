@@ -855,6 +855,41 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 
 ---
 
+## 확장 합성기 (Phase 2 후속, 선택 — KICKOFF P2.4 옵션 C)
+
+> Phase 11~12 합성기 패턴을 그대로 확장한 추가 합성기. 사용자 요청에 따라 점진적 추가.
+
+### [x] 확장 합성기 #1 — 학부모 상담 준비 (2026-05-10)
+- **출력**:
+  - `Sowing::UseCases::SynthesizeParentConsultation` — 학생 1명 + 6개월 window → 학부모 면담 준비 자료
+  - 입력 3 갈래 통합: (1) 상담 record 카테고리 (2) meetings note 카테고리 (3) 학생 entity mention + 학부모 키워드 본문 필터
+  - 두 모드:
+    - **결정적**: 시간순 인용 모음 + mode 아이콘 + 카테고리 라벨 + 출처 wikilink
+    - **LLM 옵트인**: 4 섹션 (🌱 강점 / 🔄 변화·성장 / 💬 학부모와 공유 / 🤝 가정 제안). prompt 톤 "단정·낙인 금지", "관찰 만, 사적 평가 금지"
+  - 저장: `vault/.sowing/synth/consultations/{학생명}.md`
+  - frontmatter 9키 (synth_target: "consultation:{이름}", since/until/categories 포함)
+  - `SynthController::SYNTH_TYPES` 5 type 으로 확장 (consultations 추가, accept_category=상담, target_prefix=consultation:)
+- **검증**: spec 22건 (use case 17 + 대시보드 5)
+  - 결정적 5 + 입력 필터링 2 + 가드 4 + LLM 3 + 엣지 3 + 대시보드 통합 5
+  - 회귀 1166 → 1188 (+22). lint clean. eval 회귀 0. 5× 안정.
+- **선행**: Phase 11 (W17-T01 entities), Phase 12 (W21-T04 통합 /synth)
+
+### [ ] 확장 합성기 #2 — 평가 누적 (후보)
+- **출력**:
+  - `Sowing::UseCases::SynthesizeAssessmentTrend` — 단원/평가 카테고리 entries → 학생별 학습 성취 추이
+  - 입력: records 의 `category ∈ ["평가", "단원평가"]` + 학생 entity
+- **검증**: 단원별 학생 성취 시간순 정확 표시
+- **선행**: 확장 #1
+
+### [ ] 확장 합성기 #3 — 연수 흡수 (후보)
+- **출력**:
+  - `Sowing::UseCases::ExtractTrainingApplications` — 연수 노트 (note category=trainings) ↔ 실제 수업 entries 매칭
+  - 연수 후 며칠 안에 적용된 사례 발견
+- **검증**: 의도 시나리오 3종 (연수 후 즉시 적용 / 한 달 후 적용 / 미적용)
+- **선행**: 확장 #1
+
+---
+
 ## Phase 2 이후 (Week 25~)
 
 EVALUATION.md §3 의 Phase 13~16 후보:
