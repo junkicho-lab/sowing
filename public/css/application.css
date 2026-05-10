@@ -2315,3 +2315,277 @@ pre code {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/* ─── 30년 시나리오 — OnThisDay 위젯, timeline, matrix ─── */
+
+.on-this-day {
+  background: rgba(212, 160, 23, 0.06);
+  border-left: 3px solid #d4a017;
+  border-radius: 6px;
+  padding: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+.on-this-day h2 {
+  margin: 0 0 var(--space-1);
+  font-size: 1rem;
+}
+
+.on-this-day__hint {
+  margin: 0 0 var(--space-2);
+  font-size: 0.88rem;
+  color: var(--color-muted);
+}
+
+.on-this-day__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.on-this-day__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: 0.95rem;
+}
+
+.on-this-day__year {
+  font-weight: 600;
+  color: var(--color-primary);
+  min-width: 80px;
+  font-variant-numeric: tabular-nums;
+}
+
+.on-this-day__year sub {
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  margin-left: 2px;
+}
+
+.on-this-day__cat {
+  color: var(--color-muted);
+  font-size: 0.88rem;
+}
+
+.on-this-day__no-title {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+/* ─── records timeline ─── */
+
+.records-timeline__crumb,
+.records-matrix__crumb {
+  margin: 0 0 var(--space-2);
+  font-size: 0.9rem;
+}
+
+.records-timeline__lede,
+.records-matrix__lede {
+  color: var(--color-muted);
+  margin: 0 0 var(--space-3);
+}
+
+.records-timeline__filters {
+  background: var(--color-surface, #fafafa);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 6px;
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.records-timeline__cat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.records-timeline__cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 999px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  background: white;
+}
+
+.records-timeline__cat-chip:has(input:checked) {
+  background: rgba(45, 95, 63, 0.08);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.records-timeline__date-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.records-timeline__date-range .field {
+  flex: 1;
+  min-width: 140px;
+}
+
+.records-timeline__count {
+  margin: var(--space-2) 0;
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}
+
+.records-timeline__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.records-timeline__year-divider {
+  margin-top: var(--space-3);
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.records-timeline__year-divider h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+}
+
+.records-timeline__item {
+  display: grid;
+  grid-template-columns: 100px 100px 1fr;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border, #f0f0f0);
+}
+
+.records-timeline__item:hover {
+  background: rgba(45, 95, 63, 0.04);
+}
+
+.records-timeline__date {
+  font-family: var(--font-mono, monospace);
+  color: var(--color-muted);
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.records-timeline__cat {
+  font-size: 0.88rem;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.records-timeline__title {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.records-timeline__title:hover {
+  text-decoration: underline;
+}
+
+/* ─── records matrix (카테고리 × 연도) ─── */
+
+.records-matrix__total {
+  margin: 0 0 var(--space-2);
+  color: var(--color-muted);
+}
+
+.records-matrix__scroll {
+  overflow-x: auto;
+}
+
+.records-matrix__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.records-matrix__table th,
+.records-matrix__table td {
+  padding: 6px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+
+.records-matrix__table thead th,
+.records-matrix__table tfoot th,
+.records-matrix__cat-header {
+  background: var(--color-surface, #fafafa);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+
+.records-matrix__cat,
+.records-matrix__cat-header {
+  text-align: left;
+  font-weight: 500;
+}
+
+.records-matrix__cat a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.records-matrix__cat a:hover {
+  text-decoration: underline;
+  color: var(--color-primary);
+}
+
+.records-matrix__cell--zero {
+  color: var(--color-muted);
+}
+
+.records-matrix__cell a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.records-matrix__cell a:hover {
+  text-decoration: underline;
+}
+
+.records-matrix__row-total,
+.records-matrix__col-total,
+.records-matrix__grand-total {
+  font-weight: 700;
+  background: rgba(45, 95, 63, 0.04);
+}
+
+.records-matrix__grand-total {
+  color: var(--color-primary);
+}
+
+.records-matrix__hint {
+  margin-top: var(--space-2);
+  color: var(--color-muted);
+  font-size: 0.88rem;
+}
+
+.notes-index__views {
+  margin: 0 0 var(--space-2);
+  font-size: 0.92rem;
+}
+
+.button--small {
+  font-size: 0.85rem;
+  padding: 4px 10px;
+}

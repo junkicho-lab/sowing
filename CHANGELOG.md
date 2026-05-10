@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 30년 시나리오 강화 — cross-year 탐색 4종 (2026-05-11)
+**배경**: 사용자 의도 = "30년 누적 기록을 연도 무관 검색·연결·확인". 폴더 구조
+변경 (`30_Records/{YYYY}/{cat}/` → 평면) 비용 분석 결과 옵시디언 호환·1336 spec
+회귀·vault 마이그레이션 비용 큼 → **현재 폴더 구조 유지** + **앱 안에서 시간
+무관 탐색 강화** 4 deliverable.
+
+- **#1 "이날의 회고" 대시보드 위젯**:
+  - `IndexRepo#on_this_day(month:, day:, exclude_year:, limit:)` — `SUBSTR(created_at, 6, 5) = 'MM-DD'` SQLite 쿼리
+  - `DashboardController#compute_on_this_day` — 오늘 연도 제외, 최근 연도 desc, top 5
+  - `views/dashboard/show.erb` — `<aside class="on-this-day">` 카드 (year + years_ago + title + category)
+  - 매일 자연스러운 30년 환기 — 의식적 검색 0
+- **#2 `/records/timeline` — 평면 cross-year 뷰**:
+  - `IndexRepo#list_records_flat(category_in:, q:, since:, until_time:, order:, limit:, offset:)` + `count_records_flat` (FTS5 조인)
+  - `RecordsController#get "/records/timeline"` (`:id` 라우트보다 먼저 배치)
+  - `views/records/timeline.erb` — 다중 카테고리 chip + 키워드 + 날짜 범위 + asc/desc 정렬, 연도 헤더 자동 삽입
+  - 폴더(연도/카테고리) 무시, 시간순 단일 stream
+- **#3 `/records/by-category` — 카테고리 × 연도 매트릭스**:
+  - `IndexRepo#category_year_matrix(mode:)` — `GROUP BY category, SUBSTR(created_at, 1, 4)`
+  - `views/records/by_category.erb` — 행=카테고리(빈도순) × 열=연도, 셀 클릭 → timeline drill-down
+  - 30년 누적 분포 한 화면 + 합계 row/col
+- **#5 합성기 "전체 기간 (30년)" preset**:
+  - `views/synth/index.erb` — since/until 인풋 있는 5 폼 (reflections / consultations / assessments / lesson-series / +) 에 button (`data-synth-preset="all-time"`)
+  - JS: 클릭 시 since=`1990-01-01T00:00`, until=현재 시각 자동 채움
+  - 백엔드 합성기는 이미 nil-able since/until 지원 — UI 만 추가
+- **CSS**: `.on-this-day*` (위젯) / `.records-timeline*` (필터/연도 divider/item) / `.records-matrix*` (table/cells/totals)
+- **`.standard.yml`**: `dist/**/*` ignore 추가 (DMG 빌드 산출물 + `/Applications` symlink 의 다른 .app)
+- **spec 신규**:
+  - `spec/repositories/index_repo_cross_year_spec.rb` 14 케이스 (on_this_day 5 + flat 6 + matrix 3)
+  - `spec/system/records_cross_year_spec.rb` 12 케이스 (timeline 8 + by-category 3 + index 링크 1)
+  - `spec/system/dashboard_spec.rb` "이날의 회고" 위젯 3 케이스
+- 회귀: 1336 → 1365 (+29). lint clean. 50/50 cross-year spec pass.
+
 ### macOS DMG 인스톨러 (2026-05-10) — W8-T03 부분 완료
 - **`packaging/macos/build.sh`** 로컬 빌드 스크립트 (macOS only):
   - `Sowing.app` 번들 조립 (Info.plist 버전 치환 + launcher.sh + Resources/sowing/ 소스 복사)

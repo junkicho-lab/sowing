@@ -167,6 +167,75 @@ RSpec.describe "Dashboard 라우트", type: :request do
     end
   end
 
+  describe "이날의 회고 위젯 (30년 시나리오 #1)" do
+    let(:db_inner) { Sowing::Infrastructure::DB.connection }
+    let(:vault_dir_inner) { Sowing::Infrastructure::Paths.vault_dir }
+
+    before do
+      db_inner[:entries_fts].delete
+      db_inner[:links].delete
+      db_inner[:entry_tags].delete
+      db_inner[:tags].delete
+      db_inner[:entries].delete
+      FileUtils.rm_rf(vault_dir_inner.join("00_Inbox"))
+      FileUtils.rm_rf(vault_dir_inner.join("30_Records"))
+    end
+
+    def seed_today_past_year(years_ago:, title:, category: "수업회고")
+      now = Time.now
+      ts = Time.new(now.year - years_ago, now.month, now.day, 9, 0, 0, "+09:00")
+      rid = "01OTD" + format("%021d", years_ago)
+      path = "30_Records/#{ts.year}/#{category}/r-#{years_ago}.md"
+      abs = vault_dir_inner.join(path)
+      FileUtils.mkdir_p(abs.dirname)
+      File.write(abs, "---\nid: #{rid}\nmode: record\ncategory: #{category}\ntitle: #{title}\ncreated_at: '#{ts.iso8601}'\nupdated_at: '#{ts.iso8601}'\n---\n\n본문\n")
+      db_inner[:entries].insert(
+        id: rid, path: path, mode: "record",
+        category: category, title: title,
+        created_at: ts.iso8601, updated_at: ts.iso8601,
+        file_mtime: ts.to_i, file_hash: "0" * 16, word_count: 1, indexed_at: ts.iso8601
+      )
+    end
+
+    it "과거 같은 날짜 entry 0건 — 위젯 미표시" do
+      get "/"
+      expect(last_response.body).not_to include("이날의 회고")
+    end
+
+    it "과거 같은 날짜 entry 있을 때 — 위젯 표시 + 연도·제목 인용" do
+      seed_today_past_year(years_ago: 1, title: "작년 같은 날 회고")
+      seed_today_past_year(years_ago: 3, title: "3년 전 회고", category: "상담")
+      get "/"
+      expect(last_response.body).to include("이날의 회고")
+      expect(last_response.body).to include("작년 같은 날 회고")
+      expect(last_response.body).to include("3년 전 회고")
+      expect(last_response.body).to match(/1년 전|3년 전/)
+    end
+
+    it "오늘과 같은 연도 entry 는 제외 (exclude_year)" do
+      now = Time.now
+      ts_today_this_year = Time.new(now.year, now.month, now.day, 9, 0, 0, "+09:00")
+      rid = "01OTDTHISYEAR0000000000"
+      path = "30_Records/#{ts_today_this_year.year}/today/now.md"
+      abs = vault_dir_inner.join(path)
+      FileUtils.mkdir_p(abs.dirname)
+      File.write(abs, "---\nid: #{rid}\nmode: record\ncategory: today\ntitle: 오늘 작성된 것\ncreated_at: '#{ts_today_this_year.iso8601}'\nupdated_at: '#{ts_today_this_year.iso8601}'\n---\n\n본문\n")
+      db_inner[:entries].insert(
+        id: rid, path: path, mode: "record",
+        category: "today", title: "오늘 작성된 것",
+        created_at: ts_today_this_year.iso8601, updated_at: ts_today_this_year.iso8601,
+        file_mtime: ts_today_this_year.to_i, file_hash: "0" * 16, word_count: 1, indexed_at: ts_today_this_year.iso8601
+      )
+
+      get "/"
+      # 위젯에는 안 표시 (오늘 작성된 것 ≠ "이날의 회고")
+      otd_section = last_response.body[/<aside class="on-this-day".*?<\/aside>/m]
+      if otd_section
+        expect(otd_section).not_to include("오늘 작성된 것")
+      end
+    end
+  end
+
   describe "Hotwire 로딩" do
     before { get "/" }
 

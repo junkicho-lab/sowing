@@ -2,6 +2,10 @@
   <header class="notes-index__header">
     <h1 id="records_index_heading">기록</h1>
     <p class="notes-index__count">총 <%= @total %>건<%= " · #{h(@category)}" if @category %></p>
+    <p class="notes-index__views">
+      <a href="/records/timeline">📊 timeline (30년 평면)</a> ·
+      <a href="/records/by-category">📈 카테고리 × 연도</a>
+    </p>
     <a href="/records/new" class="button button--primary notes-index__new">+ 새 기록</a>
   </header>
 

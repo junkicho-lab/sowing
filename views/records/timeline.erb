@@ -1,0 +1,120 @@
+<section class="records-timeline" aria-labelledby="timeline_heading">
+  <header class="records-timeline__header">
+    <p class="records-timeline__crumb">
+      <a href="/records">← 기록 목록 (폴더 뷰)</a> ·
+      <a href="/records/by-category">카테고리 × 연도 매트릭스 →</a>
+    </p>
+    <h1 id="timeline_heading">📊 기록 Timeline (30년 단일 흐름)</h1>
+    <p class="records-timeline__lede">
+      폴더 구조(연도/카테고리) 를 무시하고 시간순 평면 보기. 30년치 누적 시
+      카테고리 × 키워드 × 날짜 범위 조합으로 cross-year 탐색.
+    </p>
+  </header>
+
+  <form class="records-timeline__filters" method="get" action="/records/timeline">
+    <div class="field">
+      <label for="q">검색어 (FTS5):</label>
+      <input id="q" type="text" name="q" value="<%= h(@q) %>" placeholder="예: 분수 / 협동학습">
+    </div>
+
+    <div class="field">
+      <label>카테고리 (다중 선택):</label>
+      <div class="records-timeline__cat-grid">
+        <% @categories_all.each do |cat| %>
+          <label class="records-timeline__cat-chip">
+            <input type="checkbox" name="categories[]" value="<%= h(cat) %>"
+                   <%= "checked" if @selected_categories&.include?(cat) %>>
+            <%= h(cat) %>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="records-timeline__date-range">
+      <div class="field">
+        <label for="since">기간 시작:</label>
+        <input id="since" type="date" name="since" value="<%= @since&.strftime("%Y-%m-%d") %>">
+      </div>
+      <div class="field">
+        <label for="until">기간 종료:</label>
+        <input id="until" type="date" name="until" value="<%= @until&.strftime("%Y-%m-%d") %>">
+      </div>
+      <div class="field">
+        <label for="order">정렬:</label>
+        <select id="order" name="order">
+          <option value="desc" <%= "selected" if @order == :desc %>>최신순</option>
+          <option value="asc" <%= "selected" if @order == :asc %>>오래된순</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="button button--primary">필터 적용</button>
+      <a href="/records/timeline" class="button button--ghost">초기화</a>
+    </div>
+  </form>
+
+  <p class="records-timeline__count">총 <strong><%= @total %></strong>건
+    <% if @selected_categories %>
+      · 카테고리: <%= h(@selected_categories.join(", ")) %>
+    <% end %>
+    <% if @q %>· 검색어: <code><%= h(@q) %></code><% end %>
+    <% if @since %>· <%= @since.strftime("%Y-%m-%d") %> 부터<% end %>
+    <% if @until %>· <%= @until.strftime("%Y-%m-%d") %> 까지<% end %>
+  </p>
+
+  <% if @records.empty? %>
+    <div class="empty-state empty-state--inline">
+      <p>조건에 맞는 기록이 없습니다.</p>
+      <p class="empty-state__hint">필터를 비우거나 기간을 넓혀보세요.</p>
+    </div>
+  <% else %>
+    <%# 연도별 그룹 헤더 자동 삽입 — 시간 흐름 시각화 %>
+    <% current_year = nil %>
+    <ul class="records-timeline__list">
+      <% @records.each do |record| %>
+        <% record_year = Time.parse(record.created_at.to_s).year %>
+        <% if record_year != current_year %>
+          <% current_year = record_year %>
+          <li class="records-timeline__year-divider">
+            <h2><%= record_year %>년</h2>
+          </li>
+        <% end %>
+        <li class="records-timeline__item">
+          <time class="records-timeline__date"><%= record.created_at.to_s[0, 10] %></time>
+          <span class="records-timeline__cat"><%= h(record.category) %></span>
+          <a href="/records/<%= h(record.id.to_s) %>" class="records-timeline__title">
+            <%= h(record.title.to_s.empty? ? "(제목 없음)" : record.title) %>
+          </a>
+        </li>
+      <% end %>
+    </ul>
+
+    <%# 페이지네이션 %>
+    <% if @total_pages > 1 %>
+      <% qs = ->(page) {
+        params_dup = {page: page}
+        params_dup[:q] = @q if @q
+        params_dup[:since] = @since.strftime("%Y-%m-%d") if @since
+        params_dup[:until] = @until.strftime("%Y-%m-%d") if @until
+        params_dup[:order] = @order if @order
+        base = params_dup.map { |k, v| "#{k}=#{Rack::Utils.escape(v.to_s)}" }.join("&")
+        cat_qs = (@selected_categories || []).map { |c| "categories[]=#{Rack::Utils.escape(c)}" }.join("&")
+        cat_qs.empty? ? base : "#{base}&#{cat_qs}"
+      } %>
+      <nav class="pagination" aria-label="페이지 이동">
+        <% if @page > 1 %>
+          <a class="pagination__link" href="/records/timeline?<%= qs.call(@page - 1) %>" rel="prev">← 이전</a>
+        <% else %>
+          <span class="pagination__link pagination__link--disabled" aria-disabled="true">← 이전</span>
+        <% end %>
+        <span class="pagination__info"><%= @page %> / <%= @total_pages %></span>
+        <% if @page < @total_pages %>
+          <a class="pagination__link" href="/records/timeline?<%= qs.call(@page + 1) %>" rel="next">다음 →</a>
+        <% else %>
+          <span class="pagination__link pagination__link--disabled" aria-disabled="true">다음 →</span>
+        <% end %>
+      </nav>
+    <% end %>
+  <% end %>
+</section>

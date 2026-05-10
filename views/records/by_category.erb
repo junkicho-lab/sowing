@@ -1,0 +1,70 @@
+<section class="records-matrix" aria-labelledby="matrix_heading">
+  <header class="records-matrix__header">
+    <p class="records-matrix__crumb">
+      <a href="/records">← 기록 목록 (폴더 뷰)</a> ·
+      <a href="/records/timeline">timeline 평면 뷰 →</a>
+    </p>
+    <h1 id="matrix_heading">📈 카테고리 × 연도 매트릭스</h1>
+    <p class="records-matrix__lede">
+      30년 누적 분포 한 화면. 행은 카테고리(빈도순), 열은 연도. 셀 클릭 →
+      해당 연도·카테고리 entries 목록.
+    </p>
+  </header>
+
+  <% if @matrix.empty? %>
+    <div class="empty-state empty-state--inline">
+      <p>아직 기록이 없습니다.</p>
+      <p class="empty-state__hint"><a href="/records/new">+ 첫 기록 작성하기</a></p>
+    </div>
+  <% else %>
+    <p class="records-matrix__total">총 <strong><%= @grand_total %></strong>건 · 카테고리 <%= @categories_sorted.size %> · 연도 <%= @years.size %>개</p>
+
+    <div class="records-matrix__scroll">
+      <table class="records-matrix__table">
+        <thead>
+          <tr>
+            <th class="records-matrix__cat-header">카테고리</th>
+            <% @years.each do |year| %>
+              <th class="records-matrix__year-header"><%= year %></th>
+            <% end %>
+            <th class="records-matrix__total-header">합계</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @categories_sorted.each do |cat| %>
+            <tr>
+              <th scope="row" class="records-matrix__cat">
+                <a href="/records?category=<%= Rack::Utils.escape(cat) %>"><%= h(cat) %></a>
+              </th>
+              <% @years.each do |year| %>
+                <% n = @matrix[cat][year] || 0 %>
+                <td class="records-matrix__cell <%= "records-matrix__cell--zero" if n.zero? %>">
+                  <% if n > 0 %>
+                    <% qs = "categories[]=#{Rack::Utils.escape(cat)}&since=#{year}-01-01&until=#{year}-12-31" %>
+                    <a href="/records/timeline?<%= qs %>" title="<%= cat %> · <%= year %>년 · <%= n %>건"><%= n %></a>
+                  <% else %>
+                    —
+                  <% end %>
+                </td>
+              <% end %>
+              <td class="records-matrix__row-total"><%= @row_totals[cat] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row" class="records-matrix__cat-header">합계</th>
+            <% @years.each do |year| %>
+              <td class="records-matrix__col-total"><%= @col_totals[year] %></td>
+            <% end %>
+            <td class="records-matrix__grand-total"><%= @grand_total %></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p class="records-matrix__hint">
+      💡 셀의 숫자를 클릭하면 timeline 으로 해당 카테고리·연도 entries 만 필터됨.
+    </p>
+  <% end %>
+</section>

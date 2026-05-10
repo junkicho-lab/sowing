@@ -334,6 +334,89 @@ module Sowing
           .map { |row| to_indexed_entry(row) }
       end
 
+      # ──────────────────────────────────────────
+      # 30년 시나리오 — 연도 무관 cross-year 쿼리
+      # ──────────────────────────────────────────
+
+      # 같은 월·일의 다른 연도 entries — 대시보드 "이날의 회고" 위젯.
+      # SQLite SUBSTR(created_at, 6, 5) 가 "MM-DD" 추출 (created_at 은 ISO8601).
+      #
+      # @param month [Integer] 1~12
+      # @param day [Integer] 1~31
+      # @param exclude_year [Integer, nil] 제외할 연도 (default: 이번 연도 — 오늘은 빼고 과거만)
+      # @param limit [Integer] 최대 반환 (default 5)
+      # @return [Array<IndexedEntry>] 최근 연도부터 내림차순
+      def on_this_day(month:, day:, exclude_year: nil, limit: 5)
+        mm_dd = format("%02d-%02d", month, day)
+        ds = @db[:entries].where(Sequel.lit("SUBSTR(created_at, 6, 5) = ?", mm_dd))
+        if exclude_year
+          ds = ds.exclude(Sequel.lit("SUBSTR(created_at, 1, 4) = ?", exclude_year.to_s))
+        end
+        ds.order(Sequel.desc(:created_at)).limit(limit).map { |row| to_indexed_entry(row) }
+      end
+
+      # 평면 record 쿼리 — `/records/timeline` 용. 폴더(연도/카테고리) 구조 무시
+      # 하고 시간순 단일 흐름. 다중 카테고리 + 키워드 + 날짜 범위 동시 지원.
+      #
+      # @param category_in [Array<String>, nil] 다중 카테고리 (nil = 전체)
+      # @param q [String, nil] FTS5 검색어 (nil = 전체)
+      # @param since [Time, String, nil]
+      # @param until_time [Time, String, nil]
+      # @param order [:asc, :desc] 시간순 / 역시간순 (default :desc)
+      # @param limit [Integer] 페이지 크기 (default 50)
+      # @param offset [Integer] 페이지 시작 (default 0)
+      # @return [Array<IndexedEntry>]
+      def list_records_flat(category_in: nil, q: nil, since: nil, until_time: nil,
+        order: :desc, limit: 50, offset: 0)
+        ds = @db[:entries].where(mode: "record")
+        ds = ds.where(category: category_in) if category_in && !category_in.empty?
+        ds = ds.where { created_at >= since.iso8601 } if since.is_a?(Time)
+        ds = ds.where { created_at <= until_time.iso8601 } if until_time.is_a?(Time)
+        if q && !q.to_s.strip.empty?
+          # FTS5 join — search_full_text 의 패턴 재사용
+          fts_ids = @db[:entries_fts].where(Sequel.lit("entries_fts MATCH ?", q)).select_map(:id)
+          ds = ds.where(id: fts_ids)
+        end
+        ds = (order == :asc) ? ds.order(:created_at) : ds.order(Sequel.desc(:created_at))
+        ds.limit(limit).offset(offset).map { |row| to_indexed_entry(row) }
+      end
+
+      def count_records_flat(category_in: nil, q: nil, since: nil, until_time: nil)
+        ds = @db[:entries].where(mode: "record")
+        ds = ds.where(category: category_in) if category_in && !category_in.empty?
+        ds = ds.where { created_at >= since.iso8601 } if since.is_a?(Time)
+        ds = ds.where { created_at <= until_time.iso8601 } if until_time.is_a?(Time)
+        if q && !q.to_s.strip.empty?
+          fts_ids = @db[:entries_fts].where(Sequel.lit("entries_fts MATCH ?", q)).select_map(:id)
+          ds = ds.where(id: fts_ids)
+        end
+        ds.count
+      end
+
+      # 카테고리 × 연도 매트릭스 — `/records/by-category` 용.
+      # 결과: {category => {year(Integer) => count}, ...}
+      # 카테고리는 빈도순(전체 합계) 내림차순, 연도는 오름차순 정렬은 호출 측 책임.
+      #
+      # @param mode [String, Symbol, nil] (default "record"). nil 이면 전체 모드.
+      # @return [Hash{String => Hash{Integer => Integer}}]
+      def category_year_matrix(mode: "record")
+        ds = @db[:entries]
+        ds = ds.where(mode: mode.to_s) if mode
+        ds = ds.exclude(category: nil).exclude(category: "")
+        rows = ds.select(
+          :category,
+          Sequel.lit("SUBSTR(created_at, 1, 4) AS year"),
+          Sequel.lit("COUNT(*) AS cnt")
+        ).group(:category, Sequel.lit("SUBSTR(created_at, 1, 4)")).all
+
+        matrix = Hash.new { |h, k| h[k] = {} }
+        rows.each do |row|
+          year = row[:year].to_i
+          matrix[row[:category]][year] = row[:cnt]
+        end
+        matrix
+      end
+
       private
 
       def build_row(entry, path:, file_mtime:, file_hash:, word_count:)

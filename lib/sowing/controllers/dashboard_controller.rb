@@ -48,10 +48,24 @@ module Sowing
         @growth = Domain::ValueObjects::GrowthStage.new(stats_repo.total_all_time)
         @tutorial_completed = !Infrastructure::Settings.load["tutorial_completed_at"].nil?
         @gap_summary = compute_gap_summary
+        @on_this_day = compute_on_this_day  # 30년 시나리오 — 같은 월·일 다년 entries
         erb :"dashboard/show", layout: :"layouts/application"
       end
 
       private
+
+      # "이날의 회고" — 오늘과 같은 월·일의 과거 연도 entries.
+      # 매일 자연스럽게 30년 환기. 의식적 검색 0.
+      def compute_on_this_day(limit: 5)
+        today = Time.now
+        rows = index_repo.on_this_day(month: today.month, day: today.day,
+          exclude_year: today.year, limit: limit)
+        return nil if rows.empty?
+        rows.map { |entry|
+          year = Time.parse(entry.created_at.to_s).year
+          {entry: entry, year: year, years_ago: today.year - year}
+        }
+      end
 
       # 학급 명단이 설정돼 있으면 미언급 학생 알림 (W17-T03 GapDetector).
       # 명단 없으면 nil — 카드 표시 안 함.

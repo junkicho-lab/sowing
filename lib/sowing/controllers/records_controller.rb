@@ -26,6 +26,14 @@ module Sowing
           @index_repo ||= Repositories::IndexRepo.new
         end
 
+        # 폼 input value 를 Time 으로. 빈 입력 / 잘못된 형식은 nil.
+        def parse_date_param(value)
+          return nil if value.to_s.strip.empty?
+          Time.parse(value.to_s)
+        rescue ArgumentError
+          nil
+        end
+
         def create_record_use_case
           UseCases::CreateRecord.new(vault_repo: vault_repo, index_repo: index_repo)
         end
@@ -96,6 +104,52 @@ module Sowing
         @total_pages = [(@total / @per_page.to_f).ceil, 1].max
         @records = load_record_page(page: @page, per_page: @per_page, category: @category)
         erb :"records/index", layout: :"layouts/application"
+      end
+
+      # 평면 timeline view — 30년 cross-year 흐름. 폴더 무시, 시간순 단일 stream.
+      # 다중 카테고리 + 키워드 + 날짜 범위 동시 지원.
+      get "/records/timeline" do
+        @page_title = "기록 timeline (30년)"
+        @page = (params["page"] || 1).to_i.clamp(1, MAX_PAGE)
+        @per_page = 50
+        @categories_all = index_repo.distinct_categories(mode: :record)
+
+        # 다중 카테고리 — params["categories"] 가 string array 또는 단일 string
+        cat_param = params["categories"] || params["category"]
+        @selected_categories = Array(cat_param).flatten.compact.reject(&:empty?)
+        @selected_categories = nil if @selected_categories.empty?
+
+        @q = params["q"].to_s.strip.empty? ? nil : params["q"]
+        @since = parse_date_param(params["since"])
+        @until = parse_date_param(params["until"])
+        @order = (params["order"] == "asc") ? :asc : :desc
+
+        @total = index_repo.count_records_flat(
+          category_in: @selected_categories,
+          q: @q, since: @since, until_time: @until
+        )
+        @total_pages = [(@total / @per_page.to_f).ceil, 1].max
+        @records = index_repo.list_records_flat(
+          category_in: @selected_categories,
+          q: @q, since: @since, until_time: @until,
+          order: @order,
+          limit: @per_page,
+          offset: (@page - 1) * @per_page
+        )
+        erb :"records/timeline", layout: :"layouts/application"
+      end
+
+      # 카테고리 × 연도 매트릭스 — 30년 누적 분포 한 화면.
+      get "/records/by-category" do
+        @page_title = "기록 카테고리 × 연도"
+        @matrix = index_repo.category_year_matrix(mode: "record")
+        @years = @matrix.values.flat_map(&:keys).uniq.sort
+        # 카테고리는 전체 합계 내림차순
+        @categories_sorted = @matrix.sort_by { |_cat, by_year| -by_year.values.sum }.map(&:first)
+        @row_totals = @matrix.transform_values { |by_year| by_year.values.sum }
+        @col_totals = @years.to_h { |y| [y, @matrix.values.sum { |by_year| by_year[y] || 0 }] }
+        @grand_total = @row_totals.values.sum
+        erb :"records/by_category", layout: :"layouts/application"
       end
 
       get "/records/new" do

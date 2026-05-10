@@ -68,6 +68,29 @@
     </aside>
   <% end %>
 
+  <% if @on_this_day && @on_this_day.any? %>
+    <aside class="on-this-day" aria-labelledby="on_this_day_heading">
+      <h2 id="on_this_day_heading">📅 이날의 회고 — <%= Time.now.month %>월 <%= Time.now.day %>일</h2>
+      <p class="on-this-day__hint">같은 날짜의 과거 기록 <%= @on_this_day.size %>건. 의식적 검색 없이 자연스러운 환기.</p>
+      <ul class="on-this-day__list">
+        <% @on_this_day.each do |item| %>
+          <% e = item[:entry] %>
+          <li class="on-this-day__item">
+            <span class="on-this-day__year"><%= item[:year] %><sub>(<%= item[:years_ago] %>년 전)</sub></span>
+            <% if e.respond_to?(:title) && e.title && !e.title.to_s.empty? %>
+              <a href="/<%= e.mode == :memo ? "memos" : (e.mode == :note ? "notes" : "records") %>/<%= h(e.id.to_s) %>"><%= h(e.title) %></a>
+            <% else %>
+              <a href="/<%= e.mode == :memo ? "memos" : (e.mode == :note ? "notes" : "records") %>/<%= h(e.id.to_s) %>" class="on-this-day__no-title">(제목 없음 — <%= e.mode %>)</a>
+            <% end %>
+            <% if e.respond_to?(:category) && e.category && !e.category.to_s.empty? %>
+              <span class="on-this-day__cat">· <%= h(e.category) %></span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </aside>
+  <% end %>
+
   <section class="recent-memos" aria-labelledby="recent_memos_heading">
     <h2 id="recent_memos_heading">최근 메모</h2>
 
