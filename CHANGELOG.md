@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 11 (Tier-1 LLM 합성) 진행 중
+- **W17-T01 완료** (2026-05-10): EntityExtractor + entities 테이블
+  - migration 006: `entities` (type/name UNIQUE, first/last_seen_at, mention_count) + `entity_mentions` (entity_id ↔ entry_id 다대다)
+  - `Sowing::UseCases::ExtractEntities` — 두 모드:
+    - **결정적**: KNOWN_STUDENT_NAMES whitelist (30개 한국 흔한 인명) + 조사 패턴 (받침 있음 "이X" / 받침 없음 직접) + SUBJECTS·LOCATIONS 사전 매칭
+    - **LLM 옵트인**: `Backends::Base` 주입 시 한국어 NER prompt → JSON 파싱 (실패 시 결정적 fallback)
+  - `AuditLog.with_actor("agent")` 통합 — Phase 9 thread-local 스택 활용
+  - 멱등: 같은 entry 재호출 시 mention 중복 추가 안 함, mention_count 만 증가
+  - **결정적 모드 한계 인정**: 한국어 NER 없이 인명 vs 일반 명사 구분 불가 → whitelist 외 이름은 LLM 모드에서만 추출 가능 (명시적 trade-off, ADR-013 거부 5종 위반 없음)
+  - spec 13건 (ent-001~003 시드 + DB 저장 멱등 + LLM mode + audit 통합 + corpus 회귀)
+  - 회귀: 1039 → 1052 (+13). lint clean. `rake eval:run` 회귀 0.
+
 ### 🎯 Phase 10 (Eval Infrastructure) ✅ 완료 (W13-T01~T04, 2026-05-10)
 
 **마일스톤 달성**: 임의 LLM 출력 1건 → 자동 점수 + 사유 산출. 모델 버전 변경 시 회귀 자동 측정. ADR-013 의 Phase 10 → 11 → 12 순서 의무 충족 — Phase 11 (LLM 합성) 진입 가능.

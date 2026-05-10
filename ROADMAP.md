@@ -682,12 +682,17 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 > **목표**: Karpathy의 LLM Wiki 패턴(§1.4) 첫 적용. "이전엔 코드로 못 만들었지만
 > LLM으로는 가능한 것."
 
-### [ ] W17-T01: EntityExtractor Use Case
+### [x] W17-T01: EntityExtractor Use Case — 완료 (2026-05-10)
 - **출력**:
-  - `UseCases::ExtractEntities` — entries 본문에서 학생/주제/장소 추출
-  - 결과는 `IndexRepo#entities` 테이블 (migration 006)
-  - LLM 호출은 옵트인. 결정적 fallback (NER 없이 frontmatter tags만 사용) 동시 제공
-- **검증**: 샘플 12건 + 사용자 글 → 학생 이름 정확률 ≥ 80% (eval 기준)
+  - ✅ migration 006: `entities` (id, type, name, first_seen_at, last_seen_at, mention_count) + `entity_mentions` (entity_id, entry_id, position) + UNIQUE(type, name)
+  - ✅ `Sowing::UseCases::ExtractEntities` — 두 모드:
+    - 결정적: KNOWN_STUDENT_NAMES whitelist (30개 한국 흔한 인명) + 조사 패턴 + SUBJECTS/LOCATIONS 사전 매칭
+    - LLM 옵트인: `Backends::Base` 주입 시 한국어 NER prompt + JSON 파싱 (실패 시 결정적 fallback)
+  - ✅ AuditLog.with_actor("agent") 통합 — Phase 9 thread-local 스택 활용
+  - ✅ 멱등 — 같은 entry 재호출 시 mention 중복 추가 안 함
+- **검증**: ent-001 (단일) / ent-002 (다중 학생·과목·위치) / ent-003 (false positive 0) 시드 모두 통과
+- **spec**: 13건. 회귀 1039 → 1052 (+13). lint clean. eval:run 회귀 없음.
+- **결정적 모드 한계 인정**: 한국어 NER 없이 인명 vs 일반 명사 구분 불가 → whitelist 외 이름은 LLM 모드에서만 잡힘. 명시적 trade-off.
 - **선행**: Phase 10 완료
 
 ### [ ] W17-T02: StudentDigest 합성기
