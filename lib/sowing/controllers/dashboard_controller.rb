@@ -47,7 +47,18 @@ module Sowing
         @streak = stats_repo.current_streak
         @growth = Domain::ValueObjects::GrowthStage.new(stats_repo.total_all_time)
         @tutorial_completed = !Infrastructure::Settings.load["tutorial_completed_at"].nil?
+        @gap_summary = compute_gap_summary
         erb :"dashboard/show", layout: :"layouts/application"
+      end
+
+      private
+
+      # 학급 명단이 설정돼 있으면 미언급 학생 알림 (W17-T03 GapDetector).
+      # 명단 없으면 nil — 카드 표시 안 함.
+      def compute_gap_summary
+        roster = Infrastructure::Settings.load["class_roster"]
+        return nil if roster.nil? || roster.empty?
+        UseCases::DetectStudentGaps.new.call.value_or(nil)
       end
     end
   end

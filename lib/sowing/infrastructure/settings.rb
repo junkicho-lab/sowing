@@ -20,7 +20,8 @@ module Sowing
         "sample_consent" => nil,
         "completed_at" => nil,
         "tutorial_step" => 1,
-        "tutorial_completed_at" => nil
+        "tutorial_completed_at" => nil,
+        "class_roster" => [] # W17-T03: 학급 명단 (학생 이름 배열). GapDetector 의 입력.
       }.freeze
 
       module_function

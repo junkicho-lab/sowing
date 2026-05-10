@@ -708,12 +708,19 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **회귀**: 1052 → 1066 (+14). lint clean. eval:run 회귀 0.
 - **선행**: W17-T01
 
-### [ ] W17-T03: GapDetector
+### [x] W17-T03: GapDetector — 완료 (2026-05-10)
 - **출력**:
-  - 학급 명단(설정에서 입력) vs entities 매칭 → 4주 미언급 학생 알림
-  - 대시보드 새 카드: "지난 4주간 한 번도 등장 안 한 학생 N명"
-  - LLM 호출 없음 (순수 결정적) — eval 코퍼스로 검증만
-- **검증**: 명단 30명 + 엔티티 — 미언급 7명 정확 식별
+  - ✅ `Sowing::UseCases::DetectStudentGaps` — 결정적 (LLM 미사용). class_roster vs entities(type=student, last_seen_at >= cutoff) 비교
+  - ✅ Settings 에 `class_roster` 키 추가 (default `[]`)
+  - ✅ Settings 화면 "학급 명단" 섹션 — 줄바꿈/쉼표 구분 입력, 중복·공백 자동 제거
+  - ✅ Dashboard 카드:
+    - 명단 미설정 → 안내 카드 (gap-card--prompt) "학급 명단을 등록하면..."
+    - 미언급 0 → 카드 미표시
+    - 미언급 N>0 → 빨간색 카드 "지난 N주간 한 번도 등장 안 한 학생 N명" + details/summary 로 학생 목록
+  - ✅ weeks_back 인자 (기본 4) — 활성 기준 조정 가능
+- **검증**: ROADMAP 시나리오 통과 — 명단 30명 + 23명 활성 → 미언급 7명 정확 식별 ✓
+- **spec**: 19건 (use case 12 + dashboard 3 + settings 4)
+- **회귀**: 1066 → 1085 (+19). lint clean. eval:run 회귀 0.
 - **선행**: W17-T01
 
 ### [ ] W17-T04: 합성 결과 UI — 사용자 검토 / 수락 / 거절

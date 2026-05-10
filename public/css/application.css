@@ -1904,3 +1904,64 @@ pre code {
   border-color: #B00020;
 }
 .button--danger:hover { opacity: 0.92; }
+
+/* W17-T03 GapDetector 카드 */
+.gap-card {
+  background: rgba(176, 0, 32, 0.04);
+  border: 1px solid rgba(176, 0, 32, 0.2);
+  border-left: 4px solid #B00020;
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+.gap-card h2 {
+  margin: 0 0 var(--space-1);
+  font-size: 1.05rem;
+  color: #B00020;
+}
+
+.gap-card__hint {
+  margin: 0 0 var(--space-2);
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}
+
+.gap-card__details {
+  margin: var(--space-2) 0;
+  font-size: 0.95rem;
+}
+
+.gap-card__details summary {
+  cursor: pointer;
+  color: var(--color-primary);
+}
+
+.gap-card__list {
+  list-style: none;
+  padding: var(--space-1) 0 0 var(--space-2);
+  margin: 0;
+}
+
+.gap-card__list li {
+  padding: 0.15rem 0;
+  font-family: var(--font-mono, monospace);
+  color: var(--color-text);
+}
+
+.gap-card__action {
+  margin: var(--space-2) 0 0;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.gap-card--prompt {
+  background: rgba(45, 95, 63, 0.04);
+  border-color: rgba(45, 95, 63, 0.2);
+  border-left-color: var(--color-primary);
+}
+
+.gap-card--prompt p {
+  margin: 0;
+  color: var(--color-primary);
+}

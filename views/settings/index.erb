@@ -31,6 +31,28 @@
   </article>
 
   <article class="settings__section">
+    <h2>👥 학급 명단 (W17-T03)</h2>
+    <p class="settings__hint">
+      등록하면 대시보드에 "지난 4주간 한 번도 등장 안 한 학생 N명" 알림 카드 표시.
+      방치된 학생을 조기에 발견 — 결정적 task (LLM 미사용).
+    </p>
+    <form action="/settings/class_roster" method="post" class="settings__form">
+      <div class="field">
+        <label for="class_roster">학생 이름 (한 줄당 한 명, 또는 쉼표 구분)</label>
+        <textarea id="class_roster" name="class_roster" rows="6"
+                  placeholder="민준&#10;서연&#10;지호&#10;..."><%= h((@settings_data["class_roster"] || []).join("\n")) %></textarea>
+        <small class="settings__hint">
+          현재 <strong><%= (@settings_data["class_roster"] || []).size %>명</strong>.
+          개인정보 보호: 가상명·별칭 권장 (실명 노출 시 동기화 클라우드 정책 확인).
+        </small>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="button button--primary">저장</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="settings__section">
     <h2>📁 데이터 위치</h2>
     <dl class="settings__info">
       <dt>볼트 (마크다운)</dt>

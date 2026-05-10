@@ -46,6 +46,28 @@
 
   <%= erb :"dashboard/_growth", layout: false %>
 
+  <% if @gap_summary && @gap_summary[:unmentioned_count] > 0 %>
+    <aside class="gap-card" aria-labelledby="gap_heading">
+      <h2 id="gap_heading">⚠ 지난 <%= @gap_summary[:weeks_back] %>주간 한 번도 등장 안 한 학생 <strong><%= @gap_summary[:unmentioned_count] %>명</strong></h2>
+      <p class="gap-card__hint">학급 명단 <%= @gap_summary[:roster_size] %>명 중 <%= @gap_summary[:mentioned_count] %>명만 기록에 등장. 방치된 학생을 조기에 발견.</p>
+      <details class="gap-card__details">
+        <summary>미언급 학생 보기</summary>
+        <ul class="gap-card__list">
+          <% @gap_summary[:unmentioned].each do |name| %>
+            <li><%= h(name) %></li>
+          <% end %>
+        </ul>
+      </details>
+      <p class="gap-card__action">
+        명단 변경: <a href="/settings">설정</a>
+      </p>
+    </aside>
+  <% elsif @gap_summary.nil? %>
+    <aside class="gap-card gap-card--prompt">
+      <p>💡 학급 명단을 등록하면 지난 4주간 한 번도 언급되지 않은 학생을 자동 알림. <a href="/settings">설정 → 학급 명단</a></p>
+    </aside>
+  <% end %>
+
   <section class="recent-memos" aria-labelledby="recent_memos_heading">
     <h2 id="recent_memos_heading">최근 메모</h2>
 

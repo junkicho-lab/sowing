@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 11 (Tier-1 LLM 합성) 진행 중
+- **W17-T03 완료** (2026-05-10): GapDetector (결정적, LLM 미사용)
+  - `Sowing::UseCases::DetectStudentGaps` — class_roster vs 활성 entities (last_seen_at >= now - weeks_back × 7d) 비교
+  - 결과: `{unmentioned, mentioned, roster_size, gap_ratio, since, weeks_back}` 멱등 결정적
+  - Settings 키 `class_roster` (default `[]`) 추가
+  - Settings 화면 "👥 학급 명단" 섹션 — 줄바꿈/쉼표 구분 입력, 중복·공백 자동 제거, 개인정보 보호 안내
+  - Dashboard 카드 (gap-card):
+    - 명단 미설정 → 안내 (gap-card--prompt, 녹색)
+    - 미언급 0 → 카드 미표시
+    - 미언급 N>0 → 빨간색 알림 카드 + `<details>` 로 학생 명단 표시
+  - weeks_back 인자 (기본 4) — 활성 기준 조정 가능
+  - ADR-013 거부 5종 준수: LLM 0, 결정적, 학생 익명성 안내 (가상명 권장)
+  - spec 19건 (use case 12 + dashboard 3 + settings 4)
+  - 회귀: 1066 → 1085 (+19). lint clean. `rake eval:run` 회귀 0.
 - **W17-T02 완료** (2026-05-10): StudentDigest 합성기
   - `Sowing::UseCases::SynthesizeStudentDigest` — entity 조회 → mention된 entries 인용 → 디제스트 생성
   - 두 모드:

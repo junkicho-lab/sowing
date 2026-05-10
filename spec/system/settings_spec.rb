@@ -61,6 +61,36 @@ RSpec.describe "설정 화면 (W7-T06)", type: :request do
     end
   end
 
+  describe "POST /settings/class_roster (W17-T03)" do
+    after { Sowing::Infrastructure::Settings.update(class_roster: []) }
+
+    it "줄바꿈 구분 명단 저장" do
+      post "/settings/class_roster", "class_roster" => "민준\n서연\n지호"
+      expect(Sowing::Infrastructure::Settings.load["class_roster"]).to eq(%w[민준 서연 지호])
+      follow_redirect!
+      expect(last_response.body).to include("3명을 저장했습니다")
+    end
+
+    it "쉼표 구분도 허용" do
+      post "/settings/class_roster", "class_roster" => "민준, 서연, 지호"
+      expect(Sowing::Infrastructure::Settings.load["class_roster"]).to eq(%w[민준 서연 지호])
+    end
+
+    it "중복·공백 제거" do
+      post "/settings/class_roster", "class_roster" => "민준\n  \n민준\n서연\n"
+      expect(Sowing::Infrastructure::Settings.load["class_roster"]).to eq(%w[민준 서연])
+    end
+
+    it "settings 화면에 명단 입력 textarea 표시" do
+      Sowing::Infrastructure::Settings.update(class_roster: %w[민준 서연])
+      get "/settings"
+      expect(last_response.body).to include('name="class_roster"')
+      expect(last_response.body).to include("민준\n서연") # textarea pre-filled
+      expect(last_response.body).to include("현재")
+      expect(last_response.body).to include("2명")
+    end
+  end
+
   describe "POST /settings/samples/delete" do
     it "샘플 시드된 상태에서 호출 → 12건 휴지통 + flash" do
       Sowing::UseCases::SeedSamples.new.call

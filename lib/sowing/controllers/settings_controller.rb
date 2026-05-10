@@ -39,6 +39,15 @@ module Sowing
         redirect "/settings"
       end
 
+      post "/settings/class_roster" do
+        # 한 줄당 한 명. 줄바꿈/쉼표 모두 허용.
+        raw = params["class_roster"].to_s
+        roster = raw.split(/[\n,]/).map(&:strip).reject(&:empty?).uniq
+        user_settings.update(class_roster: roster)
+        session[:flash] = "학급 명단 #{roster.size}명을 저장했습니다."
+        redirect "/settings"
+      end
+
       post "/settings/samples/delete" do
         result = UseCases::DeleteSamples.new.call
         count = result.value_or(0)

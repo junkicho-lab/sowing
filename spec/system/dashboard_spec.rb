@@ -87,6 +87,49 @@ RSpec.describe "Dashboard 라우트", type: :request do
     end
   end
 
+  describe "GapDetector 카드 (W17-T03)" do
+    let(:db) { Sowing::Infrastructure::DB.connection }
+
+    before do
+      db[:entity_mentions].delete
+      db[:entities].delete
+    end
+
+    after { Sowing::Infrastructure::Settings.update(class_roster: []) }
+
+    it "학급 명단 미설정 시 — 안내 카드 (gap-card--prompt) 표시" do
+      Sowing::Infrastructure::Settings.update(class_roster: [])
+      get "/"
+      expect(last_response.body).to include("학급 명단을 등록하면")
+      expect(last_response.body).to include("gap-card--prompt")
+    end
+
+    it "전원 활성 — gap 카드 표시 안 함" do
+      Sowing::Infrastructure::Settings.update(class_roster: %w[활성학생])
+      db[:entities].insert(
+        type: "student", name: "활성학생",
+        first_seen_at: Time.now.iso8601, last_seen_at: Time.now.iso8601,
+        mention_count: 1
+      )
+      get "/"
+      expect(last_response.body).not_to include("지난 4주간 한 번도 등장 안 한 학생")
+    end
+
+    it "미언급 학생 있을 때 — gap 카드 + 학생 명단 표시" do
+      Sowing::Infrastructure::Settings.update(class_roster: %w[민준 서연 지호])
+      db[:entities].insert(
+        type: "student", name: "민준",
+        first_seen_at: Time.now.iso8601, last_seen_at: Time.now.iso8601,
+        mention_count: 1
+      )
+      get "/"
+      expect(last_response.body).to include("지난 4주간 한 번도 등장 안 한 학생")
+      expect(last_response.body).to include("<strong>2명</strong>") # 서연, 지호
+      expect(last_response.body).to include("서연")
+      expect(last_response.body).to include("지호")
+    end
+  end
+
   describe "씨앗-숲 시각화 (W6-T03)" do
     let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
 
