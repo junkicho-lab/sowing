@@ -580,6 +580,130 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
     end
   end
 
+  describe "확장 #6 — lesson-series type" do
+    it "GET /synth — 수업 시리즈 섹션 + generate 폼" do
+      get "/synth"
+      expect(last_response.body).to include("수업 시리즈")
+      expect(last_response.body).to include("/synth/lesson-series/__SLUG__/generate")
+    end
+
+    it "수락 → category=수업기록" do
+      seed_synth("lesson-series", "분수", "synth_target" => "series:분수")
+      post "/synth/lesson-series/#{esc("분수")}/accept"
+      expect(last_response).to be_redirect
+      year = Time.now.year
+      expect(vault_dir.join("30_Records", year.to_s, "수업기록")).to exist
+    end
+
+    it "POST generate — 키워드 매칭 entries 2건+ 시 생성" do
+      FileUtils.mkdir_p(vault_dir.join("00_Inbox"))
+      2.times do |i|
+        path = "00_Inbox/01LSSYS0000000000000B0#{i + 1}.md"
+        File.write(vault_dir.join(path),
+          "---\nid: 01LSSYS0000000000000B0#{i + 1}\nmode: memo\ncreated_at: '2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00'\nupdated_at: '2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00'\n---\n\n분수 수업 #{i}.")
+        db[:entries].insert(
+          id: "01LSSYS0000000000000B0#{i + 1}", mode: "memo", path: path,
+          created_at: "2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00",
+          updated_at: "2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00",
+          file_mtime: Time.now.to_i, file_hash: "deadbeef00000000",
+          word_count: 2, indexed_at: Time.now.iso8601
+        )
+      end
+      post "/synth/lesson-series/#{esc("분수")}/generate"
+      expect(last_response).to be_redirect
+      gen = audit_log.read_all.find { |r| r["action"] == "synth_generate" }
+      expect(gen["entry_id"]).to eq("synth:series:분수")
+    end
+
+    it "POST generate — 키워드 매칭 0 → 실패 flash" do
+      post "/synth/lesson-series/#{esc("없는단원")}/generate"
+      expect(last_response).to be_redirect
+      expect(last_response.location).to end_with("/synth")
+    end
+  end
+
+  describe "확장 #7 — tag-clusters type" do
+    it "GET /synth — 태그 클러스터 섹션 + generate 폼" do
+      get "/synth"
+      expect(last_response.body).to include("태그 클러스터")
+      expect(last_response.body).to include("/synth/tag-clusters/topics/generate")
+    end
+
+    it "수락 → category=주제정리" do
+      seed_synth("tag-clusters", "topics", "synth_target" => "clusters:topics")
+      post "/synth/tag-clusters/topics/accept"
+      expect(last_response).to be_redirect
+      year = Time.now.year
+      expect(vault_dir.join("30_Records", year.to_s, "주제정리")).to exist
+    end
+
+    it "POST generate — 빈 DB → 실패 flash" do
+      post "/synth/tag-clusters/topics/generate"
+      expect(last_response).to be_redirect
+      expect(last_response.location).to end_with("/synth")
+    end
+  end
+
+  describe "확장 #8 — seasonal type" do
+    it "GET /synth — 계절성 패턴 섹션 + generate 폼 (current 자동)" do
+      get "/synth"
+      expect(last_response.body).to include("계절성 패턴")
+      expect(last_response.body).to include('action="/synth/seasonal/current/generate"')
+    end
+
+    it "수락 → category=계절회고" do
+      seed_synth("seasonal", "05", "synth_target" => "season:05")
+      post "/synth/seasonal/05/accept"
+      expect(last_response).to be_redirect
+      year = Time.now.year
+      expect(vault_dir.join("30_Records", year.to_s, "계절회고")).to exist
+    end
+
+    it "POST /synth/seasonal/05/generate — 5월 entries 충분 시 생성" do
+      FileUtils.mkdir_p(vault_dir.join("00_Inbox"))
+      3.times do |i|
+        path = "00_Inbox/01SESYS0000000000000C0#{i + 1}.md"
+        File.write(vault_dir.join(path),
+          "---\nid: 01SESYS0000000000000C0#{i + 1}\nmode: memo\ncreated_at: '2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00'\nupdated_at: '2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00'\n---\n\n5월 entry #{i}.")
+        db[:entries].insert(
+          id: "01SESYS0000000000000C0#{i + 1}", mode: "memo", path: path,
+          created_at: "2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00",
+          updated_at: "2026-05-#{(i + 1).to_s.rjust(2, "0")}T09:00:00+09:00",
+          file_mtime: Time.now.to_i, file_hash: "deadbeef00000000",
+          word_count: 2, indexed_at: Time.now.iso8601
+        )
+      end
+      post "/synth/seasonal/05/generate"
+      expect(last_response).to be_redirect
+      expect(synth_root.join("seasonal/05.md")).to exist
+      gen = audit_log.read_all.find { |r| r["action"] == "synth_generate" }
+      expect(gen["entry_id"]).to eq("synth:season:05")
+    end
+
+    it "POST /synth/seasonal/current/generate — 슬러그 'current' = 이번 달 자동" do
+      FileUtils.mkdir_p(vault_dir.join("00_Inbox"))
+      now_month = Time.now.month
+      now_year = Time.now.year
+      3.times do |i|
+        day = (i + 1).to_s.rjust(2, "0")
+        ts = "#{now_year}-#{now_month.to_s.rjust(2, "0")}-#{day}T09:00:00+09:00"
+        path = "00_Inbox/01SECUR0000000000000C0#{i + 1}.md"
+        File.write(vault_dir.join(path),
+          "---\nid: 01SECUR0000000000000C0#{i + 1}\nmode: memo\ncreated_at: '#{ts}'\nupdated_at: '#{ts}'\n---\n\n이번 달 entry.")
+        db[:entries].insert(
+          id: "01SECUR0000000000000C0#{i + 1}", mode: "memo", path: path,
+          created_at: ts, updated_at: ts,
+          file_mtime: Time.now.to_i, file_hash: "deadbeef00000000",
+          word_count: 2, indexed_at: Time.now.iso8601
+        )
+      end
+      post "/synth/seasonal/current/generate"
+      expect(last_response).to be_redirect
+      mm = now_month.to_s.rjust(2, "0")
+      expect(synth_root.join("seasonal/#{mm}.md")).to exist
+    end
+  end
+
   describe "ADR-013 — 자율 mutation 0 (4 type 통합 검증)" do
     it "GET /synth + GET /synth/:type/:slug 만으로는 vault·audit 변화 0" do
       seed_synth("students", "민준", "synth_target" => "student:민준")

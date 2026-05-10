@@ -92,6 +92,27 @@ module Sowing
           icon: "🌊",
           accept_category: "메모회고",
           target_prefix: "orphans:"
+        },
+        "lesson-series" => {
+          subdir: "lesson-series",
+          label: "수업 시리즈",
+          icon: "🎒",
+          accept_category: "수업기록",
+          target_prefix: "series:"
+        },
+        "tag-clusters" => {
+          subdir: "tag-clusters",
+          label: "태그 클러스터",
+          icon: "🏷️",
+          accept_category: "주제정리",
+          target_prefix: "clusters:"
+        },
+        "seasonal" => {
+          subdir: "seasonal",
+          label: "계절성 패턴",
+          icon: "🍂",
+          accept_category: "계절회고",
+          target_prefix: "season:"
         }
       }.freeze
 
@@ -369,6 +390,70 @@ module Sowing
           redirect_to_synth_show("orphans", "observations")
         else
           session[:flash] = "생성 실패 (#{result.failure}) — 모든 entries 가 인용·연결돼 있음 (좋은 일!)"
+          redirect "/synth"
+        end
+      end
+
+      # 수업 시리즈 — slug = 키워드 (단원·주제명)
+      post "/synth/lesson-series/:slug/generate" do
+        keyword = params["slug"]
+        result = UseCases::SynthesizeLessonSeries.new.call(
+          keyword: keyword,
+          since: params["since"].to_s.strip.empty? ? nil : params["since"],
+          until_time: params["until_time"].to_s.strip.empty? ? nil : params["until_time"]
+        )
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:series:#{keyword}",
+            mode: "record",
+            path: ".sowing/synth/lesson-series/#{keyword}.md"
+          )
+          session[:flash] = "수업 시리즈 생성: #{keyword}"
+          redirect_to_synth_show("lesson-series", keyword)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 키워드 매칭 entries 2건 이상 필요"
+          redirect "/synth"
+        end
+      end
+
+      # 태그 클러스터 — 매개변수 0
+      post "/synth/tag-clusters/topics/generate" do
+        result = UseCases::SynthesizeTagClusters.new.call
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:clusters:topics",
+            mode: "record",
+            path: ".sowing/synth/tag-clusters/topics.md"
+          )
+          session[:flash] = "태그 클러스터 생성"
+          redirect_to_synth_show("tag-clusters", "topics")
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 빈도 ≥ 2 인 태그 페어가 jaccard ≥ 0.3 필요"
+          redirect "/synth"
+        end
+      end
+
+      # 계절성 패턴 — slug = MM (01~12), 빈 입력 = 이번 달
+      post "/synth/seasonal/:slug/generate" do
+        slug = params["slug"]
+        # slug 가 "current" 면 이번 달 자동 — view 폼 편의
+        month = (slug == "current") ? nil : slug.to_i
+        result = UseCases::SynthesizeSeasonalPattern.new.call(month: month)
+        if result.success?
+          target = result.value!
+          slug_actual = target.basename(".md").to_s
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:season:#{slug_actual}",
+            mode: "record",
+            path: ".sowing/synth/seasonal/#{slug_actual}.md"
+          )
+          session[:flash] = "계절성 패턴 생성: #{slug_actual}월"
+          redirect_to_synth_show("seasonal", slug_actual)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 해당 월 entries 3건 이상 필요"
           redirect "/synth"
         end
       end

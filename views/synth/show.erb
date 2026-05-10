@@ -114,6 +114,24 @@
               onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다 (default 1년 lookback). 계속할까요?');">
           <button type="submit" class="button button--ghost">재생성</button>
         </form>
+      <% elsif @type == "lesson-series" %>
+        <form action="/synth/lesson-series/<%= h(@synth[:slug]) %>/generate" method="post"
+              style="display:inline"
+              onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다 (default 6개월 window). 계속할까요?');">
+          <button type="submit" class="button button--ghost">재생성</button>
+        </form>
+      <% elsif @type == "tag-clusters" %>
+        <form action="/synth/tag-clusters/topics/generate" method="post"
+              style="display:inline"
+              onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다. 계속할까요?');">
+          <button type="submit" class="button button--ghost">재생성</button>
+        </form>
+      <% elsif @type == "seasonal" %>
+        <form action="/synth/seasonal/<%= h(@synth[:slug]) %>/generate" method="post"
+              style="display:inline"
+              onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다. 계속할까요?');">
+          <button type="submit" class="button button--ghost">재생성</button>
+        </form>
       <% end %>
     </div>
   </footer>

@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 확장 합성기 #6 — 수업 시리즈 추적 (2026-05-10)
+- **`Sowing::UseCases::SynthesizeLessonSeries`** 신규 — 단원·주제 키워드 기반 차시별 timeline
+  - 한 단원이 5~10차시에 걸쳐 흩어진 entries 를 한 화면에 수집
+  - 입력: keyword (예: "분수") + 6개월 default window. title 또는 body 매칭
+  - 결정적 출력: 차시별 timeline + mode 아이콘 + 모드 분포 + **단원 종료 자동 감지** (마지막 entry 후 14일 경과 시 ✅ 종료, 미만이면 🟢 진행 중)
+  - LLM 출력 4 섹션 (🎒 단원 흐름 / 👥 학생 반응 변화 / 🌱 잘된/아쉬웠던 차시 / 📚 다음 단원 준비)
+  - 저장: `vault/.sowing/synth/lesson-series/{keyword}.md`
+  - frontmatter 12키 (synth_keyword + synth_status + synth_first/last_date + synth_duration_days)
+  - 가드: MIN_ENTRIES=2 / MAX_ENTRIES=200 / ENDED_AFTER_DAYS=14
+  - 자율 판단 0: "이 단원이 잘됐다" 단정 X — 차시별 인용 + 시간 흐름만
+  - accept_category=수업기록, target_prefix=series:
+- spec 11건
+
+### 확장 합성기 #7 — 태그 클러스터 (2026-05-10)
+- **`Sowing::UseCases::SynthesizeTagClusters`** 신규 — 자주 함께 등장하는 태그들 → 주제 그룹 발견
+  - "내가 무엇에 대해 자주 쓰는가" 자기 인식 도구
+  - 알고리즘 (결정적):
+    - 빈도 ≥ 2 인 태그만 후보 (1번 쓰인 태그는 클러스터링 가치 없음)
+    - 모든 태그 페어 co-occurrence 카운트 + Jaccard 유사도 (`|A∩B|/|A∪B|`)
+    - JACCARD_THRESHOLD=0.3 + MIN_PAIR_COUNT=2 필터
+    - **union-find 클러스터링** — 페어 임계 넘으면 같은 그룹으로 merge
+    - 클러스터당 대표 entries (그룹 태그를 가장 많이 가진 top 3)
+  - 결정적: 태그 그룹 + 고유 entries 카운트 + 대표 entries wikilink
+  - LLM: 그룹별 라벨 제안 + 자기 발견 질문 + 메타-관찰
+  - 저장: `vault/.sowing/synth/tag-clusters/topics.md` (단일 파일)
+  - frontmatter 9키 (synth_jaccard_threshold + clustered_tags + total_unique_entries)
+  - 같은 태그가 여러 클러스터에 들어가지 않음 (단순 union)
+  - accept_category=주제정리, target_prefix=clusters:
+- spec 9건
+
+### 확장 합성기 #8 — 계절성 패턴 (2026-05-10)
+- **`Sowing::UseCases::SynthesizeSeasonalPattern`** 신규 — 같은 월의 여러 연도 entries 비교
+  - "매년 이 시기에 비슷한 어려움이 반복된다" 발견. **연차 1년 후부터 폭발적 가치** — 지금 인프라만 깔아두면 나중에 자동으로 의미 누적 (long-term play)
+  - 입력: month (1~12, default = 이번 달). SQLite SUBSTR(created_at, 6, 2) 로 월 추출
+  - 연도별 그룹 + 작년/재작년/올해 timeline 비교 + 모드·카테고리 분포
+  - 결정적: 연도별 timeline + **올해 마커** 🎯 + 모드 분포
+  - LLM (분기): 2년치 이상 → "매년 반복 / 매년 다른 / 올해 시도해볼 만한"; 1년 미만 → "이번 달 흐름 / 핵심 사건 / 다음 달 준비"
+  - 저장: `vault/.sowing/synth/seasonal/{MM}.md` (월당 1 파일, 매년 갱신)
+  - frontmatter 11키 (synth_month + synth_years + synth_year_counts + synth_pattern_eligible)
+  - 가드: MIN_ENTRIES=3 / MAX_ENTRIES=1000 / MIN_YEARS_FOR_PATTERN=2
+  - 1년 미만 사용 시 안내: "씨를 뿌리는 단계"
+  - 자율 판단 0: "이 시기에 항상 ~한다" 단정 X — *반복으로 보이는 후보* 만
+  - accept_category=계절회고, target_prefix=season:
+- spec 13건
+
+### 확장 합성기 #6 + #7 + #8 통합 검증
+- `SynthController::SYNTH_TYPES` 12 type 으로 확장 (lesson-series + tag-clusters + seasonal)
+- 새 generate routes 3종:
+  - `POST /synth/lesson-series/:slug/generate` (slug=키워드)
+  - `POST /synth/tag-clusters/topics/generate` (매개변수 0)
+  - `POST /synth/seasonal/:slug/generate` (slug=MM 또는 "current")
+- views: 3 섹션 + 폼 + 재생성 버튼 + JS slug fallback (`encodeURIComponent`)
+- bin/sowing-doctor: 5 use case → 8 (확장 #1~#8) + 12 디렉토리 카운트
+- 대시보드 spec 11건 신규 (lesson-series 4 + tag-clusters 3 + seasonal 4)
+- 회귀: 1276 → 1320 (+44 = lesson-series 11 + tag-clusters 9 + seasonal 13 + dashboard 11). lint clean. `rake eval:run` 회귀 0. 5× stress 안정 (88/88 × 5).
+- **합성기 12종, SYNTH_TYPES 12 type 완성** — 학생/학기/패턴/변화/상담/평가/연수/주간/고립/시리즈/클러스터/계절성
+
 ### 확장 합성기 #4 — 주간 회고 (2026-05-10)
 - **`Sowing::UseCases::SynthesizeWeeklyReview`** 신규 — 한 주 단위 자동 회고
   - 학기 회고(W21-T01)와 학생 디제스트(W17-T02) 사이의 빠진 호흡. 매주 일요일 트리거 가능.

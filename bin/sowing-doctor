@@ -482,7 +482,10 @@ begin
     "SynthesizeAssessmentTrend (확장 #2)" => Sowing::UseCases.const_defined?(:SynthesizeAssessmentTrend),
     "ExtractTrainingApplications (확장 #3)" => Sowing::UseCases.const_defined?(:ExtractTrainingApplications),
     "SynthesizeWeeklyReview (확장 #4)" => Sowing::UseCases.const_defined?(:SynthesizeWeeklyReview),
-    "DetectOrphanEntries (확장 #5)" => Sowing::UseCases.const_defined?(:DetectOrphanEntries)
+    "DetectOrphanEntries (확장 #5)" => Sowing::UseCases.const_defined?(:DetectOrphanEntries),
+    "SynthesizeLessonSeries (확장 #6)" => Sowing::UseCases.const_defined?(:SynthesizeLessonSeries),
+    "SynthesizeTagClusters (확장 #7)" => Sowing::UseCases.const_defined?(:SynthesizeTagClusters),
+    "SynthesizeSeasonalPattern (확장 #8)" => Sowing::UseCases.const_defined?(:SynthesizeSeasonalPattern)
   }
   uc_check.each do |label, ok|
     puts ok ? "  ✅ #{label}" : "  ⚠  #{label} 누락"
@@ -495,9 +498,9 @@ begin
     puts "  ✅ /synth 통합 대시보드 — #{types.size} type: #{types.join(", ")}"
   end
 
-  # 합성 디렉토리 9종 카운트 (Phase 12 4종 + 확장 #1~#5)
+  # 합성 디렉토리 12종 카운트 (Phase 12 4종 + 확장 #1~#8)
   synth_root = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/synth")
-  %w[students reflections patterns contradictions consultations assessments trainings weekly orphans].each do |t|
+  %w[students reflections patterns contradictions consultations assessments trainings weekly orphans lesson-series tag-clusters seasonal].each do |t|
     dir = synth_root.join(t)
     count = dir.exist? ? Dir.glob(dir.join("*.md")).size : 0
     puts "  #{t.ljust(15)} #{count}건"

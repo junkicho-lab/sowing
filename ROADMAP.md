@@ -896,6 +896,35 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **검증**: spec 17건. 회귀 1236 → 1253 (+17). lint clean. eval 회귀 0.
 - **선행**: Phase 12 (entities 활용)
 
+### [x] 확장 합성기 #6 — 수업 시리즈 추적 (2026-05-10)
+- **출력**: `Sowing::UseCases::SynthesizeLessonSeries` — 키워드 (예: "분수") 기반 차시별 timeline
+  - title 또는 body 매칭 + 시간순 + 단원 종료 자동 감지 (마지막 entry 후 14일 → ✅ 종료)
+  - LLM 4 섹션 (단원 흐름 / 학생 반응 변화 / 잘된·아쉬웠던 차시 / 다음 단원 준비)
+  - 저장 `vault/.sowing/synth/lesson-series/{keyword}.md`
+  - `SynthController::SYNTH_TYPES` 10 type (lesson-series 추가, accept_category=수업기록)
+- **검증**: spec 11건. 회귀 1276 → 1287.
+- **선행**: Phase 12
+
+### [x] 확장 합성기 #7 — 태그 클러스터 (2026-05-10)
+- **출력**: `Sowing::UseCases::SynthesizeTagClusters` — 자주 함께 등장 태그 → 주제 그룹
+  - Jaccard 유사도 + union-find 클러스터링
+  - 빈도 ≥ 2 태그만 후보, JACCARD_THRESHOLD=0.3, MIN_PAIR_COUNT=2
+  - LLM: 클러스터당 라벨 + 자기 발견 질문 + 메타-관찰
+  - 저장 `vault/.sowing/synth/tag-clusters/topics.md` (단일 파일)
+  - `SynthController::SYNTH_TYPES` 11 type (tag-clusters 추가, accept_category=주제정리)
+- **검증**: spec 9건. 회귀 1287 → 1296.
+- **선행**: 태그 인프라 (W3)
+
+### [x] 확장 합성기 #8 — 계절성 패턴 (2026-05-10)
+- **출력**: `Sowing::UseCases::SynthesizeSeasonalPattern` — 같은 월의 다년 비교
+  - SQLite SUBSTR 로 월 추출 + 연도별 그룹
+  - LLM 분기: 2년치+ → "매년 반복 / 매년 다른 / 올해 시도"; 1년 미만 → "이번 달 흐름"
+  - 저장 `vault/.sowing/synth/seasonal/{MM}.md` (월당 1 파일)
+  - `SynthController::SYNTH_TYPES` 12 type (seasonal 추가, accept_category=계절회고)
+  - **연차 1년 후부터 가치 폭발** — 지금 인프라만 깔아두면 누적
+- **검증**: spec 13건. 회귀 1296 → 1320 (+11 dashboard 포함).
+- **선행**: 충분한 누적 데이터 (long-term play)
+
 ### [x] 확장 합성기 #5 — 고립 메모 발견 (2026-05-10)
 - **출력**:
   - `Sowing::UseCases::DetectOrphanEntries` — backlink 0건 entries 식별 (W3 위키링크 그래프 활용)
