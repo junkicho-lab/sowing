@@ -723,13 +723,16 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **회귀**: 1066 → 1085 (+19). lint clean. eval:run 회귀 0.
 - **선행**: W17-T01
 
-### [ ] W17-T04: 합성 결과 UI — 사용자 검토 / 수락 / 거절
+### [x] W17-T04: 합성 결과 UI — 사용자 검토 / 수락 / 거절 — 완료 (2026-05-10)
 - **출력**:
-  - `/synth` 라우트 — 생성된 디제스트 목록
-  - 각 디제스트는 "이건 LLM 생성입니다" 명시 배지
-  - 수락 → `vault/30_Records/학생기록/` 으로 이동, 거절 → 휴지통
-  - 수락률·거절률 audit log 기록 (Phase 12 fine-tuning 데이터)
-- **검증**: 디제스트 5건 생성 → 사용자가 검토 → 수락/거절 → audit 기록
+  - `Sowing::Controllers::SynthController` — 5 라우트 (GET `/synth`, GET `/synth/students/:slug`, POST `/generate`, `/accept`, `/reject`)
+  - 명시적 "LLM 합성" 배지 + 사용자 수락/거절 명시 (자율 mutation 0)
+  - 수락 → `Domain::Record` 변환 → `Persistence#persist!` (audit `:create` + `:synth_accept` 2 줄) → `30_Records/{YYYY}/학생기록/` 저장 → synth 원본 제거
+  - 거절 → `VaultRepo#delete` (`.sowing/trash` 이동) + audit `:synth_reject`
+  - 재생성 → `SynthesizeStudentDigest` 호출 + audit `:synth_generate`
+  - `AuditLog::ALLOWED_ACTIONS` 확장: `:synth_generate`, `:synth_accept`, `:synth_reject` (Phase 11~12 fine-tuning preference 데이터)
+  - `views/synth/{index,show}.erb` + `.synth-*` CSS (배지·카드·버튼)
+- **검증**: `spec/system/synth_spec.rb` 10 examples (목록/상세/수락/거절/재생성/404/ADR-013 자율 mutation 0 검증) — 5× 안정. 전체 1095 examples 0 fail.
 - **선행**: W17-T02, W17-T03
 
 ### **🎯 Week 17~20 마일스톤 (Phase 11)**

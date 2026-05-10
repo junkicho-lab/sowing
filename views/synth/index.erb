@@ -1,0 +1,71 @@
+<section class="synth" aria-labelledby="synth_index_heading">
+  <header class="synth__header">
+    <h1 id="synth_index_heading">합성 결과 검토</h1>
+    <p class="synth__lede">
+      LLM 또는 결정적 합성으로 만든 학생 디제스트입니다.
+      검토 후 정식 기록으로 <strong>수락</strong>하거나, 휴지통으로 <strong>거절</strong>하세요.
+    </p>
+    <p class="synth__notice">
+      <span class="synth-badge synth-badge--llm">LLM 합성</span>
+      자동 작성된 초안 — 사용자 명시 클릭 없이는 정식 기록이 되지 않습니다 (ADR-013).
+    </p>
+  </header>
+
+  <% if @flash %>
+    <div class="alert alert--info" role="status"><%= h(@flash) %></div>
+  <% end %>
+
+  <% if @students.empty? %>
+    <div class="empty-state empty-state--inline">
+      <p>현재 검토 대기 중인 합성 결과가 없습니다.</p>
+      <p class="empty-state__hint">
+        학생 entity 가 인덱싱된 뒤(메모·필기·기록에 등장) 디제스트를 생성할 수 있습니다.
+        생성은 학생 상세 화면 또는 MCP 도구로 진행됩니다.
+      </p>
+    </div>
+  <% else %>
+    <ul class="synth-list">
+      <% @students.each do |s| %>
+        <li class="synth-card">
+          <header class="synth-card__header">
+            <h2 class="synth-card__title">
+              <a href="/synth/students/<%= h(s[:slug]) %>">
+                <%= h(s[:fm]["title"] || s[:slug]) %>
+              </a>
+            </h2>
+            <div class="synth-card__meta">
+              <span class="synth-badge synth-badge--llm">LLM 합성</span>
+              <% if s[:fm]["synth_model"] %>
+                <span class="synth-card__model"><%= h(s[:fm]["synth_model"]) %></span>
+              <% end %>
+              <% if s[:fm]["synth_at"] %>
+                <time datetime="<%= h(s[:fm]["synth_at"]) %>"><%= h(s[:fm]["synth_at"][0, 10]) %></time>
+              <% end %>
+              <% if s[:fm]["synth_source_count"] %>
+                <span class="synth-card__sources">출처 <%= s[:fm]["synth_source_count"] %>건</span>
+              <% end %>
+            </div>
+          </header>
+
+          <p class="synth-card__excerpt">
+            <%= h(s[:body].to_s.strip[0, 160]) %><%= "…" if s[:body].to_s.strip.length > 160 %>
+          </p>
+
+          <div class="synth-card__actions">
+            <a href="/synth/students/<%= h(s[:slug]) %>" class="button button--ghost">자세히 보기</a>
+            <form action="/synth/students/<%= h(s[:slug]) %>/accept" method="post"
+                  style="display:inline"
+                  onsubmit="return confirm('수락 — 정식 기록(30_Records/{YYYY}/학생기록)으로 이동합니다. 계속할까요?');">
+              <button type="submit" class="button button--primary">수락</button>
+            </form>
+            <form action="/synth/students/<%= h(s[:slug]) %>/reject" method="post"
+                  style="display:inline"
+                  onsubmit="return confirm('거절 — 휴지통(.sowing/trash)으로 이동합니다. 계속할까요?');">
+              <button type="submit" class="button button--danger">거절</button>
+            </form>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</section>

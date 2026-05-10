@@ -1965,3 +1965,172 @@ pre code {
   margin: 0;
   color: var(--color-primary);
 }
+
+/* ─── 합성 결과 검토 (W17-T04) ─── */
+
+.synth__header {
+  margin-bottom: var(--space-4);
+}
+
+.synth__lede {
+  color: var(--color-muted);
+  margin: var(--space-1) 0 var(--space-2);
+}
+
+.synth__notice {
+  background: rgba(255, 200, 0, 0.08);
+  border-left: 3px solid #d4a017;
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0;
+  font-size: 0.92rem;
+  color: var(--color-text);
+}
+
+.synth-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  vertical-align: middle;
+  background: rgba(212, 160, 23, 0.15);
+  color: #8a6a0e;
+  border: 1px solid rgba(212, 160, 23, 0.4);
+}
+
+.synth-badge--llm {
+  background: rgba(212, 160, 23, 0.15);
+  color: #8a6a0e;
+  border-color: rgba(212, 160, 23, 0.4);
+}
+
+.synth-badge--model {
+  background: rgba(45, 95, 63, 0.08);
+  color: var(--color-primary);
+  border-color: rgba(45, 95, 63, 0.3);
+  font-family: var(--font-mono, monospace);
+  font-weight: 500;
+}
+
+.synth-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.synth-card {
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-left: 3px solid #d4a017;
+  border-radius: 6px;
+  padding: var(--space-3);
+  background: var(--color-surface, #fff);
+}
+
+.synth-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.synth-card__title {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.synth-card__title a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.synth-card__title a:hover {
+  text-decoration: underline;
+}
+
+.synth-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.synth-card__model {
+  font-family: var(--font-mono, monospace);
+}
+
+.synth-card__excerpt {
+  color: var(--color-text);
+  margin: var(--space-2) 0;
+  line-height: 1.55;
+}
+
+.synth-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* 상세 화면 */
+.synth-detail__back {
+  margin: 0 0 var(--space-3);
+  font-size: 0.9rem;
+}
+
+.synth-detail__header {
+  margin-bottom: var(--space-4);
+}
+
+.synth-detail__badges {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.synth-detail__meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-2) 0 0;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.synth-detail__meta dt {
+  font-weight: 600;
+}
+
+.synth-detail__meta dd {
+  margin: 0;
+}
+
+.synth-detail__body {
+  padding: var(--space-3);
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 6px;
+  margin: var(--space-3) 0;
+  line-height: 1.65;
+}
+
+.synth-detail__actions {
+  margin-top: var(--space-4);
+}
+
+.synth-detail__warn {
+  background: rgba(255, 200, 0, 0.08);
+  border-left: 3px solid #d4a017;
+  padding: var(--space-2) var(--space-3);
+  margin: 0 0 var(--space-3);
+  font-size: 0.92rem;
+}
+
+.synth-detail__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

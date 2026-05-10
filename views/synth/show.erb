@@ -1,0 +1,59 @@
+<section class="synth-detail" aria-labelledby="synth_show_heading">
+  <p class="synth-detail__back"><a href="/synth">← 합성 결과 목록</a></p>
+
+  <% if @flash %>
+    <div class="alert alert--info" role="status"><%= h(@flash) %></div>
+  <% end %>
+
+  <header class="synth-detail__header">
+    <div class="synth-detail__badges">
+      <span class="synth-badge synth-badge--llm">LLM 합성</span>
+      <% if @synth[:fm]["synth_model"] %>
+        <span class="synth-badge synth-badge--model"><%= h(@synth[:fm]["synth_model"]) %></span>
+      <% end %>
+    </div>
+    <h1 id="synth_show_heading"><%= h(@synth[:fm]["title"] || @synth[:slug]) %></h1>
+    <dl class="synth-detail__meta">
+      <% if @synth[:fm]["synth_at"] %>
+        <dt>합성 시각</dt>
+        <dd><time datetime="<%= h(@synth[:fm]["synth_at"]) %>"><%= h(@synth[:fm]["synth_at"]) %></time></dd>
+      <% end %>
+      <% if @synth[:fm]["synth_source_count"] %>
+        <dt>출처 entry 수</dt>
+        <dd><%= @synth[:fm]["synth_source_count"] %>건</dd>
+      <% end %>
+      <% if @synth[:fm]["synth_target"] %>
+        <dt>대상</dt>
+        <dd><code><%= h(@synth[:fm]["synth_target"]) %></code></dd>
+      <% end %>
+    </dl>
+  </header>
+
+  <article class="synth-detail__body markdown-body">
+    <%= @body_html %>
+  </article>
+
+  <footer class="synth-detail__actions">
+    <p class="synth-detail__warn">
+      <strong>주의</strong>: 합성물은 자동 작성된 초안입니다. 수락 시 정식 기록(30_Records)으로 이동하므로,
+      반드시 인용 정확성·표현 적절성을 직접 확인해 주세요.
+    </p>
+    <div class="synth-detail__buttons">
+      <form action="/synth/students/<%= h(@synth[:slug]) %>/accept" method="post"
+            style="display:inline"
+            onsubmit="return confirm('수락 — 정식 기록(30_Records/{YYYY}/학생기록)으로 이동합니다. 계속할까요?');">
+        <button type="submit" class="button button--primary">수락 (정식 기록으로)</button>
+      </form>
+      <form action="/synth/students/<%= h(@synth[:slug]) %>/reject" method="post"
+            style="display:inline"
+            onsubmit="return confirm('거절 — 휴지통(.sowing/trash)으로 이동합니다. 계속할까요?');">
+        <button type="submit" class="button button--danger">거절 (휴지통)</button>
+      </form>
+      <form action="/synth/students/<%= h(@synth[:slug]) %>/generate" method="post"
+            style="display:inline"
+            onsubmit="return confirm('재생성 — 기존 합성을 덮어씁니다. 계속할까요?');">
+        <button type="submit" class="button button--ghost">재생성</button>
+      </form>
+    </div>
+  </footer>
+</section>

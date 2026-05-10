@@ -29,7 +29,8 @@ module Sowing
     # Phase 9-T03 (MCP 쓰기 actuator) 에서 actor="agent" 활용. Phase 11+ 합성
     # 산출물의 수락/거절도 audit 으로 기록 (preference data).
     class AuditLog
-      ALLOWED_ACTIONS = %i[create update delete adopt reindex].freeze
+      # Phase 11+ synth_* — 합성기 생성·수락·거절 (Phase 11~12 fine-tuning preference 데이터).
+      ALLOWED_ACTIONS = %i[create update delete adopt reindex synth_generate synth_accept synth_reject].freeze
       ALLOWED_ACTORS = %w[user agent filesystem].freeze
 
       class << self

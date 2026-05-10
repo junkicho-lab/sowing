@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 11 (Tier-1 LLM 합성) 진행 중
+- **W17-T04 완료** (2026-05-10): 합성 결과 검토 UI — `/synth` 라우트 + 수락/거절
+  - `Sowing::Controllers::SynthController` — 5 라우트
+    - `GET /synth` — 디제스트 카드 목록 (LLM 합성 배지·모델 라벨·합성 시각·출처 수)
+    - `GET /synth/students/:slug` — 디제스트 상세 (마크다운 → HTML 렌더 + 메타 dl)
+    - `POST /synth/students/:slug/generate` — `SynthesizeStudentDigest` 호출 + audit `:synth_generate`
+    - `POST /synth/students/:slug/accept` — `Domain::Record` 변환 + `Persistence#persist!` (audit `:create` + `:synth_accept` 2 줄) + 30_Records/{YYYY}/학생기록/ 으로 보존 + synth 원본 unlink
+    - `POST /synth/students/:slug/reject` — `VaultRepo#delete` (휴지통 mv) + audit `:synth_reject`
+  - `AuditLog::ALLOWED_ACTIONS` 확장: `:synth_generate`, `:synth_accept`, `:synth_reject` (Phase 11~12 fine-tuning preference 데이터)
+  - 명시적 사용자 클릭 게이트 — 모든 변환은 confirm 다이얼로그 + 폼 submit (자율 mutation 0)
+  - "LLM 합성" 배지 + 합성 모델 라벨 명시 — 사용자 글과 명확 구분 (의인화 카피 0)
+  - 본문 영역 `synth-detail__warn` — "수락 시 정식 기록으로 이동" 경고
+  - `views/synth/{index,show}.erb` + `.synth-*` CSS (배지·카드·메타·버튼)
+  - `config/routes.rb` 마운트 (Settings 다음)
+  - spec 10건: 목록 빈 상태 + 카드 + 배지 / 상세 + 마크다운 / 404 / accept (Record 생성 + 2 audit + synth 제거) / reject (휴지통 + audit) / generate (audit) / ADR-013 자율 mutation 0 검증
+  - 회귀: 1085 → 1095 (+10). lint clean. `rake eval:run` 회귀 0. 5× stress 안정.
 - **W17-T03 완료** (2026-05-10): GapDetector (결정적, LLM 미사용)
   - `Sowing::UseCases::DetectStudentGaps` — class_roster vs 활성 entities (last_seen_at >= now - weeks_back × 7d) 비교
   - 결과: `{unmentioned, mentioned, roster_size, gap_ratio, since, weeks_back}` 멱등 결정적
