@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>
+  <string>Sowing</string>
+  <key>CFBundleDisplayName</key>
+  <string>Sowing 🌱</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.junkichoLab.sowing</string>
+  <key>CFBundleVersion</key>
+  <string>__VERSION__</string>
+  <key>CFBundleShortVersionString</key>
+  <string>__VERSION__</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleSignature</key>
+  <string>SOWG</string>
+  <key>CFBundleExecutable</key>
+  <string>Sowing</string>
+  <key>CFBundleIconFile</key>
+  <string>Sowing.icns</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>11.0</string>
+  <key>LSApplicationCategoryType</key>
+  <string>public.app-category.productivity</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  <key>NSHumanReadableCopyright</key>
+  <string>© 2026 junkicho-lab. MIT License.</string>
+  <!-- Sowing 은 로컬 우선 — 외부 네트워크 권한 안 필요. 단, Listen gem 의 파일 감시 + Localhost 서버 운영. -->
+</dict>
+</plist>

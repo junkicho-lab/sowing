@@ -451,9 +451,14 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
   - Homebrew Tap formula (`packaging/homebrew/sowing.rb`, Tap 게시 후)
 - ✅ **`.github/workflows/build.yml`** — 3 OS CI 매트릭스 (macOS/Ubuntu/Windows) + Docker 이미지 빌드 + 컨테이너 헬스체크
 
-### [-] W8-T03: macOS DMG + codesign + notarize — Deferred (Apple Developer 계정 필요)
-- 우회 (즉시 가능): Docker / sowing-install / Homebrew Tap (모두 codesign 불필요).
-- KNOWN_ISSUES.md 명시.
+### [~] W8-T03: macOS DMG — 부분 완료 (2026-05-10, unsigned ✅)
+- ✅ unsigned DMG 빌드 인프라 — `packaging/macos/build.sh` (로컬) + `.github/workflows/release-macos.yml` (CI v 태그 push)
+- ✅ `Sowing.app` 번들 (Info.plist + launcher.sh) — macOS 시스템 Ruby 3.3+ 자동 탐지
+- ✅ DMG 안에 Gatekeeper 우회 안내 (`먼저 읽어주세요.txt` — 우클릭 열기 또는 xattr -dr quarantine)
+- ✅ 첫 실행 자동 setup (Terminal 창에서 bundle install + db:setup + 브라우저 자동 open)
+- ✅ 로컬 build.sh 검증 — DMG 709KB, hdiutil verify OK, 마운트 정상
+- 🟡 정식 signed/notarized: Apple Developer 계정 + GitHub secrets 등록 시 같은 build.sh + workflow 가 자동 진행 (env vars: SOWING_CODESIGN_IDENTITY / SOWING_NOTARIZE_PROFILE)
+- 우회 (Apple Dev 계정 없는 사용자): 우클릭 → 열기 (한 번) 또는 Docker/sowing-install/Homebrew Tap 사용
 
 ### [-] W8-T04: Windows Inno Setup 인스톨러 — Deferred (Windows VM 필요)
 - 우회 (즉시 가능): WSL2 + sowing-install, 또는 Docker Desktop on Windows.

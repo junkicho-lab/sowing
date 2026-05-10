@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### macOS DMG 인스톨러 (2026-05-10) — W8-T03 부분 완료
+- **`packaging/macos/build.sh`** 로컬 빌드 스크립트 (macOS only):
+  - `Sowing.app` 번들 조립 (Info.plist 버전 치환 + launcher.sh + Resources/sowing/ 소스 복사)
+  - rsync 로 spec/log/dist/.git 등 제외 — .app 안에 Ruby 소스만 포함 (~2.5MB)
+  - DMG 스테이징: Sowing.app + `/Applications` symlink + `먼저 읽어주세요.txt` 안내
+  - `hdiutil create -format UDZO` 압축 → `dist/Sowing-{VERSION}.dmg` (~700KB)
+  - SHA256 체크섬 자동 생성 (`*.dmg.sha256`)
+  - 환경 변수 `SOWING_CODESIGN_IDENTITY` 있으면 codesign 자동 (`--deep --options runtime --timestamp`)
+  - 환경 변수 `SOWING_NOTARIZE_PROFILE` 있으면 notarytool submit + stapler staple 자동
+- **`packaging/macos/Info.plist`** — .app 번들 메타데이터:
+  - CFBundleIdentifier `com.junkichoLab.sowing`
+  - LSMinimumSystemVersion 11.0 (Big Sur+)
+  - LSApplicationCategoryType `public.app-category.productivity`
+  - 버전은 `__VERSION__` placeholder (build.sh 가 sed 치환)
+- **`packaging/macos/launcher.sh`** — `Contents/MacOS/Sowing` 런처:
+  - macOS 시스템 Ruby (`/usr/bin/ruby`, 14.4+ 에 3.3.x) 또는 Homebrew Ruby (`/opt/homebrew/opt/ruby/bin`) 자동 탐지
+  - Ruby 없거나 3.3 미만 → osascript 다이얼로그 + SETUP.md 자동 open
+  - 첫 실행: Terminal 창에서 `bundle install + db:setup + rackup` (1~2분) + 브라우저 자동 open
+  - 재실행: Terminal 창에서 dev 서버만 + 브라우저 open
+  - `~/Library/Application Support/Sowing/.installed` 마커로 첫 실행 판별
+  - 종료: Terminal 창 닫기 또는 ⌃C (lifecycle 명확)
+- **DMG 안의 `먼저 읽어주세요.txt`**:
+  - 설치 절차 (드래그 → 더블클릭)
+  - **Gatekeeper 우회 안내** (우클릭 열기 또는 `xattr -dr com.apple.quarantine`)
+  - vault 위치 (`~/Documents/SowingVault`) 안내
+  - GitHub repo 링크
+- **`.github/workflows/release-macos.yml`** — v 태그 push 시 자동 빌드:
+  - `macos-latest` runner 에서 `build.sh` 실행
+  - GitHub secrets 등록 시 codesign + notarize 자동 활성화 (env vars 자동 export):
+    - `MACOS_CERT_BASE64` / `MACOS_CERT_PASSWORD` → 임시 keychain + p12 import + identity 추출
+    - `MACOS_NOTARY_APPLE_ID` / `MACOS_NOTARY_TEAM_ID` / `MACOS_NOTARY_PASSWORD` → notarytool keychain-profile 등록
+  - 검증 step: `spctl -a -vvv` (signed 시) + `xcrun stapler validate` (notarized 시)
+  - keychain cleanup (`always()` — 인증서 누출 방지)
+  - artifact 업로드 (`*.dmg` + `*.dmg.sha256`, 90일)
+  - GitHub Release 에 자동 첨부 (기존 release.yml 산출물에 추가)
+- **`packaging/macos/README.md`** 신규 — 빠른 빌드 / 사용자 UX / Apple Dev 계정 확보 시 정식 절차 / 아이콘 ICNS 생성 / TODO 체크리스트
+- **`packaging/README.md` 매트릭스 갱신** — macOS DMG (unsigned) ✅ 완료, signed/notarized 🟡 인프라 완료
+- **`README.md` 시작하기** — "macOS DMG 다운로드" 항목 추가
+- 로컬 검증 (macOS 14.4 + arm64):
+  - `./packaging/macos/build.sh` → `Sowing-0.1.0.dmg` 생성 (709KB)
+  - `hdiutil verify` OK
+  - DMG 마운트 → 3 항목 확인 (`Sowing.app`, `Applications` 심볼릭, `먼저 읽어주세요.txt`)
+
 (다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
 
 ## [0.1.0] - 2026-05-10 — 첫 정식 release (MVP + Phase 9~12 + 확장 + 베타 인프라 + 4 설치 경로)

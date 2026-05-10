@@ -70,9 +70,15 @@ brew install sowing
 
 Tap 저장소 게시 진행 중. Formula 미리보기: [packaging/homebrew/sowing.rb](packaging/homebrew/sowing.rb)
 
-### 정식 OS 인스톨러 (출시 후)
+### 정식 OS 인스톨러
 
-[Releases 페이지](https://github.com/junkicho-lab/sowing/releases) — macOS DMG / Windows MSI / Linux AppImage. 신호 인증서 등 외부 리소스 필요해 진행 중. 자세한 패키징 매트릭스: [packaging/README.md](packaging/README.md).
+[Releases 페이지](https://github.com/junkicho-lab/sowing/releases):
+
+- **macOS DMG** ✅ (unsigned) — `Sowing-{VERSION}.dmg` 다운로드 → 드래그 → 우클릭 열기 (Gatekeeper 우회 한 번). DMG 안의 `먼저 읽어주세요.txt` 안내 참조. 시스템 Ruby 3.3+ 필요.
+- **Windows MSI** ⏳ Deferred — Inno Setup + Windows VM 필요. 우회: WSL2 + Docker.
+- **Linux AppImage** ⏳ Deferred — linuxdeploy 환경 필요. 우회: Docker.
+
+자세한 패키징 매트릭스 + 정식 signed DMG 절차: [packaging/README.md](packaging/README.md).
 
 ## 구현 현황 — Phase 1 (MVP) + Phase 9~12 모두 완료 (Software 3.0 전환 끝)
 

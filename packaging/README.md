@@ -7,7 +7,8 @@
 | **소스 직접** (`git clone` + `bundle install`) | ✅ 완료 | Ruby 3.3+ | `SETUP.md` |
 | **Homebrew Tap** (macOS) | 🟡 Formula 작성, Tap 저장소 별도 필요 | 없음 (Apple Dev 불필요) | `packaging/homebrew/sowing.rb` |
 | **GitHub Actions CI 빌드** | ✅ 완료 | 없음 (GitHub-provided runner) | `.github/workflows/build.yml` |
-| **macOS DMG (codesign + notarize)** | ⏳ Deferred | Apple Developer 계정 ($99/년) | `packaging/macos/build.sh` (작성 대기) |
+| **macOS DMG (unsigned)** | ✅ 완료 | 없음 (Apple Dev 불필요) | `packaging/macos/build.sh` + `release-macos.yml` |
+| **macOS DMG (signed + notarized)** | 🟡 인프라 완료 | Apple Developer 계정 ($99/년) + secrets 등록 | 동일 (env vars 자동 활성화) |
 | **Windows Inno Setup** | ⏳ Deferred | Windows VM + Inno Setup | `packaging/windows/installer.iss` (작성 대기) |
 | **Linux AppImage** | ⏳ Deferred | linuxdeploy + 실 환경 | `packaging/linux/build.sh` (작성 대기) |
 | **Tebako 단일 바이너리** | 🟡 스캐폴드 | Tebako 빌드 환경 | `packaging/build.sh` + `packaging/tebako.yml` |
@@ -77,11 +78,15 @@ CI 통과만으로 "이 commit 은 3 OS 에서 동작한다" 확인 가능.
 
 각 OS 별 정식 인스톨러는 외부 리소스 필요해 deferred. 작업 진입 시:
 
-### macOS (W8-T03)
-1. Apple Developer 인증서 등록 (`Developer ID Application`)
-2. `packaging/macos/build.sh` 작성 — codesign + notarize + DMG
-3. Gatekeeper 통과 확인 (`spctl -a -v dist/Sowing.app`)
-4. `.github/workflows/release.yml` 에 macos artifact + signing step 추가
+### macOS (W8-T03) — 부분 완료 (unsigned DMG ✅)
+- ✅ unsigned DMG 빌드 — `./packaging/macos/build.sh` (로컬) 또는 v 태그 push (CI)
+- ✅ `Sowing.app` 번들 (Info.plist + launcher.sh) — Ruby 시스템 의존
+- ✅ DMG 안에 Gatekeeper 우회 안내 (`먼저 읽어주세요.txt`)
+- ✅ 실 DMG 검증 (hdiutil verify, mount 테스트)
+- 🟡 정식 signed/notarized: Apple Developer 계정 + secrets 등록 시 동일 build.sh 가 자동 진행
+  - `SOWING_CODESIGN_IDENTITY` 환경 변수 → codesign 활성화
+  - `SOWING_NOTARIZE_PROFILE` → notarytool submit + stapler staple
+  - 자세한 절차: `packaging/macos/README.md`
 
 ### Windows (W8-T04)
 1. [Inno Setup](https://jrsoftware.org/isinfo.php) 설치

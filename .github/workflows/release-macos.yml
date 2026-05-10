@@ -1,0 +1,147 @@
+# macOS DMG release — v* 태그 push 시 자동 빌드
+#
+# 현재 상태: unsigned DMG (Apple Developer 계정 없이도 동작).
+# 사용자는 Gatekeeper 우회 한 번 필요 — DMG 안의 안내 문서 참조.
+#
+# 정식 signed/notarized DMG: 아래 secrets 등록 시 자동 활성화:
+#   - MACOS_CERT_BASE64       (Developer ID Application p12 base64)
+#   - MACOS_CERT_PASSWORD     (p12 비밀번호)
+#   - MACOS_NOTARY_APPLE_ID   (Apple ID 이메일)
+#   - MACOS_NOTARY_TEAM_ID    (Team ID — Developer 포털)
+#   - MACOS_NOTARY_PASSWORD   (app-specific password)
+#
+# secrets 미등록 시 unsigned DMG 만 빌드 — release-macos job 은 항상 성공.
+
+name: release-macos
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Manual release tag (예: v0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-dmg:
+    name: macOS DMG 빌드 (unsigned)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: 버전·태그 추출
+        id: version
+        shell: bash
+        run: |
+          VERSION="$(ruby -r ./lib/sowing/version -e 'print Sowing::VERSION')"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION, Tag: $TAG"
+
+      # ─── (선택) 코드 사이닝 인증서 import ───
+      - name: keychain 셋업 (signing 시)
+        if: env.MACOS_CERT_BASE64 != ''
+        env:
+          MACOS_CERT_BASE64: ${{ secrets.MACOS_CERT_BASE64 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+        run: |
+          # 임시 keychain 생성 + p12 import
+          KEYCHAIN_PATH=$RUNNER_TEMP/sowing-build.keychain-db
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          CERT_PATH=$RUNNER_TEMP/cert.p12
+          echo "$MACOS_CERT_BASE64" | base64 --decode > "$CERT_PATH"
+          security import "$CERT_PATH" \
+            -k "$KEYCHAIN_PATH" \
+            -P "$MACOS_CERT_PASSWORD" \
+            -T /usr/bin/codesign
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | xargs)
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # identity 추출 → 환경 변수
+          IDENTITY=$(security find-identity -p codesigning -v "$KEYCHAIN_PATH" | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+          echo "SOWING_CODESIGN_IDENTITY=$IDENTITY" >> $GITHUB_ENV
+          echo "✅ codesign identity: $IDENTITY"
+
+      # ─── (선택) notarize keychain-profile 등록 ───
+      - name: notarytool keychain-profile (notarize 시)
+        if: env.MACOS_NOTARY_APPLE_ID != ''
+        env:
+          MACOS_NOTARY_APPLE_ID: ${{ secrets.MACOS_NOTARY_APPLE_ID }}
+          MACOS_NOTARY_TEAM_ID: ${{ secrets.MACOS_NOTARY_TEAM_ID }}
+          MACOS_NOTARY_PASSWORD: ${{ secrets.MACOS_NOTARY_PASSWORD }}
+        run: |
+          xcrun notarytool store-credentials sowing-ci \
+            --apple-id "$MACOS_NOTARY_APPLE_ID" \
+            --team-id "$MACOS_NOTARY_TEAM_ID" \
+            --password "$MACOS_NOTARY_PASSWORD"
+          echo "SOWING_NOTARIZE_PROFILE=sowing-ci" >> $GITHUB_ENV
+          echo "✅ notarize profile 등록"
+
+      # ─── 빌드 ───
+      - name: DMG 빌드 (build.sh)
+        run: ./packaging/macos/build.sh
+
+      - name: 빌드 결과 확인
+        run: |
+          ls -lh dist/
+          file dist/Sowing-${{ steps.version.outputs.version }}.dmg
+
+      # ─── (선택) signed/notarized 검증 ───
+      - name: codesign 검증 (signed 시)
+        if: env.SOWING_CODESIGN_IDENTITY != ''
+        run: |
+          spctl -a -vvv -t install dist/build/Sowing.app || true
+          codesign -vvv --deep --strict dist/build/Sowing.app
+
+      - name: stapler 검증 (notarized 시)
+        if: env.SOWING_NOTARIZE_PROFILE != ''
+        run: xcrun stapler validate dist/Sowing-${{ steps.version.outputs.version }}.dmg
+
+      # ─── artifact 업로드 ───
+      - name: artifact 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: sowing-macos-dmg
+          path: |
+            dist/Sowing-*.dmg
+            dist/Sowing-*.dmg.sha256
+          retention-days: 90
+
+      # ─── GitHub Release 첨부 (v 태그 push 시만) ───
+      - name: GitHub Release 에 첨부
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          files: |
+            dist/Sowing-*.dmg
+            dist/Sowing-*.dmg.sha256
+          # 기존 release 가 있으면 append, 없으면 생성. release.yml 보다 먼저 도달해도 OK.
+          fail_on_unmatched_files: true
+
+      # ─── (선택) keychain cleanup ───
+      - name: keychain 정리
+        if: always() && env.MACOS_CERT_BASE64 != ''
+        run: |
+          security delete-keychain "$RUNNER_TEMP/sowing-build.keychain-db" || true
