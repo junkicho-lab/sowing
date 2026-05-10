@@ -18,9 +18,9 @@ module Sowing
           raise NotImplementedError, "#{self.class}#chat 미구현"
         end
 
-        # 백엔드 식별자 (audit·진단용).
+        # 백엔드 식별자 (audit·진단용). 익명 클래스(`Class.new(Base)`) 도 지원.
         def name
-          self.class.name.split("::").last
+          (self.class.name || "AnonymousBackend").split("::").last
         end
       end
     end

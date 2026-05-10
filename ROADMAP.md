@@ -695,12 +695,17 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 - **결정적 모드 한계 인정**: 한국어 NER 없이 인명 vs 일반 명사 구분 불가 → whitelist 외 이름은 LLM 모드에서만 잡힘. 명시적 trade-off.
 - **선행**: Phase 10 완료
 
-### [ ] W17-T02: StudentDigest 합성기
+### [x] W17-T02: StudentDigest 합성기 — 완료 (2026-05-10)
 - **출력**:
-  - `UseCases::SynthesizeStudentDigest` — 학생당 1 마크다운 파일
-  - 저장: `vault/.sowing/synth/students/{이름}.md`
-  - 프론트매터: `is_synth: true`, `synth_at`, `synth_source_count`, `synth_model`
-- **검증**: "민준" 학생 디제스트 → 등장한 메모·기록 모두 인용 + 출처 링크 + 변화 요약
+  - ✅ `Sowing::UseCases::SynthesizeStudentDigest` — entity → mention된 entries 인용 → 디제스트 생성 → SafeWriter atomic 작성
+  - ✅ 저장: `vault/.sowing/synth/students/{이름}.md` (`.sowing/` prefix 라 watcher 인덱싱 회피)
+  - ✅ 두 모드: 결정적 (timeline + 인용 + mode 아이콘) / LLM (변화·패턴 분석, with_actor("agent"))
+  - ✅ frontmatter 6키: `is_synth: true` / `synth_target` (예: "student:민준") / `synth_at` (ISO8601) / `synth_source_count` / `synth_model` (deterministic|FakeBackend|OpenAI…) / `title`
+  - ✅ graceful: LLM 실패 → 결정적 fallback. vault 파일 사라진 경우 빈 excerpt 로 처리
+  - ✅ 멱등: 같은 학생 재호출 → atomic 덮어쓰기 (synth_at 갱신)
+- **검증**: ROADMAP 시나리오 통과 — 메모(💭) + 기록(📖) 모두 `[[path]]` 위키링크 인용 + 시간순 변화 요약
+- **spec**: 14건 (결정적 모드 4 + LLM 모드 4 + 엣지 케이스 5 + ROADMAP 검증 1)
+- **회귀**: 1052 → 1066 (+14). lint clean. eval:run 회귀 0.
 - **선행**: W17-T01
 
 ### [ ] W17-T03: GapDetector

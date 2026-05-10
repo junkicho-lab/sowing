@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 11 (Tier-1 LLM 합성) 진행 중
+- **W17-T02 완료** (2026-05-10): StudentDigest 합성기
+  - `Sowing::UseCases::SynthesizeStudentDigest` — entity 조회 → mention된 entries 인용 → 디제스트 생성
+  - 두 모드:
+    - **결정적**: timeline + 인용 모음 (mode 아이콘 💭/📝/📖, vault path `[[wikilink]]` 출처)
+    - **LLM 옵트인**: 변화·패턴·후속 과제 분석 (한국어 prompt, "추측 금지·인용 보존" 톤 안내)
+  - 저장: `vault/.sowing/synth/students/{이름}.md` (`.sowing/` prefix → watcher 인덱싱 회피, 사용자 수동 검토 후 일반 entry 위치로 이동 가능)
+  - frontmatter 6키: `is_synth: true` / `synth_target` / `synth_at` / `synth_source_count` / `synth_model` / `title`
+  - SafeWriter atomic write (W1 동일 패턴) → 멱등, 중간 상태 없음
+  - LLM 모드 audit log: `with_actor("agent")` 블록 — Phase 11+ 모든 합성 use case 동일 패턴
+  - graceful: LLM 실패 → 결정적 fallback / vault 파일 사라진 경우 빈 excerpt
+  - 익명 backend (`Class.new(Base)`) 도 작동하도록 `Backends::Base#name` 보강
+  - spec 14건 (결정적 4 + LLM 4 + 엣지 5 + ROADMAP "민준" 시나리오 1)
+  - 회귀: 1052 → 1066 (+14). lint clean. `rake eval:run` 회귀 0.
 - **W17-T01 완료** (2026-05-10): EntityExtractor + entities 테이블
   - migration 006: `entities` (type/name UNIQUE, first/last_seen_at, mention_count) + `entity_mentions` (entity_id ↔ entry_id 다대다)
   - `Sowing::UseCases::ExtractEntities` — 두 모드:
