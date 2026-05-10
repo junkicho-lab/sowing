@@ -39,7 +39,7 @@
 
 [`SETUP.md`](SETUP.md) 를 참조하세요.
 
-## 구현 현황 — Phase 1 (MVP) + Phase 9 (MCP) + Phase 10 (Eval) + Phase 11 (Tier-1 LLM 합성) 완료, Phase 12 진입 준비
+## 구현 현황 — Phase 1 (MVP) + Phase 9~12 모두 완료 (Software 3.0 전환 끝)
 
 > **Phase 1 (W1~W8 MVP)**: 코드·문서 deliverable 모두 갖춰졌습니다 (855 spec pass).
 > 실제 OS별 인스톨러 출시(W8-T03·T04·T05) 와 베타 테스터 모집(W8-T07)은
@@ -59,16 +59,27 @@
 > **Phase 11 (W17~W20 Tier-1 LLM 합성)** ✅ 완료 (2026-05-10):
 > EntityExtractor (결정적 whitelist + LLM 옵트인) + StudentDigest 합성기 (인용
 > 보존, `vault/.sowing/synth/students/`) + GapDetector (4주 미언급 학생 알림,
-> 결정적·LLM 0) + `/synth` 검토 UI (수락→정식 record / 거절→휴지통, audit
-> `:synth_generate`/`:synth_accept`/`:synth_reject` — Phase 12 fine-tuning
-> preference 데이터). **ADR-013 거부 5종 준수** — 자율 mutation 0 (모든 변환은
-> 사용자 명시 클릭), LLM 합성 배지 명시 (의인화 0), 합성물은 `.sowing/synth/`
-> 격리. 회귀 1039 → 1095 spec (+56).
+> 결정적·LLM 0) + `/synth` 검토 UI (수락→정식 record / 거절→휴지통).
+> 회귀 1039 → 1095 spec (+56).
 >
-> **Phase 12 (W21~W24 Tier-2 LLM 합성)**: SemesterReflection / LessonPattern /
-> ContradictionDetector. 결정은 [`docs/DECISIONS.md` ADR-013](docs/DECISIONS.md).
-> MCP 사용은 [`docs/AGENT_GUIDE.md`](docs/AGENT_GUIDE.md), Phase 12 진입은
-> [`KICKOFF.md` Phase 2 섹션](KICKOFF.md) 부터.
+> **Phase 12 (W21~W24 Tier-2 LLM 합성)** ✅ 완료 (2026-05-10):
+> SemesterReflection 합성기 (학기 회고, 청크 분할 — long-context 우회) +
+> ExtractLessonPatterns (잘된/아쉬웠던 수업 후보 인용, 부정 윈도 5자 필터) +
+> DetectContradictions (학생 묘사 시간순 변화, 4 반의어 차원 — 참여도/집중도/
+> 이해도/협력성, 의도적 시나리오 5종 모두 식별) + 통합 `/synth` 대시보드
+> (4 type 한 화면 + "이번 주 새로 합성" 배지 + type별 카테고리 매핑).
+> 회귀 1095 → 1166 spec (+71).
+>
+> **Phase 2 (Software 3.0 전환) 코드 deliverable 모두 완료** — Phase 9 (MCP)
+> + Phase 10 (Eval) + Phase 11 (Tier-1) + Phase 12 (Tier-2). 855 → 1166 spec
+> (+311). **ADR-013 거부 5종 준수** — 자율 mutation 0 (모든 변환은 사용자 명시
+> 클릭), LLM 합성 배지 명시 (의인화 0), 합성물은 `.sowing/synth/` 격리, 4
+> audit action (`:synth_generate`/`:synth_accept`/`:synth_reject`) 으로 사용자
+> 선호 데이터 누적 — Phase 13+ fine-tuning 기반.
+>
+> **다음 단계**: 베타 사용자 모집 + 실제 사용 데이터 측정 (학생 디제스트 정확률,
+> 수락률, "학교 보고서 80% 작성" 회고). 결정은 [`docs/DECISIONS.md` ADR-013](docs/DECISIONS.md).
+> MCP 사용은 [`docs/AGENT_GUIDE.md`](docs/AGENT_GUIDE.md).
 
 ### ✅ 동작하는 기능
 
@@ -107,13 +118,18 @@
     - Runner + ResultStore — 결과 회귀 비교 (Δ < -0.5 면 CI fail), GitHub Actions 자동 실행
   - **Tier-1 LLM 합성 (Phase 11)** — `/synth` 라우트 + `entities` 테이블
     - `EntityExtractor` — 결정적 whitelist 30 인명 + 조사 패턴 + 과목·장소 사전 / LLM 옵트인 (한국어 NER prompt)
-    - `SynthesizeStudentDigest` — 학생당 1 디제스트 (인용 보존, 결정적 fallback + LLM 옵트인). 저장: `vault/.sowing/synth/students/{이름}.md` (`.sowing/` prefix → watcher 인덱싱 회피)
-    - `DetectStudentGaps` — class_roster vs 4주 활성 entity 비교, 미언급 학생 알림 (대시보드 `gap-card`, 결정적·LLM 0)
-    - `SynthController` — `/synth` 검토 UI (5 라우트: 목록/상세/생성/수락/거절). 수락 → `Domain::Record` 변환 → `Persistence#persist!` → `30_Records/{YYYY}/학생기록/`. 거절 → `.sowing/trash`
-    - audit log 확장 — `:synth_generate` / `:synth_accept` / `:synth_reject` (Phase 12 fine-tuning preference 데이터)
-    - 합성기 패턴: `AuditLog.with_actor("agent")` 블록 + LLM 실패 시 결정적 fallback + frontmatter `is_synth: true` 명시
+    - `SynthesizeStudentDigest` — 학생당 1 디제스트 (인용 보존, 결정적 fallback + LLM 옵트인). 저장: `vault/.sowing/synth/students/{이름}.md`
+    - `DetectStudentGaps` — class_roster vs 4주 활성 entity 비교, 대시보드 `gap-card` 알림 (결정적·LLM 0)
+    - `SynthController` — `/synth` 검토 UI 초기 버전 (W21-T04 에서 4 type 통합)
+  - **Tier-2 LLM 합성 (Phase 12)** — 통합 `/synth` 대시보드 4 type
+    - `SynthesizeSemesterReflection` — 학기 회고 (5~1000건 entries, default 6개월), 월 단위 청크 분할 → 청크별 요약 → 종합 prompt (long-context 우회). 5 LLM 출력 섹션 (이번 학기 흐름/변화의 순간들/잘된 점/아쉬웠던 점/다음 학기 준비)
+    - `ExtractLessonPatterns` — 수업 카테고리 entries → 잘된/아쉬웠던 후보 인용. POSITIVE 19종 + NEGATIVE 17종 키워드 + 부정 윈도 5자 필터 ("잘 안 됐다" 무효화)
+    - `DetectContradictions` — 학생 mention 시간순 분석 → 4 반의어 차원 (참여도/집중도/이해도/협력성) → 변화 후보 + 향상/후퇴 방향 자동 판정. 톤: "모순" 대신 *변화·발견* (자율 판단 0)
+    - **통합 `/synth` 대시보드** (W21-T04) — `SYNTH_TYPES` 상수 4 type 통합 라우팅. `GET /synth` 4 섹션 collapsible + "이번 주 새로 합성됨" 배지 (펄스 애니메이션). type별 accept_category 매핑 — 학생기록/학기회고/수업기록/학생기록
+    - audit 4 action (`:synth_generate`/`:synth_accept`/`:synth_reject`) — Phase 13+ fine-tuning preference 데이터
+    - 합성기 공통 패턴: `AuditLog.with_actor("agent")` Thread-local 스택 + LLM 실패 시 결정적 fallback + frontmatter `is_synth: true` 명시 + `.sowing/synth/` 격리 (watcher 인덱싱 회피, 사용자 글과 명확 구분)
 - **CLI**: `bin/sowing memo "내용"`, `bin/sowing-doctor`, `bin/sowing-mcp`, `rake vault:seed`, `rake vault:reindex`, `rake eval:run`
-- **테스트**: `bundle exec rspec` (1095건 통과 — Phase 1 855 + Phase 9 91 + Phase 10 93 + Phase 11 56)
+- **테스트**: `bundle exec rspec` (1166건 통과 — Phase 1 855 + Phase 9 91 + Phase 10 93 + Phase 11 56 + Phase 12 71)
 
 ### 구현된 컴포넌트
 
@@ -175,7 +191,9 @@
 | `Controllers::TutorialController` | `/tutorial` 4단계 학습 — IndexRepo 카운트로 자동 감지·진행 |
 | `Controllers::GuidesController` | `/guides` 동기화 가이드 4종 (iCloud/OneDrive/Dropbox/Syncthing) 마크다운 → HTML 렌더 |
 | `Controllers::SettingsController` | `/settings` — 프로필 / 학급 명단 (Phase 11 GapDetector) / 경로·단축키 안내 / 백업 / 샘플 일괄 삭제 / 온보딩·튜토리얼 재실행 |
-| `Controllers::SynthController` | `/synth` (목록), `/synth/students/:slug` (상세), `POST` `/generate`·`/accept`·`/reject` — Phase 11 합성 검토 UI |
+| `Controllers::SynthController` | 통합 `/synth` 대시보드 (W21-T04) — 4 type (`students`/`reflections`/`patterns`/`contradictions`) 통합 라우팅. `GET /synth`·`GET /synth/:type/:slug`·`POST /synth/:type/:slug/{accept,reject}` + type별 generate 라우트. SYNTH_TYPES 상수로 카테고리 매핑(학생기록/학기회고/수업기록/학생기록) |
+| `Controllers::PreviewController` | `POST /preview` Turbo Stream |
+| `Controllers::ApiController` | `GET /api/wiki_complete`, `GET /api/tag_complete`, `GET /api/quick_search` (JSON) |
 
 #### MCP (Model Context Protocol — Phase 9)
 | 모듈 | 역할 |
@@ -204,9 +222,15 @@
 | `UseCases::ExtractEntities` | 결정적 whitelist (30 인명) + 조사 패턴 + 과목·장소 사전 / LLM 옵트인 NER. `with_actor("agent")` 통합. 멱등 (mention_count 만 증가) |
 | `UseCases::SynthesizeStudentDigest` | 학생당 1 디제스트 — 결정적 (timeline + 인용) + LLM 옵트인 (변화·패턴 분석). 저장 `vault/.sowing/synth/students/`, frontmatter 6키 (`is_synth`/`synth_target`/`synth_at`/`synth_source_count`/`synth_model`/`title`). LLM 실패 시 결정적 fallback |
 | `UseCases::DetectStudentGaps` | class_roster vs 활성 entity 비교 (`last_seen_at >= now - weeks_back × 7d`). 결과 `{unmentioned, mentioned, roster_size, gap_ratio, since}`. 결정적·LLM 0 |
-| `Controllers::SynthController` | `/synth` 검토 UI 5 라우트 — 목록/상세/생성/수락/거절. 수락 → `persist!` (audit `:create` + `:synth_accept`) + `30_Records/{YYYY}/학생기록/`. 거절 → `.sowing/trash`. 명시적 사용자 클릭 게이트 (자율 mutation 0) |
-| `Controllers::PreviewController` | `POST /preview` Turbo Stream |
-| `Controllers::ApiController` | `GET /api/wiki_complete`, `GET /api/tag_complete`, `GET /api/quick_search` (JSON) |
+| `Controllers::SynthController` | (W21-T04 에서 4 type 통합으로 진화 — Phase 12 섹션 참조) |
+
+#### Tier-2 LLM 합성 (Phase 12)
+| 모듈 | 역할 |
+|------|------|
+| `UseCases::SynthesizeSemesterReflection` | 학기 회고 (5~1000건 entries, default 6개월) — 결정적 (통계 + 월별 청크 + top-N 학생/카테고리) + LLM 옵트인 (월 청크 분할 → 청크별 요약 → 종합 prompt, long-context 우회). 5 LLM 출력 섹션 (이번 학기 흐름/변화의 순간들/잘된 점/아쉬웠던 점/다음 학기 준비). 저장 `vault/.sowing/synth/reflections/{label}.md`, frontmatter 8키 |
+| `UseCases::ExtractLessonPatterns` | 수업 카테고리 entries → 잘된/아쉬웠던 후보 인용. POSITIVE 19종 + NEGATIVE 17종 키워드 + 부정 윈도 5자 필터 (안/못/없/지 못/하지 못) 로 false positive 줄임. LLM 모드: 패턴 후보 + "다음 수업에 시도할 만한 것". 저장 `vault/.sowing/synth/patterns/lessons.md` (단일 파일, 누적 재합성). frontmatter 9키 (synth_categories 포함) |
+| `UseCases::DetectContradictions` | 학생 mention 시간순 분석 → 4 반의어 차원 (참여도/집중도/이해도/협력성) 양 끝 매칭 → 변화 후보 + 향상/후퇴 방향 자동 판정. 톤: "모순" 대신 *변화·발견*. LLM 모드: 분기점 사건 식별 + 다음 관찰 제안. 저장 `vault/.sowing/synth/contradictions/observations.md` (단일 파일). frontmatter 9키 (synth_students 포함) |
+| `Controllers::SynthController` (W21-T04) | 통합 `/synth` 대시보드 — `SYNTH_TYPES` 4 type (students/reflections/patterns/contradictions) 통합 라우팅. 4 섹션 collapsible UI + "이번 주 새로 합성됨" 펄스 배지. type별 accept_category 매핑 (학생기록/학기회고/수업기록/학생기록). 백워드 호환 — 기존 W17-T04 students 라우트 유지 |
 
 #### Frontend (Hotwire — 빌드 도구 0)
 | 컨트롤러 | 역할 |
@@ -246,14 +270,14 @@
 
 **Phase 1 규모**: 13개 컨트롤러 · 86개 라우트 · 855건 spec pass · standardrb 0 issue · 5x stress 0 failures.
 
-## Phase 2 — Software 3.0 전환 (W9~W24, Phase 9·10·11 완료)
+## Phase 2 — Software 3.0 전환 (W9~W24, ✅ 코드 deliverable 모두 완료)
 
 | Week | Phase | 상태 | 마일스톤 |
 |------|-------|------|----------|
 | W9~12 | Phase 9: Agent-Native Surface | ✅ **완료** (2026-05-09) | 12개 MCP 도구 + audit log + AGENT_GUIDE.md |
 | W13~16 | Phase 10: Eval Infrastructure | ✅ **완료** (2026-05-10) | corpus 100건 + Judge·Kappa·4 백엔드 + CI eval + 5 한국어 차원 |
 | W17~20 | Phase 11: Tier-1 LLM 합성 | ✅ **완료** (2026-05-10) | EntityExtractor + StudentDigest + GapDetector + `/synth` 검토 UI (수락/거절 audit) |
-| W21~24 | Phase 12: Tier-2 LLM 합성 | ⏭ 다음 | 학기말 회고 합성 + 수업 패턴 + 모순 탐지 |
+| W21~24 | Phase 12: Tier-2 LLM 합성 | ✅ **완료** (2026-05-10) | SemesterReflection (청크 분할) + LessonPattern (부정 윈도 필터) + ContradictionDetector (4 반의어 차원) + 통합 `/synth` 대시보드 (4 type) |
 
 **기반**: Karpathy의 [Sequoia Ascent 2026 발표](sowing-docs/background.md) 12 명제로 Sowing 점검 결과 ([`sowing-docs/EVALUATION.md`](sowing-docs/EVALUATION.md)). 결정은 [ADR-013](docs/DECISIONS.md), 작업 분해는 [`ROADMAP.md`](ROADMAP.md) Phase 2 섹션, 진입자 안내는 [`KICKOFF.md` Phase 2](KICKOFF.md) 참조.
 

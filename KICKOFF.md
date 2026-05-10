@@ -224,14 +224,18 @@ claude "vault:reindex 작업을 만드는데, 먼저 dry-run 모드를 만들고
   - 5 한국어 도메인 차원 (`Sowing::Eval::KoreanDimensions`)
   - `rake eval:run` + `.github/workflows/eval.yml` (회귀 자동 측정)
 - **Phase 11 (Tier-1 LLM 합성) ✅ 완료** (2026-05-10):
-  - W17-T01 `ExtractEntities` + migration 006 (`entities` UNIQUE(type,name) + `entity_mentions`) — 결정적 whitelist 30 인명 + 조사 패턴 + 과목·장소 사전, LLM 옵트인 NER
-  - W17-T02 `SynthesizeStudentDigest` — 학생당 1 디제스트 (timeline + 인용 결정적 모드 + LLM 변화·패턴 분석 모드), `vault/.sowing/synth/students/` 에 `is_synth: true` frontmatter 로 저장, LLM 실패 시 결정적 fallback
-  - W17-T03 `DetectStudentGaps` + Settings `class_roster` + Dashboard `gap-card` — 4주 미언급 학생 알림 (결정적·LLM 0)
-  - W17-T04 `SynthController` + `/synth` 검토 UI — 수락 → `Domain::Record` + `Persistence#persist!` (audit `:create` + `:synth_accept`) → `30_Records/{YYYY}/학생기록/`. 거절 → `.sowing/trash` + audit `:synth_reject`. 명시적 사용자 클릭만 mutation
-  - `AuditLog::ALLOWED_ACTIONS` — `:synth_generate`/`:synth_accept`/`:synth_reject` 추가 (Phase 12 fine-tuning preference 데이터)
-  - 합성기 패턴 확립: `with_actor("agent")` 블록 + 결정적 fallback + frontmatter `is_synth: true` + `.sowing/synth/` 격리 (watcher 인덱싱 회피, 사용자 글과 명확 구분)
-- **1095건 spec pass / standardrb clean / 5x stress 안정** (855 → 1095, +240 from Phase 9·10·11).
-- **14개 컨트롤러 / 91개 라우트 / 3-tier 도메인 (Memo/Note/Record) + 합성 격리 (.sowing/synth) / 양방향 동기화 / 12종 템플릿 + 12건 샘플 / 4단계 온보딩 + 3분 튜토리얼 / 12 MCP 도구 / 100 eval corpus / 12 평가 차원 / Phase 11 합성기 3종 + entities/entity_mentions 테이블 + /synth 검토 UI**.
+  - W17-T01 `ExtractEntities` + migration 006 (`entities` UNIQUE(type,name) + `entity_mentions`)
+  - W17-T02 `SynthesizeStudentDigest` — 학생당 1 디제스트
+  - W17-T03 `DetectStudentGaps` + Settings `class_roster` + Dashboard `gap-card`
+  - W17-T04 `SynthController` + `/synth` 검토 UI 초기 버전 (W21-T04 에서 4 type 통합으로 진화)
+- **Phase 12 (Tier-2 LLM 합성) ✅ 완료** (2026-05-10):
+  - W21-T01 `SynthesizeSemesterReflection` — 학기 회고 (5~1000건 entries, default 6개월). **월 단위 청크 분할** (long-context 우회 — backend 작은 context window 도 안전). 5 LLM 출력 섹션
+  - W21-T02 `ExtractLessonPatterns` — 수업 카테고리 entries → 잘된/아쉬웠던 후보 인용. POSITIVE 19종 + NEGATIVE 17종 + **부정 윈도 5자 필터** (안/못/없/지 못/하지 못 인접 시 매칭 무효화 — "잘 안 됐다" → "잘" 무효)
+  - W21-T03 `DetectContradictions` — 학생 mention 시간순 분석 → 4 반의어 차원 (참여도/집중도/이해도/협력성) → 변화 후보 + 향상/후퇴 자동 판정. 톤: "모순" 대신 *변화·발견* (자율 판단 0). **의도적 시나리오 5종 모두 식별** (ROADMAP 검증 충족)
+  - W21-T04 통합 `/synth` 대시보드 — `SYNTH_TYPES` 4 type 통합 라우팅 (`students`/`reflections`/`patterns`/`contradictions`). 4 섹션 collapsible UI + "이번 주 새로 합성됨" 펄스 배지. type별 accept_category 매핑 (학생기록/학기회고/수업기록/학생기록). 백워드 호환 — 기존 W17-T04 spec 무수정 통과
+  - 합성기 공통 패턴 확립: `with_actor("agent")` Thread-local 스택 + LLM 실패 시 결정적 fallback + frontmatter `is_synth: true` + `.sowing/synth/` 격리 + audit 4 action (`synth_generate`/`synth_accept`/`synth_reject`) — Phase 13+ fine-tuning preference 데이터
+- **1166건 spec pass / standardrb clean / 5x stress 안정** (855 → 1166, +311 from Phase 9·10·11·12).
+- **14개 컨트롤러 / 91개 라우트 / 3-tier 도메인 (Memo/Note/Record) + 합성 격리 (.sowing/synth/{students,reflections,patterns,contradictions}) / 양방향 동기화 / 12종 템플릿 + 12건 샘플 / 4단계 온보딩 + 3분 튜토리얼 / 12 MCP 도구 / 100 eval corpus / 12 평가 차원 / 합성기 6종 (Phase 11 ExtractEntities·StudentDigest·GapDetector + Phase 12 SemesterReflection·LessonPatterns·DetectContradictions) + entities/entity_mentions 테이블 + 통합 /synth 대시보드 (4 type)**.
 - **W8 deferred**: T01 시스템 트레이 / T03 macOS 코드사인 / T04 Windows 인스톨러 / T05 Linux AppImage / T07 베타 테스터.
 
 ## P2.2 가장 먼저 읽을 것 (순서 중요)
@@ -260,48 +264,56 @@ claude "vault:reindex 작업을 만드는데, 먼저 dry-run 모드를 만들고
 4. ✅ 로컬 우선 — 외부 서버 강제 안 함
 5. ✅ 영구 삭제 금지 — 휴지통·충돌 백업
 
-## P2.4 Phase 12 첫 작업 (W21-T01 SemesterReflection) 시작 절차
+## P2.4 Phase 2 종료 후 다음 작업 — 사용자 검증 + 패키징
 
-> **Phase 9·10·11 모두 완료**. Phase 12 (Tier-2 LLM 합성, W21~24) 진입 가능.
-> Phase 11 의 합성기 패턴(`with_actor("agent")` + 결정적 fallback + `is_synth`
-> frontmatter + `.sowing/synth/` 격리 + `/synth` 검토 UI 의 수락/거절 audit) 을
-> 그대로 확장. 학생 1명 단위(Phase 11) → 학기 단위(Phase 12) 로 합성 범위 확대.
+> **Phase 9·10·11·12 모두 완료**. 코드 deliverable 측면에서 Phase 2 (Software 3.0
+> 전환) 은 끝났다. 이제 *실 사용자 데이터* 가 필요한 단계.
 
-1. **상태 확인**:
-   ```sh
-   cd /Users/woodncarpenter/projects/sowing
-   bundle exec rspec | tail -3         # 1095 examples, 0 failures 확인
-   bundle exec standardrb | tail -2    # exit=0 확인
-   bin/sowing-doctor | tail -25        # MCP / Audit / Eval / Phase 11 섹션 정상
-   bundle exec rake eval:run           # FakeBackend baseline 회귀 확인 (선택)
-   ```
+남은 작업 두 갈래:
 
-2. **읽기 (필수, 순서대로)**:
-   - `sowing-docs/EVALUATION.md` §3 Phase 12 작업 분해 (회고·패턴·모순 합성)
-   - `lib/sowing/use_cases/synthesize_student_digest.rb` — Phase 11 합성기 패턴 참고 (frontmatter, deterministic fallback, LLM prompt 분리)
-   - `lib/sowing/controllers/synth_controller.rb` — `/synth` UI 가 학생 디제스트와 학기 회고를 어떻게 동시에 다룰지 (synth_target prefix `student:` vs `semester:` 등)
-   - `eval/corpus/teacher_writings/` — `task_type: reflection` / `contradiction` case 들 (Phase 12 검증 기반)
+### A. 베타 사용자 검증 (Phase 11~12 마일스톤 측정)
 
-3. **W21-T01 작업** (SemesterReflection 합성기):
-   - 새 use case: `Sowing::UseCases::SynthesizeSemesterReflection`
-     - 입력: 100~500건 entries (3~6 개월 범위)
-     - 출력: 마크다운 회고 (자주 등장한 학생 / 자주 다룬 주제 / 변화의 순간들 / 잘된 / 아쉬웠던 / 다음 학기 준비)
-     - 청크 분할 + 점진적 합성 (long-context 한계 우회)
-   - 저장: `vault/.sowing/synth/reflections/{semester_label}.md`
-     - frontmatter: `is_synth: true`, `synth_target: "semester:2026-1"`, `synth_at`, `synth_source_count`, `synth_model`
-   - `SynthController` 확장 — `/synth/reflections/:slug` 라우트 추가 (또는 통합 목록)
-   - audit `:synth_generate`/`:synth_accept`/`:synth_reject` 그대로 재사용
+ROADMAP 의 Phase 11/12 마일스톤은 *사용자 회고* 가 필요:
+- Phase 11 마일스톤: 학생 디제스트 정확률 ≥ 80%, 사용자 수락률 ≥ 50%
+- Phase 12 마일스톤: "학교 보고서 80% 작성됐다" 베타 사용자 회고 ≥ 3건
 
-4. **검증**:
-   - eval 코퍼스 reflection task case 에서 coverage·structure·korean_consistency ≥ 4점 평균
-   - 청크 분할 결정성 (같은 입력 → 같은 청크 경계) spec 화
-   - `bundle exec rspec` — 회귀 1095건 + 신규 spec 통과
-   - `bundle exec rake eval:run` — 차원 평균 하락 없음 (regressed=false)
-   - lint clean. 5x stress 안정.
+이는 audit `:synth_accept`/`:synth_reject` 카운터 + 베타 사용자 대상 인터뷰가 필요.
+인프라는 모두 갖춰졌으므로, **베타 모집 + 한 학기 사용 + 데이터 측정** 절차를 따른다.
 
-5. **커밋**: `[W21-T01] SemesterReflection 합성기 — 학기 회고 자동 합성 (청크 분할)`
+진입자 액션:
+1. `W8-T07` (베타 테스터 5명 모집) 부터 시작 — `ROADMAP.md` 참조
+2. 학교 사용 환경에서 한 학기 사용 후 audit log 분석:
+   - `vault/.sowing/audit.log` 의 `synth_accept` vs `synth_reject` 비율 → 수락률
+   - synth 산출물의 실제 정확성 → 인터뷰 측정
+3. 측정 결과를 ROADMAP 마일스톤 블록에 기록 (실패 시 Phase 13 으로 보강 task 정의)
 
-이후 W21-T02 (LessonPattern 추출), W21-T03 (ContradictionDetector), W21-T04 (eval 종합 회귀) 진입.
+### B. 패키징 / 배포 (W8 deferred 잔여)
+
+코드는 완성됐지만 사용자가 설치 가능한 바이너리는 아직 없다:
+- W8-T02 Tebako 빌드 검증 — 실제 Tebako 환경에서 빌드 시도
+- W8-T03 macOS DMG codesign — Apple Developer 계정 필요
+- W8-T04 Windows Inno Setup — Windows VM 필요
+- W8-T05 Linux AppImage — linuxdeploy 환경 필요
+- W8-T08 GitHub Release — 위 4종 바이너리 후
+
+진입자 액션:
+1. `packaging/` 디렉토리 + `ROADMAP.md` "출시 후 즉시 작업" 섹션 참조
+2. macOS 부터 시작 (Apple Developer 계정 + notarization 정책 가장 명확)
+3. 각 OS별 인스톨러 완성 후 `bin/sowing-doctor` 가 패키지된 환경에서도 정상 동작하는지 확인
+
+### C. 새 LLM 합성기 추가 (선택)
+
+기존 6종 합성기 (Phase 11 3종 + Phase 12 3종) 외 추가 합성기 가능:
+- 학부모 상담 요약 (category="상담" entries → 학기별 상담 패턴)
+- 평가 누적 (category="평가" → 단원별 학생 성취 추이)
+- 연수 흡수 (category="연수" → 연수 내용 → 실제 수업 적용 사례 매칭)
+
+새 합성기 추가 시 패턴:
+- `Sowing::UseCases::Synthesize{Name}` (Phase 11~12 패턴 그대로)
+- `vault/.sowing/synth/{type}/` 새 subdir
+- `SynthController::SYNTH_TYPES` 에 type 추가 (subdir/label/icon/accept_category/target_prefix)
+- spec — 결정적 + LLM + 가드·엣지 + ADR-013 자율 mutation 0 검증
+- doctor "[Tier-2 LLM 합성 (Phase 12)]" 섹션에 use case 등록 확인 추가
 
 ## P2.5 Phase 2 작업 시 추가 검증 게이트
 
