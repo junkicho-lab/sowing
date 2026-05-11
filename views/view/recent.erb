@@ -1,0 +1,104 @@
+<section class="view-recent">
+  <header class="view-recent__header">
+    <h1>🕐 최근 (통합)</h1>
+    <p class="view-recent__lede">
+      메모·필기·기록을 한 흐름으로 — 시간순 최근 <strong><%= @entries.size %></strong>건.
+      <a href="/records/by-category">📊 카테고리 × 연도 매트릭스</a> ·
+      <a href="/records/timeline">📅 Timeline</a> ·
+      <a href="/graph">🕸 그래프</a>
+    </p>
+  </header>
+
+  <%# 모드 필터 chip — 4개 (전체 / 메모 / 필기 / 기록) %>
+  <nav class="view-recent__filters" aria-label="모드 필터">
+    <a href="/view/recent<%= @selected_category ? "?category=#{Rack::Utils.escape(@selected_category)}" : "" %>"
+       class="view-recent__chip <%= "view-recent__chip--active" unless @selected_mode %>">전체</a>
+    <% %w[memo note record].each do |m| %>
+      <% q = {mode: m} %>
+      <% q[:category] = @selected_category if @selected_category %>
+      <a href="/view/recent?<%= Rack::Utils.build_query(q) %>"
+         class="view-recent__chip <%= "view-recent__chip--active" if @selected_mode == m %>">
+        <%= view_mode_label(m) %>
+      </a>
+    <% end %>
+  </nav>
+
+  <%# 카테고리 chip — 동적, 현재 vault 데이터 기반 %>
+  <% if @available_categories.any? %>
+    <nav class="view-recent__filters view-recent__filters--cats" aria-label="카테고리 필터">
+      <a href="/view/recent<%= @selected_mode ? "?mode=#{@selected_mode}" : "" %>"
+         class="view-recent__chip view-recent__chip--cat <%= "view-recent__chip--active" unless @selected_category %>">전체 카테고리</a>
+      <% @available_categories.each do |cat| %>
+        <% q = {category: cat} %>
+        <% q[:mode] = @selected_mode if @selected_mode %>
+        <a href="/view/recent?<%= Rack::Utils.build_query(q) %>"
+           class="view-recent__chip view-recent__chip--cat <%= "view-recent__chip--active" if @selected_category == cat %>">
+          <%= h(cat) %>
+        </a>
+      <% end %>
+    </nav>
+  <% end %>
+
+  <%# entries 리스트 — 시간순, mode 뱃지 + 카테고리 + 제목 + 발췌 %>
+  <% if @entries.empty? %>
+    <div class="empty-state empty-state--inline">
+      <p>현재 조건에 맞는 entries 가 없습니다.</p>
+      <p class="empty-state__hint">
+        필터를 비우거나 <a href="/view/recent">전체로 돌아가기</a>.
+      </p>
+    </div>
+  <% else %>
+    <ul class="view-recent__list">
+      <% @entries.each do |e| %>
+        <li class="view-recent__item view-recent__item--<%= e.mode %>">
+          <header class="view-recent__item-head">
+            <span class="view-recent__badge view-recent__badge--<%= e.mode %>">
+              <%= view_mode_label(e.mode) %>
+            </span>
+            <% if e.category && !e.category.to_s.empty? %>
+              <span class="view-recent__cat"><%= h(e.category) %></span>
+            <% end %>
+            <time class="view-recent__date" datetime="<%= e.created_at.iso8601 %>">
+              <%= e.created_at.strftime("%m/%d %H:%M") %>
+            </time>
+          </header>
+
+          <h3 class="view-recent__title">
+            <a href="<%= view_mode_path(e) %>">
+              <% if e.title && !e.title.to_s.empty? %>
+                <%= h(e.title) %>
+              <% else %>
+                <span class="view-recent__no-title">(제목 없음)</span>
+              <% end %>
+            </a>
+          </h3>
+
+          <% excerpt = view_body_excerpt(e) %>
+          <% if excerpt && !excerpt.empty? %>
+            <p class="view-recent__excerpt"><%= h(excerpt) %><%= "…" if excerpt.length >= 160 %></p>
+          <% end %>
+
+          <% if e.tags && e.tags.any? %>
+            <div class="view-recent__tags">
+              <% e.tags.first(5).each do |tag| %>
+                <a href="/tags/<%= Rack::Utils.escape(tag) %>" class="view-recent__tag">#<%= h(tag) %></a>
+              <% end %>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%# 페이징 — 더 많이 보기 %>
+  <% if @entries.size >= @limit && @limit < 300 %>
+    <div class="view-recent__more">
+      <% q = {limit: [@limit * 2, 300].min} %>
+      <% q[:mode] = @selected_mode if @selected_mode %>
+      <% q[:category] = @selected_category if @selected_category %>
+      <a href="/view/recent?<%= Rack::Utils.build_query(q) %>" class="button button--ghost">
+        더 보기 (현재 <%= @limit %> → <%= q[:limit] %>)
+      </a>
+    </div>
+  <% end %>
+</section>

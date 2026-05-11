@@ -75,10 +75,10 @@ RSpec.describe "동사 중심 nav (Phase 13 W25-T01)", type: :request do
       expect(last_response.location).to include("write=general")
     end
 
-    it "GET /view → /records redirect" do
+    it "GET /view → /view/recent redirect (W26-T03 실 구현으로 교체)" do
       get "/view"
       expect(last_response.status).to eq(302)
-      expect(last_response.location).to end_with("/records")
+      expect(last_response.location).to end_with("/view/recent")
     end
 
     it "GET /plan → /settings redirect + flash 안내" do

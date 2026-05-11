@@ -35,11 +35,8 @@ module Sowing
         redirect "/?write=#{subtype}"
       end
 
-      get "/view" do
-        # W26 에서 메모·필기·기록 시간순 통합 + 카테고리 chip 필터로 교체.
-        # 현재는 기존 기록 목록 (이미 카테고리 chip 보유).
-        redirect "/records"
-      end
+      # /view 는 ViewController 가 처리 — NavController 에서는 라우트 정의 안 함.
+      # (Sinatra mount 순서로 인해 ViewController 가 먼저 매칭됨)
 
       get "/plan" do
         # W27 에서 Plan 도메인 객체 + 40_Plans/ 폴더 진입으로 교체.
