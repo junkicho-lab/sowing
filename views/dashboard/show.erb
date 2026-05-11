@@ -68,6 +68,40 @@
     </aside>
   <% end %>
 
+  <aside class="synth-summary <%= "synth-summary--empty" if @synth_summary.nil? %>" aria-labelledby="synth_summary_heading">
+    <h2 id="synth_summary_heading">🌱 합성기 검토</h2>
+    <% if @synth_summary %>
+      <p class="synth-summary__hint">
+        검토 대기 중인 합성 결과 <strong><%= @synth_summary[:total] %>건</strong>
+        (<%= @synth_summary[:types].size %> type)
+        — <a href="/synth">/synth 검토 →</a>
+      </p>
+      <ul class="synth-summary__list">
+        <% @synth_summary[:types].each do |t| %>
+          <li class="synth-summary__item">
+            <a href="/synth#<%= h(t[:type]) %>" class="synth-summary__chip" title="<%= h(t[:label]) %> — /synth 에서 검토">
+              <span class="synth-summary__icon"><%= t[:icon] %></span>
+              <span class="synth-summary__label"><%= h(t[:label]) %></span>
+              <span class="synth-summary__count"><%= t[:count] %></span>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+      <% if @synth_summary[:latest] %>
+        <p class="synth-summary__latest">
+          가장 최근: <code><%= h(@synth_summary[:latest][:path]) %></code>
+          <small>(<%= @synth_summary[:latest][:mtime].strftime("%m/%d %H:%M") %>)</small>
+        </p>
+      <% end %>
+    <% else %>
+      <p class="synth-summary__hint">
+        아직 합성 결과가 없어요. <strong>16 type LLM·결정적 합성기</strong> 로
+        학생 디제스트·학기 회고·수업 패턴 등을 자동 정리할 수 있습니다.
+        <a href="/synth">🌱 합성기 진입 →</a>
+      </p>
+    <% end %>
+  </aside>
+
   <aside class="on-this-day <%= "on-this-day--empty" if @on_this_day.nil? || @on_this_day.empty? %>" aria-labelledby="on_this_day_heading">
     <h2 id="on_this_day_heading">📅 이날의 회고 — <%= Time.now.month %>월 <%= Time.now.day %>일</h2>
     <% if @on_this_day && @on_this_day.any? %>

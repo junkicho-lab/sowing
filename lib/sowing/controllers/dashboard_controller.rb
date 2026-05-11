@@ -49,10 +49,41 @@ module Sowing
         @tutorial_completed = !Infrastructure::Settings.load["tutorial_completed_at"].nil?
         @gap_summary = compute_gap_summary
         @on_this_day = compute_on_this_day  # 30년 시나리오 — 같은 월·일 다년 entries
+        @synth_summary = compute_synth_summary  # 16 합성기 검토 대기 카운트
         erb :"dashboard/show", layout: :"layouts/application"
       end
 
       private
+
+      # 16 type 합성기 검토 대기 카운트 + 가장 최근 합성 안내.
+      # 16 type 모든 디렉토리를 한 번에 스캔 — vault 가 작아 비용 미미.
+      # SynthController::SYNTH_TYPES 와 동기화 (controller 가 source of truth).
+      def compute_synth_summary
+        synth_root = Infrastructure::Paths.vault_dir.join(".sowing/synth")
+        return nil unless synth_root.exist?
+
+        types_meta = Sowing::Controllers::SynthController::SYNTH_TYPES
+        items = []
+        types_meta.each do |type, meta|
+          dir = synth_root.join(meta[:subdir])
+          next unless dir.exist?
+          paths = Dir.glob(dir.join("*.md"))
+          next if paths.empty?
+          items << {type: type, label: meta[:label], icon: meta[:icon], count: paths.size}
+        end
+        return nil if items.empty?
+
+        # 가장 최근 합성 1건 — 모든 type 의 모든 파일 mtime 으로 정렬
+        all_paths = Dir.glob(synth_root.join("*", "*.md"))
+        latest = all_paths.max_by { |p| File.mtime(p) }
+        latest_info = nil
+        if latest
+          rel = latest.delete_prefix(synth_root.to_s + "/")
+          latest_info = {path: rel, mtime: File.mtime(latest)}
+        end
+
+        {types: items, total: items.sum { |i| i[:count] }, latest: latest_info}
+      end
 
       # "이날의 회고" — 오늘과 같은 월·일의 과거 연도 entries.
       # 매일 자연스럽게 30년 환기. 의식적 검색 0.

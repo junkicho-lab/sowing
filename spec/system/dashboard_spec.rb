@@ -167,6 +167,43 @@ RSpec.describe "Dashboard 라우트", type: :request do
     end
   end
 
+  describe "합성기 검토 위젯 (대시보드 → /synth 진입)" do
+    let(:vault_synth_root) { Sowing::Infrastructure::Paths.vault_dir.join(".sowing/synth") }
+
+    before do
+      FileUtils.rm_rf(vault_synth_root)
+    end
+
+    it "합성 결과 0건 — 빈 상태 안내 + /synth 진입 링크" do
+      get "/"
+      expect(last_response).to be_ok
+      expect(last_response.body).to include("합성기 검토")
+      expect(last_response.body).to include("아직 합성 결과가 없어요")
+      expect(last_response.body).to include('href="/synth"')
+      expect(last_response.body).to include("synth-summary--empty")
+    end
+
+    it "type 별 합성 파일 시드 시 — chip 표시 + 카운트" do
+      FileUtils.mkdir_p(vault_synth_root.join("students"))
+      FileUtils.mkdir_p(vault_synth_root.join("reflections"))
+      File.write(vault_synth_root.join("students/민준.md"), "---\nis_synth: true\n---\nx")
+      File.write(vault_synth_root.join("students/서연.md"), "---\nis_synth: true\n---\nx")
+      File.write(vault_synth_root.join("reflections/2026-1.md"), "---\nis_synth: true\n---\nx")
+
+      get "/"
+      expect(last_response.body).to include("검토 대기 중인 합성 결과")
+      expect(last_response.body).to include("3건")
+      expect(last_response.body).to include("학생 디제스트")
+      expect(last_response.body).to include("학기 회고")
+    end
+
+    it "nav 에 /synth 진입 링크 존재" do
+      get "/"
+      expect(last_response.body).to include('href="/synth"')
+      expect(last_response.body).to include("🌱 합성기")
+    end
+  end
+
   describe "이날의 회고 위젯 (30년 시나리오 #1)" do
     let(:db_inner) { Sowing::Infrastructure::DB.connection }
     let(:vault_dir_inner) { Sowing::Infrastructure::Paths.vault_dir }
