@@ -40,6 +40,11 @@ module Sowing
         # 페이지 진입마다 통계 재집계 — 적은 데이터(수만 건 미만)에서 충분히 빠르고,
         # 별도 cron·SSE 없이도 항상 최신값 보장. 비용 커지면 W7+ 백그라운드 잡으로 이전.
         aggregate_stats_use_case.call
+
+        # Phase 13 W28-T03 — daily_mirror_enabled 켜져 있으면 자동으로 오늘 거울 생성.
+        # 결과는 .sowing/synth/self-mirror/ 검토 대기 (ADR-013 — 정식 기록 X).
+        # 통계 재집계 직후 호출 — 'entries 수 ≥ 3' 판정에 최신 데이터 반영.
+        maybe_auto_generate_mirror
         @recent_memos = recent_memos
         @today_stats = stats_repo.today
         @week_count = stats_repo.this_week
@@ -106,6 +111,36 @@ module Sowing
         roster = Infrastructure::Settings.load["class_roster"]
         return nil if roster.nil? || roster.empty?
         UseCases::DetectStudentGaps.new.call.value_or(nil)
+      end
+
+      # Phase 13 W28-T03 — 자동 생성 hook.
+      # 조건 (모두 만족):
+      #   - daily_mirror_enabled == true (사용자 opt-in)
+      #   - 오늘 mirror 파일 없음
+      #   - 오늘 entries ≥ MIN_ENTRIES (3) — SelfMirror use case 가 보호
+      # 자동 호출도 audit log 에는 actor=agent 로 표시.
+      # 결과는 .sowing/synth/ 검토 대기 — 사용자 수락 클릭 없이는 정식 기록 안 됨 (ADR-013).
+      def maybe_auto_generate_mirror
+        return unless Infrastructure::Settings.load["daily_mirror_enabled"] == true
+        today_str = Time.now.strftime("%Y-%m-%d")
+        mirror_path = Infrastructure::Paths.vault_dir
+          .join(".sowing/synth/self-mirror/daily-#{today_str}.md")
+        return if mirror_path.exist?
+
+        # entries 수 사전 체크 — use case 가 또 검증하지만 불필요한 호출 피함
+        today_start = Time.parse("#{today_str}T00:00:00")
+        today_end = Time.parse("#{today_str}T23:59:59")
+        count = Infrastructure::DB.connection[:entries]
+          .where { (created_at >= today_start.iso8601) & (created_at <= today_end.iso8601) }
+          .count
+        return if count < UseCases::SynthesizeSelfMirror::MIN_ENTRIES
+
+        Infrastructure::AuditLog.with_actor("agent") do
+          UseCases::SynthesizeSelfMirror.new.call(period: :daily, date: today_str)
+        end
+      rescue
+        # 자동 생성 실패해도 dashboard 부팅 막지 않음
+        nil
       end
 
       # Phase 13 W28-T02 — 오늘의 자기 거울 위젯.

@@ -107,8 +107,9 @@ bin/sowing dev</code></pre>
         <strong>대시보드에 '오늘의 자기' 위젯 표시</strong>
       </label>
       <small class="settings__hint">
-        오늘 entries 가 3건 이상이면 대시보드에 5축 자기 거울 생성 prompt 가 나타납니다.
-        이미 만든 거울은 5축 요약 카드로 즉시 표시. 매일 자동 생성 (cron) 은 W28-T03 예정.
+        오늘 entries 가 3건 이상이면 대시보드 진입 시 <strong>자동 생성</strong>합니다 (W28-T03).
+        결과는 합성 검토 대기 (<code>.sowing/synth/self-mirror/</code>) — 사용자 수락 클릭
+        없이는 정식 기록이 되지 않습니다 (ADR-013).
       </small>
       <button type="submit" class="button button--ghost">저장</button>
     </form>

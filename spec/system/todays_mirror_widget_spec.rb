@@ -66,9 +66,13 @@ RSpec.describe "오늘의 자기 거울 위젯 (Phase 13 W28-T02)", type: :reque
       expect(last_response.body).not_to include("todays-mirror")
     end
 
-    it "옵션 켜짐 + 오늘 entries ≥ 3 + 미생성 → prompt 표시" do
+    it "옵션 켜짐 + 오늘 entries ≥ 3 + 미생성 → prompt 표시 (자동 생성 차단 시)" do
+      # W28-T03 의 자동 생성 hook 이 prompt 상태를 즉시 ready 로 바꾸므로,
+      # 자동 생성 실패 시나리오 (예: use case raise) 에만 prompt 도달 가능.
+      # 이 spec 은 그 fallback 경로 검증.
       setup_user
       seed_today(count: 4)
+      allow(Sowing::UseCases::SynthesizeSelfMirror).to receive(:new).and_raise(StandardError, "stub fail")
 
       get "/"
       expect(last_response.body).to include("todays-mirror--prompt")
@@ -107,6 +111,8 @@ RSpec.describe "오늘의 자기 거울 위젯 (Phase 13 W28-T02)", type: :reque
     it "POST /synth/self-mirror/auto/generate (period=daily, date=오늘)" do
       setup_user
       seed_today(count: 4)
+      # W28-T03 자동 생성 차단 — fallback 경로 검증
+      allow(Sowing::UseCases::SynthesizeSelfMirror).to receive(:new).and_raise(StandardError, "stub fail")
 
       get "/"
       expect(last_response.body).to include('action="/synth/self-mirror/auto/generate"')
