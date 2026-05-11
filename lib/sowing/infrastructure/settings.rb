@@ -24,7 +24,11 @@ module Sowing
         "class_roster" => [], # W17-T03: 학급 명단 (학생 이름 배열). GapDetector 의 입력.
         # Phase 13 W25-T02: 동사 중심 nav 변경 안내 모달 1회 표시. 사용자가 'X' 또는
         # '이해했습니다' 클릭 시 ISO8601 timestamp 기록. nil 이면 다음 진입 시 모달 표시.
-        "ia_v2_seen_at" => nil
+        "ia_v2_seen_at" => nil,
+        # Phase 13 W28-T02: 대시보드 '오늘의 자기' 위젯 활성화 (opt-in).
+        # true 면 오늘 entries 3건 이상일 때 위젯에 '생성하기' 버튼 표시.
+        # 자동 생성 (boot hook) 은 W28-T03 별도 — 본 옵션은 위젯 노출만.
+        "daily_mirror_enabled" => false
       }.freeze
 
       module_function

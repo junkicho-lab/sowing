@@ -73,6 +73,41 @@
     </aside>
   <% end %>
 
+  <%# Phase 13 W28-T02 — 오늘의 자기 거울 위젯. 옵션 켜짐 + 조건 만족 시만 표시. %>
+  <% if @todays_mirror %>
+    <% if @todays_mirror[:status] == :ready %>
+      <aside class="todays-mirror todays-mirror--ready" aria-labelledby="todays_mirror_heading">
+        <h2 id="todays_mirror_heading">🪞 오늘의 자기 <small>(<%= @todays_mirror[:date] %>)</small></h2>
+        <p class="todays-mirror__summary">
+          오늘 작성 <strong><%= @todays_mirror[:source_count] %>건</strong> ·
+          💭 긍정 <strong><%= @todays_mirror[:positive_count] %></strong> /
+          부정 <strong><%= @todays_mirror[:negative_count] %></strong>
+          <% if @todays_mirror[:relation_count] && @todays_mirror[:relation_count] > 0 %>
+            · 🤝 관계 <strong><%= @todays_mirror[:relation_count] %></strong>
+          <% end %>
+          · <code><%= h(@todays_mirror[:model]) %></code>
+        </p>
+        <p class="todays-mirror__cta">
+          <a href="/synth/self-mirror/<%= h(@todays_mirror[:slug]) %>" class="button button--ghost">5축 자세히 보기 →</a>
+        </p>
+      </aside>
+    <% elsif @todays_mirror[:status] == :prompt %>
+      <aside class="todays-mirror todays-mirror--prompt" aria-labelledby="todays_mirror_heading">
+        <h2 id="todays_mirror_heading">🌅 오늘의 자기 거울 (미생성)</h2>
+        <p class="todays-mirror__hint">
+          오늘 <strong><%= @todays_mirror[:today_count] %>건</strong> 작성하셨네요 —
+          5축 (지성·감정·습관·관계·에너지) 자기 거울을 만들어 볼까요?
+          <small>(결정적 모드 즉시 / API 키 설정 시 LLM 5축 해석 추가)</small>
+        </p>
+        <form action="/synth/self-mirror/auto/generate" method="post" style="display:inline">
+          <input type="hidden" name="period" value="daily">
+          <input type="hidden" name="date" value="<%= h(@todays_mirror[:date]) %>">
+          <button type="submit" class="button button--primary">🌅 오늘 거울 만들기</button>
+        </form>
+      </aside>
+    <% end %>
+  <% end %>
+
   <% if @gap_summary && @gap_summary[:unmentioned_count] > 0 %>
     <aside class="gap-card" aria-labelledby="gap_heading">
       <h2 id="gap_heading">⚠ 지난 <%= @gap_summary[:weeks_back] %>주간 한 번도 등장 안 한 학생 <strong><%= @gap_summary[:unmentioned_count] %>명</strong></h2>

@@ -1424,6 +1424,78 @@ pre code {
   border-color: var(--color-primary);
 }
 
+/* ─── Phase 13 W28-T02 — 대시보드 '오늘의 자기' 위젯 ─── */
+
+.todays-mirror {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border-radius: 8px;
+}
+
+.todays-mirror--ready {
+  background: linear-gradient(135deg, rgba(255, 200, 87, 0.10), rgba(245, 158, 11, 0.08));
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.todays-mirror--prompt {
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px dashed rgba(245, 158, 11, 0.4);
+}
+
+.todays-mirror h2 {
+  margin: 0 0 var(--space-2) 0;
+  font-size: 1.1rem;
+  color: rgb(180, 83, 9);
+}
+
+.todays-mirror h2 small {
+  color: var(--color-muted);
+  font-weight: normal;
+  font-size: 0.85rem;
+  font-family: ui-monospace, monospace;
+}
+
+.todays-mirror__summary {
+  margin: 0 0 var(--space-2) 0;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.todays-mirror__summary code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+
+.todays-mirror__hint {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--color-text);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.todays-mirror__hint small {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  margin-top: 0.3em;
+}
+
+.todays-mirror__cta {
+  margin: 0;
+}
+
+/* Settings 페이지의 체크박스 헬퍼 */
+.settings__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: var(--space-2) 0;
+  cursor: pointer;
+}
+
 /* ─── Phase 13 W27-T02 — 대시보드 '오늘 할 일' 위젯 ─── */
 
 .todays-plans {

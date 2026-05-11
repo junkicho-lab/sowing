@@ -69,6 +69,15 @@ module Sowing
         redirect "/tutorial"
       end
 
+      # Phase 13 W28-T02 — 자기 거울 위젯 활성화 토글.
+      # 체크박스 켜면 'daily_mirror_enabled' = true, 끄면 false.
+      post "/settings/daily_mirror" do
+        enabled = params["daily_mirror_enabled"].to_s == "1"
+        user_settings.update(daily_mirror_enabled: enabled)
+        session[:flash] = enabled ? "🪞 자기 거울 위젯이 활성화됐습니다." : "자기 거울 위젯이 비활성화됐습니다."
+        redirect "/settings"
+      end
+
       # Phase 13 W25-T02 — 동사 중심 nav 변경 안내 모달 닫기.
       # AJAX POST (fetch) — JS 가 모달 hide 후 200 OK 받으면 종료.
       # form fallback (HTML POST) 도 작동 — JS 비활성화 시 redirect.

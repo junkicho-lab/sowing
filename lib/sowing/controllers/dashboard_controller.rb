@@ -51,6 +51,7 @@ module Sowing
         @on_this_day = compute_on_this_day  # 30년 시나리오 — 같은 월·일 다년 entries
         @synth_summary = compute_synth_summary  # 16 합성기 검토 대기 카운트
         @todays_plans = compute_todays_plans   # W27-T02: 오늘 할 일 위젯 (미완료 daily)
+        @todays_mirror = compute_todays_mirror # W28-T02: 자기 거울 카드 (있으면 요약, 없으면 생성 버튼)
         erb :"dashboard/show", layout: :"layouts/application"
       end
 
@@ -105,6 +106,42 @@ module Sowing
         roster = Infrastructure::Settings.load["class_roster"]
         return nil if roster.nil? || roster.empty?
         UseCases::DetectStudentGaps.new.call.value_or(nil)
+      end
+
+      # Phase 13 W28-T02 — 오늘의 자기 거울 위젯.
+      # 상태 3종:
+      #   :ready    — 오늘 self-mirror 파일 존재. frontmatter + 5축 요약 표시.
+      #   :prompt   — 파일 없음 + 옵션 켜짐 + 오늘 entries ≥ 3 → '생성하기' 버튼.
+      #   nil       — 옵션 꺼짐 또는 entries 부족 — 위젯 안 표시.
+      def compute_todays_mirror
+        return nil unless Infrastructure::Settings.load["daily_mirror_enabled"] == true
+        today_str = Time.now.strftime("%Y-%m-%d")
+        mirror_path = Infrastructure::Paths.vault_dir.join(".sowing/synth/self-mirror/daily-#{today_str}.md")
+
+        if mirror_path.exist?
+          fm = FrontMatterParser::Parser.new(:md).call(File.read(mirror_path))&.front_matter
+          return {
+            status: :ready,
+            date: today_str,
+            slug: "daily-#{today_str}",
+            positive_count: fm["synth_positive_count"],
+            negative_count: fm["synth_negative_count"],
+            source_count: fm["synth_source_count"],
+            relation_count: fm["synth_relation_count"],
+            model: fm["synth_model"]
+          }
+        end
+
+        # 미생성 — 오늘 entries 가 MIN_ENTRIES(3) 이상이면 생성 prompt
+        today_t_start = Time.parse("#{today_str}T00:00:00")
+        today_t_end = Time.parse("#{today_str}T23:59:59")
+        count = Infrastructure::DB.connection[:entries]
+          .where { (created_at >= today_t_start.iso8601) & (created_at <= today_t_end.iso8601) }
+          .count
+        return nil if count < 3
+        {status: :prompt, date: today_str, today_count: count}
+      rescue
+        nil  # graceful — Plan/Mirror 인프라 부재 또는 깨진 frontmatter 시 위젯 안 표시
       end
 
       # Phase 13 W27-T02 — 오늘 할 일 위젯.
