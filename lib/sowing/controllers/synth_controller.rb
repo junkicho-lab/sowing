@@ -141,6 +141,16 @@ module Sowing
           icon: "🎯",
           accept_category: "분석회고",
           target_prefix: "event-causality:"
+        },
+        # Phase 13 W28-T01 — 17번째 합성기. SelfPatterns(#10) 의 짧은 기간 변형:
+        # daily(1일) / weekly(7일) 5축 자아 분석 (지성·감정·습관·관계·에너지).
+        # ADR-013 단정 거부 — 통계 + 5축 후보 해석만.
+        "self-mirror" => {
+          subdir: "self-mirror",
+          label: "자기 거울 (5축)",
+          icon: "🌅",
+          accept_category: "회고",
+          target_prefix: "self-mirror:"
         }
       }.freeze
 
@@ -648,6 +658,33 @@ module Sowing
           redirect_to_synth_show("contradictions", "observations")
         else
           session[:flash] = "생성 실패 (#{result.failure}) — 학생 entity mention 확인"
+          redirect "/synth"
+        end
+      end
+
+      # 자기 거울 (5축) — Phase 13 W28-T01 (17번째 합성기).
+      # slug 형식: '{period}-{date}' — daily-2026-05-11 / weekly-2026-W19
+      post "/synth/self-mirror/:slug/generate" do
+        period_param = params["period"].to_s.strip
+        period = (UseCases::SynthesizeSelfMirror::PERIODS.map(&:to_s).include?(period_param) ? period_param.to_sym : :daily)
+        date_param = params["date"].to_s.strip.empty? ? nil : params["date"]
+
+        result = UseCases::SynthesizeSelfMirror.new(llm_backend: llm_backend_from_params)
+          .call(period: period, date: date_param)
+
+        if result.success?
+          target = result.value!
+          slug = target.basename(".md").to_s
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:self-mirror:#{slug}",
+            mode: "record",
+            path: ".sowing/synth/self-mirror/#{slug}.md"
+          )
+          session[:flash] = "자기 거울 생성 완료 (#{period} #{date_param || "기본"})"
+          redirect_to_synth_show("self-mirror", slug)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 해당 기간 entries 3건 이상 필요"
           redirect "/synth"
         end
       end

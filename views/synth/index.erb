@@ -346,6 +346,26 @@
               <button type="submit" class="button button--ghost">생성/재생성</button>
               <small class="synth-generate-form__hint">⚠ <strong>상관 = 인과 아님</strong>. before/after 통계 변화만 표시 — 실제 인과 판단은 사용자 본인.</small>
             </form>
+          <% when "self-mirror" %>
+            <%# Phase 13 W28-T01 — 자기 거울 5축. slug 는 서버가 'period-date' 자동 생성. %>
+            <form action="/synth/self-mirror/auto/generate" method="post" class="synth-generate-form">
+              <label>
+                기간:
+                <select name="period">
+                  <option value="daily">📅 오늘 (1일)</option>
+                  <option value="weekly">📋 이번 주 (7일)</option>
+                </select>
+              </label>
+              <label>
+                날짜 (선택, 비우면 오늘):
+                <input type="text" name="date"
+                       placeholder="daily=YYYY-MM-DD / weekly=YYYY-Www"
+                       pattern="(\d{4}-\d{2}-\d{2}|\d{4}-W\d{2})">
+              </label>
+              <%= erb :"synth/_llm_toggle", layout: false %>
+              <button type="submit" class="button button--ghost">생성/재생성</button>
+              <small class="synth-generate-form__hint">5축: 지성·감정·습관·관계·에너지. 짧은 기간 (1일/7일) 의 즉각적 거울. <strong>3건 이상</strong> 작성됐을 때만 의미 있음.</small>
+            </form>
           <% end %>
         </div>
       </div>
