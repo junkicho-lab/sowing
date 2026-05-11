@@ -98,6 +98,21 @@
 
     <div id="quick_modal_error" class="quick-modal__error" data-quick-memo-target="error"></div>
 
+    <%# W26-T02 — 음성 입력 (Web Speech API). 브라우저 미지원 시 JS 가 숨김. %>
+    <div class="quick-modal__voice" data-quick-memo-target="voice" hidden>
+      <button type="button"
+              class="quick-modal__voice-btn"
+              data-quick-memo-target="voiceBtn"
+              data-action="click->quick-memo#toggleVoice"
+              aria-label="음성 입력 시작">
+        🎙 <span data-quick-memo-target="voiceLabel">음성 입력</span>
+      </button>
+      <small class="quick-modal__voice-hint">
+        ko-KR · 브라우저 내장 STT 사용 (Chrome/Edge). 인터넷 필요 — Whisper.cpp
+        로컬 STT 는 W26-T02b 예정.
+      </small>
+    </div>
+
     <footer class="quick-modal__footer">
       <span class="quick-modal__hint">
         <kbd>Esc</kbd> 취소 · <kbd>⌘/Ctrl</kbd> + <kbd>Enter</kbd> 저장

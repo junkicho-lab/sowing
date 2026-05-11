@@ -1424,6 +1424,56 @@ pre code {
   border-color: var(--color-primary);
 }
 
+/* ─── W26-T02 — 음성 입력 (Web Speech API) ─── */
+
+.quick-modal__voice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.quick-modal__voice[hidden] { display: none; }
+
+.quick-modal__voice-btn {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.35em 1em;
+  font-size: 0.88rem;
+  cursor: pointer;
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  transition: all 0.15s;
+}
+
+.quick-modal__voice-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.quick-modal__voice-btn--active {
+  background: rgb(220, 38, 38);
+  color: white;
+  border-color: rgb(220, 38, 38);
+  animation: voice-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes voice-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+}
+
+.quick-modal__voice-hint {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  flex: 1;
+}
+
 /* Quick search modal (W4-T04) — Cmd/Ctrl+K spotlight */
 
 .visually-hidden {

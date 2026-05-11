@@ -11,12 +11,16 @@ import { Controller } from "@hotwired/stimulus"
 // - submit 직전 body 자동 결합 (slot 값 + textarea 내용 + 자동 태그)
 // - 서버는 그대로 POST /memos body= 수신 — 도메인 변경 0
 export default class extends Controller {
-  static targets = ["dialog", "textarea", "form", "error", "chip", "slots"]
+  static targets = ["dialog", "textarea", "form", "error", "chip", "slots",
+                    "voice", "voiceBtn", "voiceLabel"]
 
   connect() {
     this._onGlobalKeydown = this._onGlobalKeydown.bind(this)
     document.addEventListener("keydown", this._onGlobalKeydown)
     this._currentSubtype = "general"
+
+    // W26-T02 — 음성 입력 (Web Speech API). 지원 시만 UI 표시.
+    this._initVoiceRecognition()
 
     // /write/{type} 진입 시 query param 으로 모달 자동 열기 + subtype prefill
     const params = new URLSearchParams(window.location.search)
@@ -32,6 +36,109 @@ export default class extends Controller {
 
   disconnect() {
     document.removeEventListener("keydown", this._onGlobalKeydown)
+    this._stopVoice()
+  }
+
+  // ─── 음성 입력 (Web Speech API) ──────────────────────────────────────
+  // Chrome/Edge: window.SpeechRecognition || window.webkitSpeechRecognition
+  // Safari: 부분 지원 (webkit prefix), Firefox: 미지원
+  // 미지원 시 voice 영역 자체 숨김 — 기존 UX 영향 0.
+  _initVoiceRecognition() {
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!Recognition) {
+      // 미지원 브라우저: voice 버튼 영역 숨김 유지 (hidden 상태)
+      return
+    }
+
+    // 지원 → voice 영역 표시
+    if (this.hasVoiceTarget) {
+      this.voiceTarget.hidden = false
+    }
+
+    this._recognition = new Recognition()
+    this._recognition.lang = "ko-KR"
+    this._recognition.interimResults = true
+    this._recognition.continuous = true
+    this._recognition.maxAlternatives = 1
+
+    this._voiceActive = false
+    this._voiceBaseValue = "" // 녹음 시작 시점의 textarea 값 — interim 누적용
+
+    this._recognition.addEventListener("result", (event) => {
+      let interim = ""
+      let final = ""
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          final += transcript
+        } else {
+          interim += transcript
+        }
+      }
+      // 사용자가 보고 확인할 수 있도록 textarea 에 실시간 채움.
+      // 절대 자동 저장하지 않음 — ADR-013 (자율 mutation 0).
+      const combined = (this._voiceBaseValue + (final ? final : interim)).trim()
+      this.textareaTarget.value = combined
+      if (final) {
+        this._voiceBaseValue = (this._voiceBaseValue + final).trim() + " "
+      }
+    })
+
+    this._recognition.addEventListener("error", (event) => {
+      this._showError(`음성 인식 오류: ${event.error} — 마이크 권한·인터넷 연결 확인`)
+      this._setVoiceState(false)
+    })
+
+    this._recognition.addEventListener("end", () => {
+      // continuous=true 상태에서 자연 종료 (긴 침묵 등) — UI 상태만 복원
+      this._setVoiceState(false)
+    })
+  }
+
+  toggleVoice() {
+    if (!this._recognition) return
+    if (this._voiceActive) {
+      this._stopVoice()
+    } else {
+      this._startVoice()
+    }
+  }
+
+  _startVoice() {
+    try {
+      this._voiceBaseValue = this.textareaTarget.value
+      if (this._voiceBaseValue && !this._voiceBaseValue.endsWith(" ")) {
+        this._voiceBaseValue += " "
+      }
+      this._recognition.start()
+      this._setVoiceState(true)
+    } catch (e) {
+      this._showError("음성 입력 시작 실패: " + e.message)
+    }
+  }
+
+  _stopVoice() {
+    if (this._recognition && this._voiceActive) {
+      try { this._recognition.stop() } catch (e) { /* ignore */ }
+    }
+    this._setVoiceState(false)
+  }
+
+  _setVoiceState(active) {
+    this._voiceActive = active
+    if (!this.hasVoiceBtnTarget) return
+    this.voiceBtnTarget.classList.toggle("quick-modal__voice-btn--active", active)
+    if (this.hasVoiceLabelTarget) {
+      this.voiceLabelTarget.textContent = active ? "녹음 중… 다시 누르면 정지" : "음성 입력"
+    }
+    this.voiceBtnTarget.setAttribute("aria-label",
+      active ? "음성 입력 정지" : "음성 입력 시작")
+  }
+
+  _showError(msg) {
+    if (this.hasErrorTarget) {
+      this.errorTarget.textContent = msg
+    }
   }
 
   _onGlobalKeydown(event) {
@@ -62,6 +169,7 @@ export default class extends Controller {
 
   close() {
     if (this.hasDialogTarget && this.dialogTarget.open) {
+      this._stopVoice() // W26-T02 — 모달 닫으면 녹음도 정지
       this.dialogTarget.close()
     }
   }
