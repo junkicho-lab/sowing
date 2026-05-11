@@ -121,9 +121,9 @@ RSpec.describe "GET /memos (메모 목록)", type: :request do
   end
 
   describe "내비게이션" do
-    it "헤더에 '메모' 링크가 있고 /memos를 가리킨다" do
+    it "헤더에 /memos 진입 링크 (Phase 13 IA — 글쓰기·쓴 글 보기 dropdown 안)" do
       get "/"
-      expect(last_response.body).to include('<a href="/memos">메모</a>')
+      expect(last_response.body).to include('href="/memos"')
     end
   end
 end

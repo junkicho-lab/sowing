@@ -50,17 +50,67 @@
 <body>
   <header class="app-header">
     <a href="/" class="brand">Sowing 🌱</a>
-    <nav aria-label="주 메뉴">
-      <a href="/">홈</a>
-      <a href="/memos">메모</a>
-      <a href="/notes">필기</a>
-      <a href="/records">기록</a>
-      <a href="/tags">태그</a>
-      <a href="/search">검색</a>
-      <a href="/templates">템플릿</a>
-      <a href="/synth">🌱 합성기</a>
-      <a href="/graph">🕸 그래프</a>
-      <a href="/settings">설정</a>
+    <%# Phase 13 W25-T01 — 동사 중심 IA. 명사 mode (메모·필기·기록) 는 저장 단위로
+        그대로 유지하되, 사용자 노출 nav 는 동사 (글쓰기·보기·계획·회고) 5+1 로.
+        <details> + CSS :focus-within 으로 JS 0 dropdown. ADR-014 제안. %>
+    <nav class="nav-v2" aria-label="주 메뉴">
+      <a href="/" class="nav-v2__home">🏠 홈</a>
+
+      <details class="nav-v2__group">
+        <summary>🖊 글쓰기</summary>
+        <div class="nav-v2__panel">
+          <a href="#" onclick="document.querySelector('[data-quick-memo-target=&quot;dialog&quot;]')?.showModal(); return false;">⚡ 빠른 메모 <kbd>⌘⇧M</kbd></a>
+          <a href="/memos">💭 메모 목록</a>
+          <a href="/notes/new">📝 필기 작성</a>
+          <a href="/notes">📂 필기 목록</a>
+          <hr>
+          <small>📖 책 · 🎤 강의 · 💭 감정 · 👤 학생 — Phase 13 W26 예정</small>
+          <small>🎙 음성 입력 — W26 예정</small>
+        </div>
+      </details>
+
+      <details class="nav-v2__group">
+        <summary>📚 쓴 글 보기</summary>
+        <div class="nav-v2__panel">
+          <a href="/records">📁 기록 (카테고리별)</a>
+          <a href="/records/by-category">📊 카테고리 × 연도</a>
+          <a href="/records/timeline">📅 Timeline</a>
+          <a href="/tags">🏷 태그</a>
+          <a href="/graph">🕸 위키링크 그래프</a>
+          <a href="/search">🔍 검색</a>
+          <hr>
+          <small>🕐 최근 (통합 시간순) — W26 예정</small>
+        </div>
+      </details>
+
+      <details class="nav-v2__group">
+        <summary>🗓 쓸 글 계획</summary>
+        <div class="nav-v2__panel">
+          <a href="/plan" class="nav-v2__placeholder">📋 계획 mode — Phase 13 W27 예정</a>
+          <small>오늘 할 일 · 이번 주 계획 · 이번 달 로드맵 · 프로젝트 · 학기 계획</small>
+        </div>
+      </details>
+
+      <details class="nav-v2__group">
+        <summary>🪞 자기 거울</summary>
+        <div class="nav-v2__panel">
+          <a href="/synth">🌱 합성기 16종</a>
+          <a href="/synth/metrics">📊 사용 지표</a>
+          <hr>
+          <small>🌅 오늘의 자기 (5축 분석) — W28 예정</small>
+        </div>
+      </details>
+
+      <a href="/settings" class="nav-v2__settings">⚙ 설정</a>
+
+      <%# 보조 진입 — 기존 사용자 호환. 새 IA 익숙해지면 W28-T04 에 제거. %>
+      <details class="nav-v2__group nav-v2__group--more">
+        <summary>···</summary>
+        <div class="nav-v2__panel">
+          <a href="/templates">📋 템플릿</a>
+          <small>기존 라우트는 모두 그대로 작동 — 북마크 호환</small>
+        </div>
+      </details>
     </nav>
   </header>
   <main><%= yield %></main>

@@ -21,6 +21,10 @@ class Sowing::Application
   use Sowing::Controllers::PreviewController
   use Sowing::Controllers::ApiController
 
+  # Phase 13 W25-T01 — 동사 중심 IA 통합 진입점 (/write, /view, /plan, /mirror).
+  # 기존 명사 라우트는 그대로 작동 — 두 계층 공존 (ADR-014 제안).
+  use Sowing::Controllers::NavController
+
   # 시스템 헬스체크 (컨트롤러로 분리할 만한 가치 없는 단일 엔드포인트).
   get "/health" do
     content_type :json

@@ -39,9 +39,9 @@ RSpec.describe "설정 화면 (W7-T06)", type: :request do
       expect(last_response.body).to include(vault_dir.to_s)
     end
 
-    it "헤더 nav에 /settings 링크" do
+    it "헤더 nav에 /settings 링크 (Phase 13 IA — 직접 1급)" do
       get "/"
-      expect(last_response.body).to include('<a href="/settings">설정</a>')
+      expect(last_response.body).to include('href="/settings"')
     end
   end
 

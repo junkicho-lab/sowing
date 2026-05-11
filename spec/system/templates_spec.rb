@@ -122,9 +122,9 @@ RSpec.describe "템플릿 라우트 (W6-T04)", type: :request do
   end
 
   describe "헤더 네비게이션" do
-    it "/templates 링크 표시" do
+    it "/templates 진입 링크 표시 (Phase 13 IA — '···' 보조 dropdown)" do
       get "/"
-      expect(last_response.body).to include('<a href="/templates">템플릿</a>')
+      expect(last_response.body).to include('href="/templates"')
     end
   end
 end

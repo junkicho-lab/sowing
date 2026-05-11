@@ -282,9 +282,9 @@ RSpec.describe "검색 화면 (W4-T03)", type: :request do
   end
 
   describe "내비게이션" do
-    it "헤더의 '검색' 링크가 활성화" do
+    it "헤더의 /search 진입 링크 (Phase 13 IA — 쓴 글 보기 dropdown)" do
       get "/"
-      expect(last_response.body).to include('<a href="/search">검색</a>')
+      expect(last_response.body).to include('href="/search"')
     end
   end
 end

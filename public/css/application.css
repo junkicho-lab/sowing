@@ -74,6 +74,111 @@ body {
 .app-header nav a:hover { color: var(--color-primary); }
 .app-header nav a[aria-disabled="true"] { color: var(--color-muted); cursor: not-allowed; }
 
+/* ─── Phase 13 W25-T01 — 동사 중심 nav (5+1 + dropdown) ─── */
+
+.nav-v2 {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav-v2__home,
+.nav-v2__settings {
+  font-weight: 500;
+}
+
+.nav-v2__group {
+  position: relative;
+}
+
+.nav-v2__group > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  user-select: none;
+  padding: 0.2em 0.1em;
+}
+
+.nav-v2__group > summary::-webkit-details-marker { display: none; }
+.nav-v2__group > summary::after {
+  content: " ▾";
+  font-size: 0.7em;
+  color: var(--color-muted);
+  margin-left: 0.15em;
+}
+
+.nav-v2__group > summary:hover { color: var(--color-primary); }
+.nav-v2__group[open] > summary { color: var(--color-primary); font-weight: 500; }
+
+.nav-v2__panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 240px;
+  margin-top: 0.4em;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+.nav-v2__panel a {
+  display: block;
+  padding: 0.3em 0.5em;
+  border-radius: 4px;
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.nav-v2__panel a:hover {
+  background: rgba(34, 197, 94, 0.08);
+  color: var(--color-primary);
+}
+
+.nav-v2__panel a kbd {
+  float: right;
+  font-size: 0.75em;
+  color: var(--color-muted);
+  background: rgba(0, 0, 0, 0.04);
+  padding: 0 0.3em;
+  border-radius: 3px;
+}
+
+.nav-v2__panel hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 0.3em 0;
+}
+
+.nav-v2__panel small {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  padding: 0 0.5em;
+  line-height: 1.5;
+}
+
+.nav-v2__placeholder {
+  color: var(--color-muted) !important;
+  font-style: italic;
+}
+
+.nav-v2__group--more > summary {
+  color: var(--color-muted);
+}
+
+/* 모바일·좁은 화면 — 햄버거는 W25-T01 PoC 범위 밖. 일단 wrap. */
+@media (max-width: 768px) {
+  .nav-v2 { gap: var(--space-2); font-size: 0.9rem; }
+  .nav-v2__panel { min-width: 200px; }
+}
+
 /* Main */
 
 main {

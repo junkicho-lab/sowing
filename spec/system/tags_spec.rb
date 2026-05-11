@@ -130,9 +130,9 @@ RSpec.describe "태그 시스템 (W3-T05)", type: :request do
   end
 
   describe "내비게이션" do
-    it "헤더에 '태그' 활성 링크" do
+    it "헤더에 /tags 진입 링크 (Phase 13 IA — 쓴 글 보기 dropdown)" do
       get "/"
-      expect(last_response.body).to include('<a href="/tags">태그</a>')
+      expect(last_response.body).to include('href="/tags"')
     end
   end
 

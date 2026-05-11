@@ -171,9 +171,9 @@ RSpec.describe "필기 라우트", type: :request do
   end
 
   describe "내비게이션" do
-    it "헤더의 '필기' 링크가 활성화되어 있다" do
+    it "헤더의 /notes 진입 링크 (Phase 13 IA — 글쓰기·쓴 글 보기 dropdown)" do
       get "/"
-      expect(last_response.body).to include('<a href="/notes">필기</a>')
+      expect(last_response.body).to include('href="/notes"')
     end
   end
 end

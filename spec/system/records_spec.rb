@@ -208,9 +208,9 @@ RSpec.describe "기록 라우트", type: :request do
   end
 
   describe "내비게이션" do
-    it "헤더의 '기록' 링크가 활성화" do
+    it "헤더의 /records 진입 링크 (Phase 13 IA — 쓴 글 보기 dropdown)" do
       get "/"
-      expect(last_response.body).to include('<a href="/records">기록</a>')
+      expect(last_response.body).to include('href="/records"')
     end
   end
 end
