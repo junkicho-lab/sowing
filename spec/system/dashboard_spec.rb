@@ -197,9 +197,13 @@ RSpec.describe "Dashboard 라우트", type: :request do
       )
     end
 
-    it "과거 같은 날짜 entry 0건 — 위젯 미표시" do
+    it "과거 같은 날짜 entry 0건 — 빈 상태 placeholder 표시 (위젯 자체는 항상 노출, 30년 시나리오 인지)" do
       get "/"
-      expect(last_response.body).not_to include("이날의 회고")
+      # 위젯 헤더는 항상 표시
+      expect(last_response.body).to include("이날의 회고")
+      # 빈 상태 안내
+      expect(last_response.body).to include("30년 누적되면")
+      expect(last_response.body).to include("on-this-day--empty")
     end
 
     it "과거 같은 날짜 entry 있을 때 — 위젯 표시 + 연도·제목 인용" do

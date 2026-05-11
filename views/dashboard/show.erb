@@ -68,9 +68,9 @@
     </aside>
   <% end %>
 
-  <% if @on_this_day && @on_this_day.any? %>
-    <aside class="on-this-day" aria-labelledby="on_this_day_heading">
-      <h2 id="on_this_day_heading">📅 이날의 회고 — <%= Time.now.month %>월 <%= Time.now.day %>일</h2>
+  <aside class="on-this-day <%= "on-this-day--empty" if @on_this_day.nil? || @on_this_day.empty? %>" aria-labelledby="on_this_day_heading">
+    <h2 id="on_this_day_heading">📅 이날의 회고 — <%= Time.now.month %>월 <%= Time.now.day %>일</h2>
+    <% if @on_this_day && @on_this_day.any? %>
       <p class="on-this-day__hint">같은 날짜의 과거 기록 <%= @on_this_day.size %>건. 의식적 검색 없이 자연스러운 환기.</p>
       <ul class="on-this-day__list">
         <% @on_this_day.each do |item| %>
@@ -88,8 +88,14 @@
           </li>
         <% end %>
       </ul>
-    </aside>
-  <% end %>
+    <% else %>
+      <p class="on-this-day__hint">
+        같은 날짜의 과거 기록이 아직 없어요.
+        <strong>30년 누적되면 매일 풍부한 환기</strong> 가 됩니다 — 오늘부터 한 줄씩 쌓아가요.
+        <a href="/records/timeline">📊 timeline 뷰로 30년 검색 →</a>
+      </p>
+    <% end %>
+  </aside>
 
   <section class="recent-memos" aria-labelledby="recent_memos_heading">
     <h2 id="recent_memos_heading">최근 메모</h2>

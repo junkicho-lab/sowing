@@ -2589,3 +2589,14 @@ pre code {
   font-size: 0.85rem;
   padding: 4px 10px;
 }
+
+/* OnThisDay — 빈 상태 (placeholder) */
+.on-this-day--empty {
+  background: rgba(0, 0, 0, 0.02);
+  border-left-color: var(--color-muted);
+  border-left-style: dashed;
+}
+
+.on-this-day--empty .on-this-day__hint {
+  font-style: italic;
+}
