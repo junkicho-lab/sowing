@@ -9,6 +9,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 (다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
 
+## [0.1.3] - 2026-05-11 — Plan IndexRepo 통합 (W27-T03)
+
+v0.1.2 Phase 13 의 후속 — Plan mode (W27-T01·T02) 를 entries 테이블에 통합해
+recent_across / /view/recent / 검색 모두 plan 도 1급 시민으로 인덱싱.
+
+**Migration 007** (db/migrations/007_add_plan_to_entries_check.rb):
+- entries.mode CHECK 제약에 'plan' 추가
+- SQLite CHECK 변경은 ALTER TABLE 불가 → table recreate 패턴
+  (entries_v2 만들기 → INSERT SELECT → DROP entries → RENAME)
+- 인덱스 3개 재생성 (mode, created_at, category)
+- entries_fts 가상 테이블 영향 없음 (트리거 0, IndexRepo 명시 sync)
+- down 마이그레이션 안전망 — plan entries 있으면 거부
+
+**PlanRepo 확장**:
+- initialize 에 index_repo 인자 추가 (lazy 생성)
+- write / toggle_done 모두 IndexRepo.upsert 자동 호출
+- Sequel::CheckConstraintViolation rescue — migration 미적용 시 graceful
+
+**ViewController**:
+- view_mode_label / view_mode_path 에 :plan → '🗓 계획' / `/plans/{id}` 추가
+- @selected_mode allowlist 에 'plan' 추가
+- view_body_excerpt — VaultRepo.read 대신 직접 파일 읽기 (mode-agnostic)
+
+**UI**:
+- /view/recent 의 mode chip 4종 (memo/note/record/plan)
+- .view-recent__item--plan / __badge--plan (purple, Plan mode identity 일관)
+
+**Spec**:
+- spec/system/plan_index_integration_spec.rb 신규 (10 case)
+- plans_spec.rb / plans_w27t02_spec.rb — entries cleanup 추가 (격리)
+- 1607 → 1617 (+10), 0 failures
+
+**사용자 가치**:
+- "이번 주 작성한 모든 것" 한 화면 (메모 + 필기 + 기록 + **계획**)
+- 카테고리 × 연도 매트릭스에 plan 도 등장 가능 (향후)
+- FTS5 검색이 plan body 도 인덱싱
+
+**파일 8**:
+- db/migrations/007 + plan_repo + view_controller + view/recent + css + spec × 3
+
 ## [0.1.2] - 2026-05-11 — Phase 13: 동사 중심 IA + Plan mode + 17번째 합성기 자기 거울
 
 **가장 큰 변화** — 평면 nav 10항목 → 5+1 동사 중심 (글쓰기·쓴 글 보기·쓸 글 계획·자기 거울 + 홈·설정). 4번째 1급 mode "계획" 신설. 17번째 합성기 "자기 거울 (5축)" + 대시보드 위젯 + 매일 자동 생성. ADR-014 정식 채택.
