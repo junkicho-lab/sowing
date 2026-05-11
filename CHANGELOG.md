@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 확장 합성기 #9 + #10 — 학부모 상담 패턴 + 자기 회고 패턴 (2026-05-11)
+
+기존 12 합성기 외 **두 신규 메타-합성기** 추가. /synth 14 type 완성.
+
+**#9 SynthesizeParentPatterns — 학부모 상담 패턴 (학급 전체)**:
+- vs 기존 #1 SynthesizeParentConsultation:
+  - #1: 학생 *1명* + 면담 *준비* 자료
+  - #9: 학급 *전체* + 학기 *상담 패턴* 분석
+- 입력: 상담 카테고리 records + meetings notes + 6개월 window
+- 결정적 출력:
+  - 학생별 상담 빈도 (entity_mentions ⨝ entities, type=student)
+  - 공통 토픽 키워드 (한국어 어절 + 조사 제거 + STOPWORDS — 학부모/면담/상담 등)
+  - **미상담 학생 명단** (Settings.class_roster vs consulted set)
+  - 학기 상담 timeline (시간순 인용)
+- LLM 출력 4 섹션: 상담 흐름 / 가족 환경 패턴 / 학습 환경 패턴 / 다음 학기 우선 면담 후보 (강요 X)
+- 저장: `vault/.sowing/synth/parent-patterns/{semester_label}.md`
+- frontmatter 11키 (synth_consulted_count + roster_size + unconsulted_count 포함)
+- accept_category=상담회고
+
+**#10 SynthesizeSelfPatterns — 자기 회고 패턴 (교사 자신, 메타-합성)**:
+- 다른 합성기는 학생·수업·연수·학부모 등 *외부* 분석. 이건 *교사 본인* 분석
+- 입력: 모든 entries (default 6개월 window)
+- 결정적 출력:
+  - 기본 통계 (모드/평균 문장 길이)
+  - 작성 시간대 분포 (hour_counts, peak_hour, 막대 그래프)
+  - 자주 다룬 카테고리 / 토픽 키워드 (top 15)
+  - **톤 신호어 카운트** — POSITIVE 23종 (잘됐/보람/뿌듯 등) vs NEGATIVE 23종 (힘들/지친/막막 등). 부정 윈도 5자 필터 적용 (Phase 12 LessonPattern 패턴 재사용)
+  - **최근 4주 vs 이전** 톤 비교 — 잠재적 burnout 시그널 단서
+  - 작성 공백 (7일+ 연속 빈 날, 상위 5)
+- LLM 출력 4 섹션: 시기별 톤 변화 / 자주 환기되는 주제 / 잠재적 burnout 시그널 (단정 거부, "특별한 시그널 없음" 솔직히 표기 가능) / 다음 학기 의도적 시도 후보
+- 저장: `vault/.sowing/synth/self-patterns/{period_label}.md`
+- frontmatter 11키 (synth_positive_count + negative_count + gap_count 포함)
+- accept_category=자기회고
+
+자율 판단 0 (ADR-013):
+- #9 trailer "원자료 — 면담 자리에서 교사 직접 판단·맥락 우선"
+- #10 trailer "단정 거부: '교사가 지쳤다' X → '부정 신호어 N건' O. 해석은 본인이"
+- LLM prompt 도 단정 금지 강조
+
+SynthController::SYNTH_TYPES 14 type:
+- 기존 12 + parent-patterns (👨‍👩‍👧, 학부모 상담 패턴 (학급)) + self-patterns (🪞, 자기 회고 패턴)
+- 새 generate route: POST /synth/parent-patterns/:slug/generate (semester_label),
+  POST /synth/self-patterns/:slug/generate (period_label)
+
+views/synth/index.erb:
+- parent-patterns / self-patterns generate 폼 (semester_label 또는 period_label
+  + since/until + "전체 기간 (30년)" preset 버튼)
+- JS 핸들러: slug 채우기 (인풋 → URL escape → form.action)
+
+bin/sowing-doctor:
+- Phase 12 진단 섹션에 두 use case 추가 (확장 #9, #10)
+- 14 type 디렉토리 카운트
+
+검증:
+- spec 17 신규
+  - synthesize_parent_patterns_spec 9 (결정적 5 + 가드 2 + LLM 2)
+  - synthesize_self_patterns_spec 8 (결정적 5 + 가드 1 + LLM 2)
+- 회귀: 1383 → 1400 (+17), 0 fail
+- standardrb clean
+- doctor: 14 type 모두 ✅
+
+핵심 디자인 결정:
+- #9 의 "미상담 학생 명단" — class_roster Settings 활용 (Phase 11 W17-T03 인프라 재사용)
+- #10 의 "burnout 시그널" — 단정 거부 톤 의식적 강조. "지쳤어요" 대신 "최근 4주간 부정 표현 N건". 사용자가 데이터 보고 본인이 해석.
+- 두 합성기 모두 LLM 모드도 *후보* 표현, 강요 0.
+
 ### 30년 시나리오 #4 — 위키링크 그래프 시각화 (2026-05-11)
 **30년 시나리오 4종 모두 완성** (#1 OnThisDay + #2 timeline + #3 by-category + #5 합성기 window + 이번 #4 graph). 위키링크 그래프 인프라 (W3, links 테이블) 위에 *시각화만* 추가.
 

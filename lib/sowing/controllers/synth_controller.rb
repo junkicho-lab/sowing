@@ -113,6 +113,20 @@ module Sowing
           icon: "🍂",
           accept_category: "계절회고",
           target_prefix: "season:"
+        },
+        "parent-patterns" => {
+          subdir: "parent-patterns",
+          label: "학부모 상담 패턴 (학급)",
+          icon: "👨‍👩‍👧",
+          accept_category: "상담회고",
+          target_prefix: "parent-patterns:"
+        },
+        "self-patterns" => {
+          subdir: "self-patterns",
+          label: "자기 회고 패턴",
+          icon: "🪞",
+          accept_category: "자기회고",
+          target_prefix: "self-patterns:"
         }
       }.freeze
 
@@ -469,6 +483,52 @@ module Sowing
           redirect_to_synth_show("seasonal", slug_actual)
         else
           session[:flash] = "생성 실패 (#{result.failure}) — 해당 월 entries 3건 이상 필요"
+          redirect "/synth"
+        end
+      end
+
+      # 학부모 상담 패턴 (학급) — slug = semester_label
+      post "/synth/parent-patterns/:slug/generate" do
+        label = params["slug"]
+        result = UseCases::SynthesizeParentPatterns.new.call(
+          semester_label: label,
+          since: params["since"].to_s.strip.empty? ? nil : params["since"],
+          until_time: params["until_time"].to_s.strip.empty? ? nil : params["until_time"]
+        )
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:parent-patterns:#{label}",
+            mode: "record",
+            path: ".sowing/synth/parent-patterns/#{label}.md"
+          )
+          session[:flash] = "학부모 상담 패턴 생성: #{label}"
+          redirect_to_synth_show("parent-patterns", label)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 상담 카테고리 entries 2건 이상 필요"
+          redirect "/synth"
+        end
+      end
+
+      # 자기 회고 패턴 — slug = period_label
+      post "/synth/self-patterns/:slug/generate" do
+        label = params["slug"]
+        result = UseCases::SynthesizeSelfPatterns.new.call(
+          period_label: label,
+          since: params["since"].to_s.strip.empty? ? nil : params["since"],
+          until_time: params["until_time"].to_s.strip.empty? ? nil : params["until_time"]
+        )
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:self-patterns:#{label}",
+            mode: "record",
+            path: ".sowing/synth/self-patterns/#{label}.md"
+          )
+          session[:flash] = "자기 회고 패턴 생성: #{label}"
+          redirect_to_synth_show("self-patterns", label)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — entries 10건 이상 필요"
           redirect "/synth"
         end
       end

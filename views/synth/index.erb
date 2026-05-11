@@ -260,6 +260,48 @@
               <button type="submit" class="button button--ghost">생성/재생성</button>
               <small class="synth-generate-form__hint">같은 월 (예: 매년 4월) 의 entries 비교. 연차 1년 미만이면 비교 없이 통계만.</small>
             </form>
+          <% when "parent-patterns" %>
+            <form action="/synth/parent-patterns/__SLUG__/generate" method="post" class="synth-generate-form"
+                  data-controller="synth-parent-patterns-form">
+              <label>
+                학기 라벨:
+                <input type="text" name="semester_label" required placeholder="예: 2026-1"
+                       data-action="input->synth-parent-patterns-form#updateAction">
+              </label>
+              <label>
+                기간 시작 (선택):
+                <input type="datetime-local" name="since">
+              </label>
+              <label>
+                기간 종료 (선택):
+                <input type="datetime-local" name="until_time">
+              </label>
+              <button type="button" class="button button--ghost button--small"
+                      data-synth-preset="all-time">📅 전체 기간 (30년)</button>
+              <button type="submit" class="button button--ghost">생성/재생성</button>
+              <small class="synth-generate-form__hint">학급 전체 학기 상담 분석. 학생별 빈도 + 미상담 학생 + 공통 키워드. (Settings 의 학급 명단 활용 권장.)</small>
+            </form>
+          <% when "self-patterns" %>
+            <form action="/synth/self-patterns/__SLUG__/generate" method="post" class="synth-generate-form"
+                  data-controller="synth-self-patterns-form">
+              <label>
+                기간 라벨:
+                <input type="text" name="period_label" required placeholder="예: 2026-1학기 또는 최근-1년"
+                       data-action="input->synth-self-patterns-form#updateAction">
+              </label>
+              <label>
+                기간 시작 (선택):
+                <input type="datetime-local" name="since">
+              </label>
+              <label>
+                기간 종료 (선택):
+                <input type="datetime-local" name="until_time">
+              </label>
+              <button type="button" class="button button--ghost button--small"
+                      data-synth-preset="all-time">📅 전체 기간 (30년)</button>
+              <button type="submit" class="button button--ghost">생성/재생성</button>
+              <small class="synth-generate-form__hint">교사 자신의 집필 패턴 메타-합성. 톤 신호어 + 시간대 + 작성 공백. 단정 0 — 통계와 인용만.</small>
+            </form>
           <% end %>
         </div>
       </div>
@@ -319,6 +361,26 @@
         form.action = `/synth/seasonal/${mm}/generate`
       }
       // 빈 값이면 form.action 기본값 (current) 사용
+    })
+  })
+
+  // 학부모 상담 패턴 (#9) — semester_label 을 slug 로
+  document.querySelectorAll('[data-controller="synth-parent-patterns-form"]').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      const input = form.querySelector('input[name="semester_label"]')
+      const slug = encodeURIComponent(input.value.trim())
+      if (!slug) { e.preventDefault(); return }
+      form.action = `/synth/parent-patterns/${slug}/generate`
+    })
+  })
+
+  // 자기 회고 패턴 (#10) — period_label 을 slug 로
+  document.querySelectorAll('[data-controller="synth-self-patterns-form"]').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      const input = form.querySelector('input[name="period_label"]')
+      const slug = encodeURIComponent(input.value.trim())
+      if (!slug) { e.preventDefault(); return }
+      form.action = `/synth/self-patterns/${slug}/generate`
     })
   })
 
