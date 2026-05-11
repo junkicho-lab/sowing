@@ -1841,6 +1841,60 @@ pre code {
   gap: var(--space-2);
 }
 
+/* Phase 14 W32 — 날짜·오전/오후 grouping */
+.plans__date-group {
+  margin: var(--space-4) 0;
+  padding-top: var(--space-2);
+  border-top: 2px solid var(--color-border);
+}
+
+.plans__date-group:first-of-type { border-top: 0; padding-top: 0; }
+
+.plans__date-header {
+  margin: 0 0 var(--space-2) 0;
+  font-size: 1.15rem;
+  color: var(--color-text);
+}
+
+.plans__date-header small {
+  color: var(--color-muted);
+  font-weight: normal;
+  font-size: 0.85rem;
+  margin-left: 0.4em;
+}
+
+.plans__half-day {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.plans__half-day--morning {
+  background: linear-gradient(135deg, rgba(255, 200, 87, 0.06), rgba(255, 154, 67, 0.03));
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.plans__half-day--afternoon {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.05), rgba(139, 92, 246, 0.04));
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+.plans__half-day-title {
+  margin: 0 0 var(--space-2) 0;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.plans__half-day-title small {
+  color: var(--color-muted);
+  font-weight: normal;
+  font-size: 0.82rem;
+  margin-left: 0.3em;
+}
+
+.plans__half-day .plans__list { margin: 0; }
+
 .plans__item {
   padding: var(--space-3);
   background: var(--color-card-bg);

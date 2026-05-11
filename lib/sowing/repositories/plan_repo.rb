@@ -137,8 +137,23 @@ module Sowing
         nil
       end
 
+      # 파일명 규칙 (Phase 14 W32 — 같은 날짜에 여러 plan 지원):
+      #   daily/weekly/monthly: {plan_date}-{HHmm}-{ULID끝4}.md
+      #     예: 40_Plans/daily/2026-05-11-0930-X4F2.md
+      #   project/semester: {plan_date}-{ULID끝4}.md  (시간 prefix 불필요)
+      # ULID 끝 4 자리 = Crockford Base32 — 같은 분에 여러 plan 만들어도 충돌 0.
       def resolve_path(plan)
-        @vault_dir.join(PLANS_DIR, plan.period.to_s, "#{plan.plan_date}.md")
+        id_tail = plan.id.to_s[-4..]
+        case plan.period
+        when :project, :semester
+          # project = slug 가 이미 unique, semester = YYYY-Sn (1 학기 1 파일 의도)
+          # 같은 slug/semester 에 여러 plan 가능하도록 끝 4자리 추가
+          @vault_dir.join(PLANS_DIR, plan.period.to_s, "#{plan.plan_date}-#{id_tail}.md")
+        else
+          # daily/weekly/monthly — 시간 prefix + ULID 끝
+          hhmm = plan.created_at.strftime("%H%M")
+          @vault_dir.join(PLANS_DIR, plan.period.to_s, "#{plan.plan_date}-#{hhmm}-#{id_tail}.md")
+        end
       end
 
       def absolute(path)

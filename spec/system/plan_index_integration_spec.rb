@@ -76,7 +76,8 @@ RSpec.describe "Plan IndexRepo 통합 (Phase 13 W27-T03)", type: :request do
       row = db[:entries].where(id: plan.id.to_s).first
       expect(row).not_to be_nil
       expect(row[:title]).to eq("협동학습 평가")
-      expect(row[:path]).to eq("40_Plans/daily/2026-05-11.md")
+      # W32: {date}-{HHmm}-{id4}.md 패턴
+      expect(row[:path]).to match(%r{\A40_Plans/daily/2026-05-11-\d{4}-[0-9A-Z]{4}\.md\z})
       expect(row[:mode]).to eq("plan")
     end
 
@@ -144,33 +145,27 @@ RSpec.describe "Plan IndexRepo 통합 (Phase 13 W27-T03)", type: :request do
     end
   end
 
-  describe "Overwrite — 같은 period+date 재제출 (Phase 14 hotfix)" do
-    it "같은 path 새 ULID 제출 → UNIQUE 위반 0 + 기존 row 대체" do
-      # 1. 첫 plan 생성
+  describe "같은 period+date 여러 plan (Phase 14 W32 — overwrite 폐지)" do
+    it "같은 날짜 두 번 제출 → 두 row 모두 유지 (unique path)" do
       first = Sowing::UseCases::CreatePlan.new(plan_repo: plan_repo)
         .call(title: "첫 평가", period: :daily, plan_date: "2026-05-11").value!
-      expect(db[:entries].where(path: "40_Plans/daily/2026-05-11.md").count).to eq(1)
-
-      # 2. 같은 period+date, 다른 title 로 두 번째 (UI 의 '새 평가' 시나리오)
       second = Sowing::UseCases::CreatePlan.new(plan_repo: plan_repo)
         .call(title: "새 평가", period: :daily, plan_date: "2026-05-11").value!
 
-      # UNIQUE violation 없이 성공
-      expect(second.id.to_s).not_to eq(first.id.to_s)
-      # 같은 path 의 row 는 여전히 1개, 새 id 로 대체됨
-      rows = db[:entries].where(path: "40_Plans/daily/2026-05-11.md").all
-      expect(rows.size).to eq(1)
-      expect(rows.first[:id]).to eq(second.id.to_s)
-      expect(rows.first[:title]).to eq("새 평가")
-      # 기존 first id 의 row 는 삭제됨
-      expect(db[:entries].where(id: first.id.to_s).count).to eq(0)
+      # 두 plan 의 path 가 unique (HHmm + id4 prefix 다름)
+      expect(first.id.to_s).not_to eq(second.id.to_s)
+      # entries 에 두 row 모두 존재 (overwrite X)
+      expect(db[:entries].where(id: first.id.to_s).count).to eq(1)
+      expect(db[:entries].where(id: second.id.to_s).count).to eq(1)
+      # 같은 plan_date 의 plan 2건
+      titles = db[:entries].where(mode: "plan").select_map(:title).sort
+      expect(titles).to eq(["새 평가", "첫 평가"])
     end
 
-    it "같은 id 재제출 (toggle 등) 은 기존 동작 그대로 upsert" do
+    it "toggle_done — 같은 id 재제출 시 row 1 개 유지" do
       first = Sowing::UseCases::CreatePlan.new(plan_repo: plan_repo)
         .call(title: "T", period: :daily, plan_date: "2026-05-11").value!
 
-      # toggle_done — 같은 id 로 재저장
       plan_repo.toggle_done(first.id.to_s)
       expect(db[:entries].where(id: first.id.to_s).count).to eq(1)
     end
@@ -185,7 +180,8 @@ RSpec.describe "Plan IndexRepo 통합 (Phase 13 W27-T03)", type: :request do
       indexed = index_repo.find(plan_id)
       expect(indexed).not_to be_nil
       expect(indexed.mode).to eq(:plan)
-      expect(indexed.path).to eq("40_Plans/weekly/2026-W19.md")
+      # W32: {date}-{HHmm}-{id4}.md 패턴
+      expect(indexed.path).to match(%r{\A40_Plans/weekly/2026-W19-\d{4}-[0-9A-Z]{4}\.md\z})
     end
   end
 end

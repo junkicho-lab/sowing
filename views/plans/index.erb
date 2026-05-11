@@ -30,7 +30,43 @@
     </a>
   </div>
 
-  <%# plan 목록 %>
+  <%# plan 카드 partial (DRY — group 안에서 재사용) %>
+  <% render_plan_card = ->(plan) { %>
+    <li class="plans__item <%= "plans__item--done" if plan.done %>">
+      <div class="plans__item-head">
+        <span class="plans__badge plans__badge--<%= plan.period %>">
+          <%= plan_period_label(plan.period) %>
+        </span>
+        <span class="plans__date"><%= h(plan.plan_date) %></span>
+        <% if plan.done %>
+          <span class="plans__done-badge">✅ 완료</span>
+        <% end %>
+        <time class="plans__created" datetime="<%= plan.created_at.iso8601 %>">
+          <%= plan.created_at.strftime("%H:%M") %> 작성
+        </time>
+      </div>
+
+      <h3 class="plans__title">
+        <a href="/plans/<%= h(plan.id.to_s) %>"><%= h(plan.title) %></a>
+      </h3>
+
+      <% if plan.body && !plan.body.empty? %>
+        <p class="plans__excerpt">
+          <%= h(plan.body.strip[0, 160]) %><%= "…" if plan.body.strip.length > 160 %>
+        </p>
+      <% end %>
+
+      <% if plan.tags.to_a.any? %>
+        <div class="plans__tags">
+          <% plan.tags.to_a.first(5).each do |tag| %>
+            <a href="/tags/<%= Rack::Utils.escape(tag) %>" class="plans__tag">#<%= h(tag) %></a>
+          <% end %>
+        </div>
+      <% end %>
+    </li>
+  <% } %>
+
+  <%# plan 목록 — 빈 / grouping (daily·weekly·monthly) / 단일 (project·semester) %>
   <% if @selected_plans.empty? %>
     <div class="empty-state empty-state--inline">
       <p>아직 <%= plan_period_label(@selected_period) %> 계획이 없습니다.</p>
@@ -39,48 +75,45 @@
         <strong>꾸준한 계획 → 회고 → 다음 계획</strong> 이 30년 누적의 핵심입니다.
       </p>
     </div>
-  <% else %>
-    <ul class="plans__list">
-      <% @selected_plans.each do |plan| %>
-        <li class="plans__item <%= "plans__item--done" if plan.done %>">
-          <div class="plans__item-head">
-            <span class="plans__badge plans__badge--<%= plan.period %>">
-              <%= plan_period_label(plan.period) %>
-            </span>
-            <span class="plans__date"><%= h(plan.plan_date) %></span>
-            <% if plan.done %>
-              <span class="plans__done-badge">✅ 완료</span>
-            <% end %>
-            <time class="plans__created" datetime="<%= plan.created_at.iso8601 %>">
-              <%= plan.created_at.strftime("%m/%d %H:%M") %> 작성
-            </time>
+  <% elsif @grouped_plans %>
+    <%# Phase 14 W32 — daily/weekly/monthly: 날짜별 + 오전/오후 grouping %>
+    <% @grouped_plans.each do |group| %>
+      <section class="plans__date-group">
+        <h2 class="plans__date-header">
+          📅 <%= h(group[:date]) %>
+          <small>(총 <%= group[:morning].size + group[:afternoon].size %>건)</small>
+        </h2>
+
+        <% if group[:morning].any? %>
+          <div class="plans__half-day plans__half-day--morning">
+            <h3 class="plans__half-day-title">🌅 오전 <small>(<%= group[:morning].size %>건)</small></h3>
+            <ul class="plans__list">
+              <% group[:morning].each(&render_plan_card) %>
+            </ul>
           </div>
+        <% end %>
 
-          <h3 class="plans__title">
-            <a href="/plans/<%= h(plan.id.to_s) %>"><%= h(plan.title) %></a>
-          </h3>
-
-          <% if plan.body && !plan.body.empty? %>
-            <p class="plans__excerpt">
-              <%= h(plan.body.strip[0, 160]) %><%= "…" if plan.body.strip.length > 160 %>
-            </p>
-          <% end %>
-
-          <% if plan.tags.to_a.any? %>
-            <div class="plans__tags">
-              <% plan.tags.to_a.first(5).each do |tag| %>
-                <a href="/tags/<%= Rack::Utils.escape(tag) %>" class="plans__tag">#<%= h(tag) %></a>
-              <% end %>
-            </div>
-          <% end %>
-        </li>
-      <% end %>
+        <% if group[:afternoon].any? %>
+          <div class="plans__half-day plans__half-day--afternoon">
+            <h3 class="plans__half-day-title">🌆 오후 <small>(<%= group[:afternoon].size %>건)</small></h3>
+            <ul class="plans__list">
+              <% group[:afternoon].each(&render_plan_card) %>
+            </ul>
+          </div>
+        <% end %>
+      </section>
+    <% end %>
+  <% else %>
+    <%# project / semester — grouping 없이 단일 리스트 %>
+    <ul class="plans__list">
+      <% @selected_plans.each(&render_plan_card) %>
     </ul>
   <% end %>
 
   <p class="plans__footer-note">
     💡 <strong>옵시디언 호환</strong> — 각 계획은
-    <code>40_Plans/{period}/{plan_date}.md</code> 마크다운으로 저장.
+    <code>40_Plans/{period}/{plan_date}-{HHmm}-{id4}.md</code> 마크다운으로 저장.
     옵시디언에서 <code>- [ ]</code> / <code>- [x]</code> todo 체크박스 그대로 작동.
+    <br><small>같은 날짜에 여러 계획을 만들면 <strong>오전·오후</strong> 로 자동 분류됩니다 (작성 시각 기준).</small>
   </p>
 </section>

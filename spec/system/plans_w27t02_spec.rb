@@ -82,24 +82,25 @@ RSpec.describe "Plan 확장 + 대시보드 위젯 (Phase 13 W27-T02)", type: :re
   end
 
   describe "PlanRepo — project/semester 디렉토리" do
-    it ":project plan 저장 → 40_Plans/project/{slug}.md" do
+    it ":project plan 저장 → 40_Plans/project/{slug}-{id4}.md" do
       plan = Sowing::Domain::Plan.new(
         id: Sowing::Domain::ValueObjects::Ulid.generate,
         title: "T", body: "x", period: :project, plan_date: "sapiens",
         created_at: Time.now
       )
       path = repo.write(plan)
-      expect(path.to_s).to include("40_Plans/project/sapiens.md")
+      # W32: project 는 slug + id4 (시간 prefix 없음)
+      expect(path.to_s).to match(%r{40_Plans/project/sapiens-[0-9A-Z]{4}\.md\z})
     end
 
-    it ":semester plan 저장 → 40_Plans/semester/2026-S1.md" do
+    it ":semester plan 저장 → 40_Plans/semester/2026-S1-{id4}.md" do
       plan = Sowing::Domain::Plan.new(
         id: Sowing::Domain::ValueObjects::Ulid.generate,
         title: "T", body: "x", period: :semester, plan_date: "2026-S1",
         created_at: Time.now
       )
       path = repo.write(plan)
-      expect(path.to_s).to include("40_Plans/semester/2026-S1.md")
+      expect(path.to_s).to match(%r{40_Plans/semester/2026-S1-[0-9A-Z]{4}\.md\z})
     end
 
     it "list_all — 5 period 모두 합본" do

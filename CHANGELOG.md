@@ -9,6 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 (다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
 
+## [0.1.8] - 2026-05-11 — Plan: 같은 날짜 여러 개 + 오전/오후 grouping (W32)
+
+사용자 피드백 반영. v0.1.7 의 "1 파일 1 plan overwrite" 모델을 폐기하고
+같은 날짜에 여러 plan 가능 + 오전/오후 자동 분류.
+
+**Path 규칙 변경**:
+- daily/weekly/monthly: `{plan_date}-{HHmm}-{ULID끝4}.md`
+  예: `40_Plans/daily/2026-05-11-0930-X4F2.md`
+- project/semester: `{plan_date}-{ULID끝4}.md` (시간 prefix 불필요)
+- 각 plan 이 unique path → UNIQUE 충돌 0
+- ULID 끝 4자리 = Crockford Base32 (같은 분 충돌 0)
+
+**Grouping (PlansController#index)**:
+- daily/weekly/monthly: 날짜별 + 오전/오후 분리
+  - 오전: `created_at.hour < 12`
+  - 오후: `created_at.hour >= 12`
+- project/semester: grouping 없이 단일 리스트 (시간 의미 약함)
+- 날짜 역순 (최신 위)
+- 각 group 안 plan 도 시간 오름차순
+
+**UI (views/plans/index.erb)**:
+- `📅 {date} (총 N건)` 날짜 헤더 (border-top 분리)
+- `🌅 오전 (N건)` amber 그라디언트 카드
+- `🌆 오후 (N건)` blue/purple 그라디언트 카드
+- 시각 표시 (HH:MM, 날짜 중복 제거)
+- 옵시디언 호환 안내 갱신 (새 path 패턴 + 자동 분류 명시)
+
+**v0.1.7 overwrite 로직 보존**:
+- `upsert_index` 의 'same path 다른 id 시 delete' 로직 그대로
+- W32 부터 unique path 라 거의 실행 안 됨
+- 마이그레이션 미적용·기존 파일과의 정합성 안전망
+
+**Spec**:
+- spec/system/plans_multi_per_day_spec.rb 신규 (11 case):
+  - Path 규칙 검증 (2): daily/weekly/monthly + project/semester
+  - 같은 날짜 여러 plan UNIQUE 0 (2)
+  - 오전/오후 grouping UI (5)
+  - 날짜별 그룹 (1)
+  - project 단일 리스트 (1)
+- 기존 spec 3 path expectation 갱신 (정규식 매치)
+- v0.1.7 'overwrite' spec → 'unique path' 의미로 변경
+- 1663 → 1674 (+11), 0 failures
+
+**ADR 영향**: 0 (도메인·라우트 unchanged)
+
+**사용자 가치**:
+- "오전엔 평가, 오후엔 면담" 식 자연스러운 일정 관리
+- 같은 날짜 plan 충돌 0 → 폼 제출 시 항상 성공
+- 옵시디언에서 파일명만 봐도 시간 인지 (HHmm prefix)
+
+**파일 9**:
+- plan_repo (resolve_path 패턴) + plans_controller (grouping helper) +
+  view (grouping UI) + css (date-group + half-day) + spec × 4 + 캡쳐
+
 ## [0.1.7] - 2026-05-11 — Hotfix: Plan 같은 날짜 재제출 UNIQUE 충돌
 
 **버그**: 같은 period+date (예: daily 2026-05-11) 의 plan 을 두 번째 제출 시

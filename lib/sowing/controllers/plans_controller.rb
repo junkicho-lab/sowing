@@ -56,6 +56,25 @@ module Sowing
             .list_by_period(:daily)
             .select { |p| p.plan_date == today.strftime("%Y-%m-%d") && !p.done }
         end
+
+        # Phase 14 W32 — 같은 plan_date 안에서 오전/오후 분리.
+        # 기준: created_at.hour < 12 → :morning, ≥ 12 → :afternoon
+        # project/semester 는 시간 의미 약함 — 그대로 단일 리스트로 처리.
+        def plans_grouped_by_date_and_period_of_day(plans)
+          plans
+            .group_by(&:plan_date)
+            .sort
+            .reverse
+            .map { |date, items|
+              morning = items.select { |p| p.created_at.hour < 12 }.sort_by(&:created_at)
+              afternoon = items.select { |p| p.created_at.hour >= 12 }.sort_by(&:created_at)
+              {date: date, morning: morning, afternoon: afternoon}
+            }
+        end
+
+        def period_of_day_label(period_of_day)
+          period_of_day == :morning ? "🌅 오전" : "🌆 오후"
+        end
       end
 
       get "/plans" do
@@ -63,6 +82,10 @@ module Sowing
         @selected_period = (Domain::Plan::PERIODS.map(&:to_s).include?(params["period"]) ? params["period"].to_sym : :daily)
         @plans_by_period = Domain::Plan::PERIODS.to_h { |p| [p, plan_repo.list_by_period(p)] }
         @selected_plans = @plans_by_period[@selected_period]
+        # Phase 14 W32 — 날짜별 + 오전/오후 grouping (daily/weekly/monthly 만)
+        @grouped_plans = if %i[daily weekly monthly].include?(@selected_period)
+          plans_grouped_by_date_and_period_of_day(@selected_plans)
+        end
         @flash = session.delete(:flash)
         erb :"plans/index", layout: :"layouts/application"
       end

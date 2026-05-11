@@ -80,7 +80,8 @@ RSpec.describe "쓸 글 계획 (Phase 13 W27-T01)", type: :request do
 
     it "write + read 왕복 — 마크다운 파일 라운드트립" do
       path = repo.write(plan)
-      expect(path.to_s).to include("40_Plans/daily/2026-05-11.md")
+      # W32: 2026-05-11-{HHmm}-{id4}.md 패턴
+      expect(path.to_s).to match(%r{40_Plans/daily/2026-05-11-\d{4}-[0-9A-Z]{4}\.md\z})
       restored = repo.read(path)
       expect(restored.title).to eq(plan.title)
       expect(restored.period).to eq(plan.period)
