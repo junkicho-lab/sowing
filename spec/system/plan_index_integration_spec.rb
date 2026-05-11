@@ -144,6 +144,38 @@ RSpec.describe "Plan IndexRepo 통합 (Phase 13 W27-T03)", type: :request do
     end
   end
 
+  describe "Overwrite — 같은 period+date 재제출 (Phase 14 hotfix)" do
+    it "같은 path 새 ULID 제출 → UNIQUE 위반 0 + 기존 row 대체" do
+      # 1. 첫 plan 생성
+      first = Sowing::UseCases::CreatePlan.new(plan_repo: plan_repo)
+        .call(title: "첫 평가", period: :daily, plan_date: "2026-05-11").value!
+      expect(db[:entries].where(path: "40_Plans/daily/2026-05-11.md").count).to eq(1)
+
+      # 2. 같은 period+date, 다른 title 로 두 번째 (UI 의 '새 평가' 시나리오)
+      second = Sowing::UseCases::CreatePlan.new(plan_repo: plan_repo)
+        .call(title: "새 평가", period: :daily, plan_date: "2026-05-11").value!
+
+      # UNIQUE violation 없이 성공
+      expect(second.id.to_s).not_to eq(first.id.to_s)
+      # 같은 path 의 row 는 여전히 1개, 새 id 로 대체됨
+      rows = db[:entries].where(path: "40_Plans/daily/2026-05-11.md").all
+      expect(rows.size).to eq(1)
+      expect(rows.first[:id]).to eq(second.id.to_s)
+      expect(rows.first[:title]).to eq("새 평가")
+      # 기존 first id 의 row 는 삭제됨
+      expect(db[:entries].where(id: first.id.to_s).count).to eq(0)
+    end
+
+    it "같은 id 재제출 (toggle 등) 은 기존 동작 그대로 upsert" do
+      first = Sowing::UseCases::CreatePlan.new(plan_repo: plan_repo)
+        .call(title: "T", period: :daily, plan_date: "2026-05-11").value!
+
+      # toggle_done — 같은 id 로 재저장
+      plan_repo.toggle_done(first.id.to_s)
+      expect(db[:entries].where(id: first.id.to_s).count).to eq(1)
+    end
+  end
+
   describe "IndexRepo.find — plan 단건 조회" do
     it "find(plan_id) → IndexedEntry with mode: :plan" do
       result = Sowing::UseCases::CreatePlan.new(plan_repo: plan_repo)

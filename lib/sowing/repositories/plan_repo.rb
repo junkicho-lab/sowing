@@ -112,10 +112,19 @@ module Sowing
 
       # W27-T03 — entries 테이블에도 plan 인덱싱.
       # IndexRepo 가 nil 이면 lazy 생성. mode='plan' 으로 upsert.
-      # 인덱싱 실패해도 vault 파일 쓰기는 성공 — graceful (마이그레이션 008 미적용 시).
+      # 인덱싱 실패해도 vault 파일 쓰기는 성공 — graceful (마이그레이션 미적용 시).
+      #
+      # Overwrite semantics (Phase 14 hotfix):
+      # 같은 path 의 기존 entry 가 다른 id 라면 (= 사용자가 같은 period+date 로 새 plan
+      # 제출) 기존 row 삭제 후 새 id 로 insert. file 은 이미 덮어써짐 — entries 도 정합.
+      # 이유: 같은 period+date 는 1 파일 1 plan 이 의도 (daily/2026-05-11.md 처럼).
       def upsert_index(plan, absolute_path)
         repo = @index_repo || IndexRepo.new
         relative_path = Pathname.new(absolute_path.to_s).relative_path_from(@vault_dir).to_s
+
+        existing = repo.find_by_path(relative_path)
+        repo.delete(existing.id) if existing && existing.id.to_s != plan.id.to_s
+
         repo.upsert(
           plan,
           path: relative_path,
@@ -124,7 +133,7 @@ module Sowing
           word_count: plan.body.split.size
         )
       rescue Sequel::CheckConstraintViolation
-        # 마이그레이션 008 미적용 시 무시 — file 은 저장됨, IndexRepo 통합만 skip
+        # 마이그레이션 미적용 시 무시 — file 은 저장됨, IndexRepo 통합만 skip
         nil
       end
 

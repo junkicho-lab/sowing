@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 (다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
 
+## [0.1.7] - 2026-05-11 — Hotfix: Plan 같은 날짜 재제출 UNIQUE 충돌
+
+**버그**: 같은 period+date (예: daily 2026-05-11) 의 plan 을 두 번째 제출 시
+`Sequel::UniqueConstraintViolation: entries.path` 발생. 사용자가 "오늘 plan
+하나 더" 시도 시 500 에러.
+
+**원인**:
+- PlanRepo.write 가 vault file 은 덮어쓰지만 (File.write)
+- CreatePlan use case 가 매번 새 ULID 로 도메인 생성
+- entries 테이블에 새 id 로 INSERT 시도 → path UNIQUE 위반
+
+**Fix** (lib/sowing/repositories/plan_repo.rb#upsert_index):
+- 같은 path 의 기존 entry 가 다른 id 라면 기존 row 먼저 delete
+- 그 후 새 id 로 upsert (file 은 이미 덮어써졌으니 entries 도 정합)
+- 같은 id 재제출 (toggle 등) 은 기존 동작 그대로 (id update path)
+
+**의도된 동작 (Overwrite semantics)**:
+- 같은 period+date 는 1 파일 1 plan
+- 두 번째 제출 = "수정" 으로 처리 (vault file 덮어쓰기, entries 새 id)
+- 향후 W32 에서 사용자에게 "이미 plan 있음 — 수정으로 진입?" 안내 UI 가능
+
+**Spec** (spec/system/plan_index_integration_spec.rb):
+- '같은 path 새 ULID 제출 → UNIQUE 위반 0 + 기존 row 대체'
+- '같은 id 재제출 (toggle) 은 기존 동작 그대로'
+- 10 → 12 case, 0 failures
+
+**ADR 영향**: 0 (도메인·라우트·UI 변경 없음)
+
+**파일 2**:
+- lib/sowing/repositories/plan_repo.rb (10 라인 추가)
+- spec/system/plan_index_integration_spec.rb (regression test)
+
 ## [0.1.6] - 2026-05-11 — Phase 14 W31 PoC: 모바일 햄버거 + 터치 chip 크기
 
 v0.1.5 의 단축키 (W30) 에 이어 세 번째 Phase 14 PoC. 모바일 viewport (≤768px)
