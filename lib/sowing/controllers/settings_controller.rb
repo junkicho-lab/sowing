@@ -92,6 +92,28 @@ module Sowing
         redirect "/settings"
       end
 
+      # Phase 14 W30 PoC — 단축키 사용자 정의.
+      # modifier (Cmd/Ctrl+Shift) 고정, 한 글자만 변경 가능.
+      # 안전한 charset (a-z) 만 허용 — modifier 충돌·브라우저 충돌 회피.
+      post "/settings/shortcuts" do
+        memo_key = sanitize_shortcut_key(params["shortcut_quick_memo"], default: "m")
+        search_key = sanitize_shortcut_key(params["shortcut_quick_search"], default: "k")
+        user_settings.update(
+          shortcut_quick_memo: memo_key,
+          shortcut_quick_search: search_key
+        )
+        session[:flash] = "⌨ 단축키 저장: ⌘⇧#{memo_key.upcase} (빠른 메모), ⌘#{search_key.upcase} (빠른 검색)"
+        redirect "/settings"
+      end
+
+      helpers do
+        # 단일 영문 소문자 1글자만 허용 — 그 외 (특수문자·숫자·다국어) 는 default
+        def sanitize_shortcut_key(raw, default:)
+          s = raw.to_s.strip.downcase
+          s.match?(/\A[a-z]\z/) ? s : default
+        end
+      end
+
       # Phase 13 W25-T02 — 동사 중심 nav 변경 안내 모달 닫기.
       # AJAX POST (fetch) — JS 가 모달 hide 후 200 OK 받으면 종료.
       # form fallback (HTML POST) 도 작동 — JS 비활성화 시 redirect.

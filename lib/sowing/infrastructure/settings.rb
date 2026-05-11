@@ -32,7 +32,12 @@ module Sowing
         # Phase 14 W29 PoC: 다크 모드 (auto/light/dark).
         # auto = OS prefers-color-scheme 자동 따라감 (default)
         # light = 강제 라이트 / dark = 강제 다크
-        "theme" => "auto"
+        "theme" => "auto",
+        # Phase 14 W30 PoC: 단축키 사용자 정의.
+        # modifier (Cmd/Ctrl + Shift) 고정, 마지막 한 글자만 사용자 정의.
+        # 안전한 charset (a-z) 만 허용 — modifier 충돌 회피 + 브라우저 단축키 충돌 최소화.
+        "shortcut_quick_memo" => "m",    # Cmd+Shift+M (default)
+        "shortcut_quick_search" => "k"   # Cmd+K (default, Shift 없음)
       }.freeze
 
       module_function

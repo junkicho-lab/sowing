@@ -30,8 +30,9 @@ export default class extends Controller {
   }
 
   _onGlobalKeydown(event) {
-    // Cmd/Ctrl + K → 열기
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+    // Phase 14 W30 — Cmd/Ctrl + {사용자 정의 key, default K} → 열기
+    const key = (window.SOWING_SHORTCUTS?.quick_search || "k").toLowerCase()
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === key) {
       event.preventDefault()
       this.open()
     }

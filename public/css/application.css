@@ -1554,6 +1554,50 @@ pre code {
   margin: 0;
 }
 
+/* Phase 14 W30 — 단축키 사용자 정의 UI */
+.settings__field-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin: var(--space-1) 0;
+  flex-wrap: wrap;
+}
+
+.settings__field-inline label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.95rem;
+}
+
+.settings__shortcut-prefix {
+  font-family: ui-monospace, monospace;
+  background: var(--color-code-bg);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.92rem;
+  color: var(--color-primary);
+}
+
+.settings__shortcut-input {
+  width: 2.4em;
+  padding: 0.35em 0.4em;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: ui-monospace, monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-input-bg);
+  color: var(--color-text);
+}
+
+.settings__shortcut-input:focus {
+  outline: 2px solid var(--color-primary);
+  border-color: transparent;
+}
+
 /* ─── Phase 13 W27-T02 — 대시보드 '오늘 할 일' 위젯 ─── */
 
 .todays-plans {

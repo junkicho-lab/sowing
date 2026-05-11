@@ -142,8 +142,9 @@ export default class extends Controller {
   }
 
   _onGlobalKeydown(event) {
-    // Cmd/Ctrl + Shift + M → 열기
-    if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "m") {
+    // Phase 14 W30 — Cmd/Ctrl + Shift + {사용자 정의 key, default M} → 열기
+    const key = (window.SOWING_SHORTCUTS?.quick_memo || "m").toLowerCase()
+    if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === key) {
       event.preventDefault()
       this.open()
     }

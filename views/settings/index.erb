@@ -99,6 +99,39 @@ bin/sowing dev</code></pre>
   </article>
 
   <article class="settings__section">
+    <h2>⌨ 단축키 (Phase 14 W30 PoC)</h2>
+    <form action="/settings/shortcuts" method="post" class="settings__form">
+      <p class="settings__hint">
+        modifier 키 (Cmd/Ctrl + Shift) 는 고정. 마지막 한 글자만 변경 가능 (영문 소문자, 충돌 방지).
+        예: <code>m</code> → ⌘⇧M, <code>j</code> → ⌘⇧J.
+      </p>
+      <div class="settings__field-inline">
+        <label>
+          빠른 메모:
+          <span class="settings__shortcut-prefix">⌘⇧</span>
+          <input type="text" name="shortcut_quick_memo"
+                 value="<%= h((@settings_data["shortcut_quick_memo"] || "m").upcase) %>"
+                 maxlength="1" pattern="[a-zA-Z]" required
+                 class="settings__shortcut-input">
+        </label>
+        <small>(기본 M)</small>
+      </div>
+      <div class="settings__field-inline">
+        <label>
+          빠른 검색:
+          <span class="settings__shortcut-prefix">⌘</span>
+          <input type="text" name="shortcut_quick_search"
+                 value="<%= h((@settings_data["shortcut_quick_search"] || "k").upcase) %>"
+                 maxlength="1" pattern="[a-zA-Z]" required
+                 class="settings__shortcut-input">
+        </label>
+        <small>(기본 K)</small>
+      </div>
+      <button type="submit" class="button button--ghost">단축키 저장</button>
+    </form>
+  </article>
+
+  <article class="settings__section">
     <h2>🌗 테마 (Phase 14 W29 PoC)</h2>
     <form action="/settings/theme" method="post" class="settings__form">
       <div class="settings__radios">
