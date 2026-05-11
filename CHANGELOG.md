@@ -9,6 +9,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 (다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
 
+## [0.1.2] - 2026-05-11 — Phase 13: 동사 중심 IA + Plan mode + 17번째 합성기 자기 거울
+
+**가장 큰 변화** — 평면 nav 10항목 → 5+1 동사 중심 (글쓰기·쓴 글 보기·쓸 글 계획·자기 거울 + 홈·설정). 4번째 1급 mode "계획" 신설. 17번째 합성기 "자기 거울 (5축)" + 대시보드 위젯 + 매일 자동 생성. ADR-014 정식 채택.
+
+**계기**: `docs/gb-docs.md` (김교수 "지독한 기록" 영상 transcript) 비교 분석 → 평면 nav 가 신규 사용자 진입장벽. 명사 (메모/필기/기록) 노출이 사용자 동사 (적다/보다/계획하다/회고하다) 와 어긋남.
+
+**ADR-014 정식 채택**: 명사 mode (저장 단위 — 메모/필기/기록/계획/합성) 와 동사 mode (사용자 의도 — 글쓰기/보기/계획/회고) 두 계층 명시 분리. 마크다운 SoT (ADR-001) 영향 0. 자세한 결정: [docs/DECISIONS.md ADR-014](docs/DECISIONS.md#adr-014).
+
+**W25 — Nav 재설계 (2 작업)**:
+- W25-T01 `<details>` dropdown 5+1 nav (JS 0)
+- W25-T02 1회 변경 안내 모달 (`Settings.ia_v2_seen_at`)
+
+**W26 — 글쓰기 + 쓴 글 보기 (3 작업)**:
+- W26-T01 빠른 메모 5 subtype (책/강의/감정/학생/일반) — 도메인 변경 0, client-side body 결합 + 자동 태그
+- W26-T02 음성 입력 PoC (Web Speech API ko-KR, Whisper.cpp 로컬 W26-T02b 예정)
+- W26-T03 `/view/recent` 통합 시간순 페이지 (메모/필기/기록 합본 + mode/카테고리 chip 필터)
+
+**W27 — 쓸 글 계획 (2 작업)**:
+- W27-T01 `Sowing::Domain::Plan` + `PlanRepo` + `40_Plans/` + CRUD UI
+- W27-T02 5 period (daily/weekly/monthly/project/semester) + 대시보드 "오늘 할 일" 위젯
+
+**W28 — 자기 거울 (3 작업)**:
+- W28-T01 17번째 합성기 `SynthesizeSelfMirror` — 5축 (지성·감정·습관·관계·에너지)
+- W28-T02 대시보드 "오늘의 자기" 위젯 (opt-in: `daily_mirror_enabled`)
+- W28-T03 자동 매일 생성 hook (대시보드 진입 시) — 결과는 검토 대기 폴더 (ADR-013 호환)
+
+**기존 URL 100% 호환**: `/memos`, `/notes`, `/records`, `/tags`, `/search`, `/synth`, `/graph`, `/templates`, `/settings` 모두 그대로 작동. 신규 동사 라우트 `/write`, `/view`, `/plan`, `/mirror` 는 추가 진입점.
+
+**ADR-013 자율 mutation 0 유지**:
+- 자동 생성 결과는 `.sowing/synth/self-mirror/` 검토 대기 폴더에만
+- 30_Records/회고/ 로의 정식 이동은 사용자 수락 클릭으로만
+- audit log 에 actor=agent 로 기록
+- `daily_mirror_enabled = true` 자체가 매일 자동 생성 명시 동의
+
+**Spec & 캡쳐**:
+- 1430 → 1607 (+177 신규 spec)
+- 0 failures
+- standardrb clean
+- docs/screenshots/ 13 → 24 (+11 신규 캡쳐)
+
+**문서**:
+- `docs/USER_GUIDE.md` 전면 갱신 — 14 섹션 (이전 11 섹션), Plan mode + 자기 거울 신규 §9·§10
+- `docs/REDESIGN_IA.md` (Phase 13 설계 원본, W25 commit)
+- `docs/DECISIONS.md` ADR-014 정식 추가
+- `ROADMAP.md` Phase 13 항목 (12 작업 — T03 일부 deferred)
+
+**효과 목표 (베타 인터뷰로 측정 예정)**:
+- 신규 사용자 첫 메모까지 시간 < 30초 (현재 ~2분)
+- 1주차 이탈률 < 20% (현재 ~40% 예상)
+- Nav hover 평균 < 1.5회 (현재 3.2)
+- 합성기 월 사용률 > 60% (현재 ~30%)
+
+**파일 (10 commit, 누적 ~80개 파일)**:
+- 핵심 코드: ViewController / PlansController / Plan domain / PlanRepo / CreatePlan / SynthesizeSelfMirror
+- UI: nav v2 + 9 신규 partial/page + 50+ CSS sub-class
+- Spec: 7 신규 spec 파일 + 7 기존 spec 갱신
+
 ## [0.1.1] - 2026-05-11 — LLM 통합 강화 (.env 자동 로딩 + UI 모드 toggle + 모델 선택)
 
 v0.1.0 의 LLM 합성기 인프라를 사용성 측면으로 끌어올림. 사용자가 셸에서 `export`
