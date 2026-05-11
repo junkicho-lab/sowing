@@ -9,6 +9,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 (다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
 
+## [0.1.4] - 2026-05-11 — Phase 14 PoC 진입: 다크 모드 + 베타 인터뷰 가이드
+
+Phase 13 (v0.1.2/v0.1.3) 출시 후 Phase 14 의 첫 PoC. 베타 인터뷰 결과 무관하게
+사전 가능한 영역 — **다크 모드** + **베타 인터뷰 가이드 문서화**.
+
+**다크 모드 (W29 PoC)**:
+- 3 테마: `auto` (default, OS 자동) / `light` (강제) / `dark` (강제)
+- CSS variable override 패턴 — 8개 토큰 (bg/card-bg/text/muted/border/code-bg/shadow/input-bg)
+- `:root[data-theme="dark"]` 강제 + `@media (prefers-color-scheme: dark)` auto
+- Hard-coded `background: white` 37 occurrence → `var(--color-card-bg)` 일괄 (모든 카드 자동 다크 적응)
+- Settings 페이지에 '🌗 테마' 라디오 3종
+- `<html data-theme>` + `<meta color-scheme>` 동적 적용
+- Settings 손상 시 auto 폴백 (graceful)
+- ADR 영향 0 — 시각 토큰만 변경, 도메인·정체성 그대로
+- 캡쳐: docs/screenshots/25-dashboard-dark.png, 26-settings-dark.png
+
+**베타 인터뷰 가이드 (Phase 13 후속 측정 도구)**:
+- `docs/BETA_PHASE13_INTERVIEW.md` (242 lines, 9 섹션)
+- 정량 5종 (첫 메모 시간 / 1주차 이탈률 / nav hover / 합성기 사용률 / mode 의식)
+- 인터뷰 30분 7 Stage (Warm-up + Nav + 글쓰기 + Plan + 자기거울 + 통합 + 정량)
+- 의사결정 트리 4 분기
+- 진행자 cheat sheet (질문 패턴 / 침묵 활용 / 데이터 동의)
+- 일정 제안 (모집 → 3개월 사용 → 인터뷰 → Phase 14 결정)
+
+**문서 갱신**:
+- `docs/BETA_GUIDE.md` 헤더에 v0.1.3 + Phase 13 인터뷰 안내 박스
+- `README.md` 문서 테이블에 BETA_PHASE13_INTERVIEW + REDESIGN_IA 추가
+
+**Spec & 검증**:
+- 1617 → 1633 (+16 다크 모드 신규)
+- 0 failures
+- standardrb clean
+
+**파일 (11 modified/new)**:
+- 다크 모드: settings/settings_controller/layout/css/spec + 캡쳐 × 2
+- 인터뷰 가이드: BETA_PHASE13_INTERVIEW.md + BETA_GUIDE.md + README.md
+
+다음 단계 (Phase 14 후속):
+- 단축키 사용자 정의 PoC
+- 모바일 웹 UX 개선 (햄버거 메뉴 + 터치 chip)
+- 다국어 (r18n 영문 추가)
+- 베타 인터뷰 결과 (2026-08) 반영
+
 ## [0.1.3] - 2026-05-11 — Plan IndexRepo 통합 (W27-T03)
 
 v0.1.2 Phase 13 의 후속 — Plan mode (W27-T01·T02) 를 entries 테이블에 통합해
