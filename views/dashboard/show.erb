@@ -46,6 +46,33 @@
 
   <%= erb :"dashboard/_growth", layout: false %>
 
+  <%# Phase 13 W27-T02 — 오늘 할 일 위젯 (미완료 daily plans). 없으면 안 표시. %>
+  <% if @todays_plans %>
+    <aside class="todays-plans" aria-labelledby="todays_plans_heading">
+      <h2 id="todays_plans_heading">📅 오늘 할 일 <small>(<%= @todays_plans[:date] %>)</small></h2>
+      <p class="todays-plans__hint">
+        오늘의 일간 계획 중 <strong><%= @todays_plans[:count] %>건</strong> 미완료 —
+        <a href="/plans?period=daily">전체 일간 보기 →</a>
+      </p>
+      <ul class="todays-plans__list">
+        <% @todays_plans[:plans].each do |plan| %>
+          <li class="todays-plans__item">
+            <a href="/plans/<%= h(plan.id.to_s) %>" class="todays-plans__title">
+              <%= h(plan.title) %>
+            </a>
+            <form action="/plans/<%= h(plan.id.to_s) %>/toggle" method="post"
+                  style="display:inline"
+                  onsubmit="return confirm('이 계획을 완료 표시할까요? (다시 진행 중으로 되돌릴 수 있습니다.)');">
+              <button type="submit" class="todays-plans__check" aria-label="완료 표시">
+                ✓ 완료
+              </button>
+            </form>
+          </li>
+        <% end %>
+      </ul>
+    </aside>
+  <% end %>
+
   <% if @gap_summary && @gap_summary[:unmentioned_count] > 0 %>
     <aside class="gap-card" aria-labelledby="gap_heading">
       <h2 id="gap_heading">⚠ 지난 <%= @gap_summary[:weeks_back] %>주간 한 번도 등장 안 한 학생 <strong><%= @gap_summary[:unmentioned_count] %>명</strong></h2>

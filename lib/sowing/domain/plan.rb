@@ -8,11 +8,12 @@ module Sowing
     # Phase 13 W27-T01 — '쓸 글 계획' 4번째 1급 mode. ADR-014 (동사 중심 IA)
     # 의 핵심 구현. 기존 Memo·Note·Record 가 회상 단위라면, Plan 은 실행 단위.
     #
-    # period 3종 (PoC):
-    #   - daily   : 하루 단위 todo (오늘 할 일)
-    #   - weekly  : 일주일 단위 계획
-    #   - monthly : 한 달 로드맵
-    # 후속 T02: project (장기), semester (분기) 추가 예정.
+    # period 5종 (W27-T02 확장):
+    #   - daily    : 하루 단위 todo (오늘 할 일)
+    #   - weekly   : 일주일 단위 계획
+    #   - monthly  : 한 달 로드맵
+    #   - project  : 장기 프로젝트 (책 쓰기·단원 개발 등 — 날짜 = slug)
+    #   - semester : 학기 계획 (분기)
     #
     # done 토글: 사용자 명시 클릭으로만 (ADR-013) — 자동 완료 처리 없음.
     class Plan
@@ -20,7 +21,7 @@ module Sowing
 
       MODE = :plan
 
-      PERIODS = %i[daily weekly monthly].freeze
+      PERIODS = %i[daily weekly monthly project semester].freeze
 
       attr_reader :id, :title, :body, :tags, :template,
         :period, :plan_date, :done,

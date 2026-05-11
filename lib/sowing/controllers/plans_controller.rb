@@ -33,17 +33,28 @@ module Sowing
           {
             daily: "📅 일간",
             weekly: "📋 주간",
-            monthly: "🎯 월간"
+            monthly: "🎯 월간",
+            project: "🏗 프로젝트",
+            semester: "🎓 학기"
           }.fetch(period.to_sym, period.to_s)
         end
 
         # 오늘 기준 기본 plan_date — period 별 형식 다름.
         def plan_default_date(period, today: Date.today)
           case period.to_sym
-          when :daily   then today.strftime("%Y-%m-%d")
-          when :weekly  then today.strftime("%Y-W%V") # ISO 8601 week
-          when :monthly then today.strftime("%Y-%m")
+          when :daily    then today.strftime("%Y-%m-%d")
+          when :weekly   then today.strftime("%Y-W%V") # ISO 8601 week
+          when :monthly  then today.strftime("%Y-%m")
+          when :project  then "" # 사용자가 slug 직접 입력
+          when :semester then "#{today.year}-S#{(today.month <= 7) ? 1 : 2}" # 7월까지 1학기, 8월부터 2학기
           end
+        end
+
+        # 대시보드 위젯용 — 오늘의 미완료 daily plans.
+        def todays_pending_plans(today: Date.today)
+          plan_repo
+            .list_by_period(:daily)
+            .select { |p| p.plan_date == today.strftime("%Y-%m-%d") && !p.done }
         end
       end
 

@@ -47,9 +47,11 @@ module Sowing
 
       def plan_date_format_ok?(period, date)
         case period.to_sym
-        when :daily   then date.match?(/\A\d{4}-\d{2}-\d{2}\z/)
-        when :weekly  then date.match?(/\A\d{4}-W\d{2}\z/)
-        when :monthly then date.match?(/\A\d{4}-\d{2}\z/)
+        when :daily    then date.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+        when :weekly   then date.match?(/\A\d{4}-W\d{2}\z/)
+        when :monthly  then date.match?(/\A\d{4}-\d{2}\z/)
+        when :project  then date.match?(/\A[\w가-힣\-]+\z/) # slug — kebab, 한글, 영숫자, _
+        when :semester then date.match?(/\A\d{4}-S[12]\z/)  # 2026-S1 = 1학기, 2026-S2 = 2학기
         else false
         end
       end

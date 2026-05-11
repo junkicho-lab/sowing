@@ -50,6 +50,7 @@ module Sowing
         @gap_summary = compute_gap_summary
         @on_this_day = compute_on_this_day  # 30년 시나리오 — 같은 월·일 다년 entries
         @synth_summary = compute_synth_summary  # 16 합성기 검토 대기 카운트
+        @todays_plans = compute_todays_plans   # W27-T02: 오늘 할 일 위젯 (미완료 daily)
         erb :"dashboard/show", layout: :"layouts/application"
       end
 
@@ -104,6 +105,25 @@ module Sowing
         roster = Infrastructure::Settings.load["class_roster"]
         return nil if roster.nil? || roster.empty?
         UseCases::DetectStudentGaps.new.call.value_or(nil)
+      end
+
+      # Phase 13 W27-T02 — 오늘 할 일 위젯.
+      # 오늘 날짜 (YYYY-MM-DD) 의 daily plan 중 미완료 항목만.
+      # 없으면 nil 반환 → 위젯 안 표시.
+      def compute_todays_plans
+        plan_repo = Repositories::PlanRepo.new(vault_dir: Infrastructure::Paths.vault_dir)
+        today_str = Date.today.strftime("%Y-%m-%d")
+        pending = plan_repo
+          .list_by_period(:daily)
+          .select { |p| p.plan_date == today_str && !p.done }
+        return nil if pending.empty?
+        {
+          date: today_str,
+          plans: pending,
+          count: pending.size
+        }
+      rescue # graceful — Plan 인프라 부재 시 대시보드 부팅 막지 않음
+        nil
       end
     end
   end
