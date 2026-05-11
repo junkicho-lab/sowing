@@ -206,10 +206,12 @@ jobs:
             -exec mv {} release-files/ \;
           ls -lh release-files/
 
-      - name: CHANGELOG 추출 (해당 버전 섹션)
+      - name: CHANGELOG 추출 (해당 버전 섹션) + 설치 경로 안내
         id: changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          REPO: ${{ github.repository }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
           # CHANGELOG.md 에서 [VERSION] 섹션만 추출 — awk
           awk -v v="$VERSION" '
             /^## \['v'\]/  { capturing=1; print; next }
@@ -221,41 +223,44 @@ jobs:
           if [ ! -s release-notes.md ]; then
             echo "v$VERSION 릴리스 — 자세한 내용은 CHANGELOG.md 참조." > release-notes.md
           fi
-          # 설치 경로 안내 추가
-          cat >> release-notes.md <<EOF
-
-## 설치 경로 (4 가지)
-
-### Docker (가장 빠름)
-\`\`\`sh
-git clone https://github.com/${{ github.repository }}.git
-cd sowing
-docker compose up -d
-\`\`\`
-또는 GHCR 이미지 직접:
-\`\`\`sh
-docker run -d -p 48723:48723 -v ~/Documents/SowingVault:/vault \\
-  ghcr.io/${{ github.repository }}:$VERSION
-\`\`\`
-
-### 한 줄 스크립트 (Ruby 3.3+)
-\`\`\`sh
-curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/bin/sowing-install | bash
-\`\`\`
-
-### 소스 ZIP / tar.gz
-아래 첨부 파일 다운로드 → \`bundle install && bundle exec rake db:setup && bin/sowing dev\`
-
-### 무결성 검증
-각 \`.tar.gz\` / \`.zip\` 마다 \`.sha256\` 체크섬 첨부:
-\`\`\`sh
-shasum -a 256 -c sowing-$VERSION-ubuntu-latest.tar.gz.sha256
-\`\`\`
-
----
-
-자세한 변경사항: [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
-EOF
+          # 설치 경로 안내 추가 — 별도 임시 파일로 분리 (heredoc 들여쓰기 yaml 충돌 회피)
+          INSTALL_NOTE=$(mktemp)
+          {
+            echo ""
+            echo "## 설치 경로 (4 가지)"
+            echo ""
+            echo "### Docker (가장 빠름)"
+            echo '```sh'
+            echo "git clone https://github.com/$REPO.git"
+            echo "cd sowing"
+            echo "docker compose up -d"
+            echo '```'
+            echo "또는 GHCR 이미지 직접:"
+            echo '```sh'
+            echo "docker run -d -p 48723:48723 -v ~/Documents/SowingVault:/vault \\"
+            echo "  ghcr.io/$REPO:$VERSION"
+            echo '```'
+            echo ""
+            echo "### 한 줄 스크립트 (Ruby 3.3+)"
+            echo '```sh'
+            echo "curl -fsSL https://raw.githubusercontent.com/$REPO/main/bin/sowing-install | bash"
+            echo '```'
+            echo ""
+            echo "### 소스 ZIP / tar.gz"
+            echo '아래 첨부 파일 다운로드 → `bundle install && bundle exec rake db:setup && bin/sowing dev`'
+            echo ""
+            echo "### 무결성 검증"
+            echo '각 `.tar.gz` / `.zip` 마다 `.sha256` 체크섬 첨부:'
+            echo '```sh'
+            echo "shasum -a 256 -c sowing-$VERSION-ubuntu-latest.tar.gz.sha256"
+            echo '```'
+            echo ""
+            echo "---"
+            echo ""
+            echo "자세한 변경사항: [CHANGELOG.md](https://github.com/$REPO/blob/main/CHANGELOG.md)"
+          } > "$INSTALL_NOTE"
+          cat "$INSTALL_NOTE" >> release-notes.md
+          rm -f "$INSTALL_NOTE"
 
       - name: GitHub Release 생성
         uses: softprops/action-gh-release@v2
