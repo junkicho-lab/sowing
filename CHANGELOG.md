@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 확장 합성기 #11 + #12 — 학습 진척 추이 + 사건 인과 추론 (2026-05-11)
+
+/synth 16 type 완성. 두 신규 합성기는 *시계열 분석* 강화 — 페이스/누적 곡선/
+before-after 비교.
+
+**#11 SynthesizeLearningProgress (학습 진척 추이)**:
+- vs 기존 #6 SynthesizeLessonSeries (단원 차시 timeline):
+  - LessonSeries: 차시 timeline + 단원 종료 감지 + 학생 반응
+  - **#11**: **차시 간격 페이스 분석** + 누적 곡선 + **학습 활동 분포** + 진행 상태 자동 판정 (active/dormant/ended)
+- 입력: keyword + 6개월 window
+- 결정적 출력:
+  - 진행 상태 (마지막 차시 후 30일 → dormant, 60일 → ended)
+  - 페이스 분석: 평균/최대/최소 간격, **일정 비율** (평균 ±3일 안 차시 비율)
+  - 학습 활동 분포: 모드별 + 카테고리별
+  - 학습 cohort: 자주 등장한 학생 top 8 (entity_mentions 활용)
+  - 누적 차시 곡선 (주 단위 text bar chart)
+  - 차시 timeline (시간순)
+- LLM 4 섹션: 학습 페이스 평가 / 활동 균형 / 학습 cohort 패턴 / 다음 차시 우선순위
+- 저장: `vault/.sowing/synth/learning-progress/{keyword}.md`
+- frontmatter 11키 (synth_keyword + status + avg_interval_days + days_since_last)
+- accept_category=학습기록
+
+**#12 SynthesizeEventCausality (사건 인과 추론)**:
+- vs 기존 #3 ExtractTrainingApplications (연수→적용 키워드 매칭):
+  - #3: 연수 노트 1건 → 후속 키워드 매칭
+  - **#12**: 임의 *사건 키워드* → before/after **통계 변화** (톤·학생·카테고리·빈도)
+- ⚠ **인과 단정 절대 거부** (ADR-013):
+  - 합성기는 *상관 패턴* 만 표시 — "X 가 Y 의 원인" 표현 금지
+  - trailer 명시: **"상관 = 인과 아님"**
+  - LLM prompt 도 "원인일 가능성", "관련일 수도" 톤 강조
+- 입력: event_keyword + window_days (default 30) + event_at (옵션, nil 이면 첫 등장 자동)
+- 결정적 출력:
+  - 사건 등장 timeline (title + body 매칭, 상위 10)
+  - **Before vs After 비교 표**:
+    - 작성 entries / 주당 빈도
+    - 긍정·부정 신호어 (Phase 12 LessonPattern 부정 윈도 5자 필터 재사용)
+    - 학생 mention 수 + 변화 화살표 (↑/↓)
+  - 새로 등장 학생 (Before 에 없던) / 등장 멈춘 학생
+  - 새 카테고리 등장
+  - 카테고리 분포 (Before/After top 5)
+- LLM 4 섹션: 관찰된 변화 / 가능한 상관 패턴 / 본문 명시 사건 / 다음 검증 제안
+- 저장: `vault/.sowing/synth/event-causality/{keyword}.md`
+- frontmatter 11키 (synth_event_keyword + event_at + window_days + before/after counts + new_student_count)
+- accept_category=분석회고
+
+SynthController::SYNTH_TYPES 16 type 완성:
+- 기존 14 + learning-progress (📈) + event-causality (🎯)
+- 새 라우트:
+  - POST /synth/learning-progress/:slug/generate (keyword)
+  - POST /synth/event-causality/:slug/generate (event_keyword + window_days + event_at)
+
+views/synth/index.erb:
+- 두 신규 generate 폼 + JS slug 핸들러
+- event-causality 폼은 ⚠ "상관 = 인과 아님" 강조 hint
+
+bin/sowing-doctor:
+- Phase 12 use case 진단에 #11, #12 추가
+- 16 type 디렉토리 카운트
+
+검증:
+- spec 17 신규
+  - synthesize_learning_progress_spec 8 (결정적 4 + 가드 2 + LLM 2)
+  - synthesize_event_causality_spec 9 (결정적 4 + 가드 3 + LLM 2)
+- 회귀: 1400 → 1417 (+17), 0 fail
+- standardrb clean
+- doctor: 16 type 모두 ✅
+
+핵심 디자인 결정:
+- #11 의 "진행 상태 자동 판정" — 차시 간격 통계 기반 (단정 X, 통계 표시 only)
+- #12 의 "상관 ≠ 인과" 의식적 강조 — view·trailer·LLM prompt 모두 인과 단정 거부
+- 두 합성기 모두 전체 vault 시계열 분석 — Phase 11 W17-T01 entity_mentions 인프라 활용
+
 ### 확장 합성기 #9 + #10 — 학부모 상담 패턴 + 자기 회고 패턴 (2026-05-11)
 
 기존 12 합성기 외 **두 신규 메타-합성기** 추가. /synth 14 type 완성.

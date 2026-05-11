@@ -127,6 +127,20 @@ module Sowing
           icon: "🪞",
           accept_category: "자기회고",
           target_prefix: "self-patterns:"
+        },
+        "learning-progress" => {
+          subdir: "learning-progress",
+          label: "학습 진척 추이",
+          icon: "📈",
+          accept_category: "학습기록",
+          target_prefix: "learning-progress:"
+        },
+        "event-causality" => {
+          subdir: "event-causality",
+          label: "사건 인과 추론",
+          icon: "🎯",
+          accept_category: "분석회고",
+          target_prefix: "event-causality:"
         }
       }.freeze
 
@@ -529,6 +543,52 @@ module Sowing
           redirect_to_synth_show("self-patterns", label)
         else
           session[:flash] = "생성 실패 (#{result.failure}) — entries 10건 이상 필요"
+          redirect "/synth"
+        end
+      end
+
+      # 학습 진척 추이 — slug = keyword
+      post "/synth/learning-progress/:slug/generate" do
+        keyword = params["slug"]
+        result = UseCases::SynthesizeLearningProgress.new.call(
+          keyword: keyword,
+          since: params["since"].to_s.strip.empty? ? nil : params["since"],
+          until_time: params["until_time"].to_s.strip.empty? ? nil : params["until_time"]
+        )
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:learning-progress:#{keyword}",
+            mode: "record",
+            path: ".sowing/synth/learning-progress/#{keyword}.md"
+          )
+          session[:flash] = "학습 진척 추이 생성: #{keyword}"
+          redirect_to_synth_show("learning-progress", keyword)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 키워드 매칭 entries 3건 이상 필요"
+          redirect "/synth"
+        end
+      end
+
+      # 사건 인과 추론 — slug = event_keyword
+      post "/synth/event-causality/:slug/generate" do
+        keyword = params["slug"]
+        window_days_param = params["window_days"].to_s.strip
+        kwargs = {event_keyword: keyword}
+        kwargs[:window_days] = window_days_param.to_i if window_days_param.match?(/\A\d+\z/)
+        kwargs[:event_at] = params["event_at"] unless params["event_at"].to_s.strip.empty?
+        result = UseCases::SynthesizeEventCausality.new.call(**kwargs)
+        if result.success?
+          synth_audit_log.append(
+            action: :synth_generate,
+            entry_id: "synth:event-causality:#{keyword}",
+            mode: "record",
+            path: ".sowing/synth/event-causality/#{keyword}.md"
+          )
+          session[:flash] = "사건 인과 추론 생성: #{keyword}"
+          redirect_to_synth_show("event-causality", keyword)
+        else
+          session[:flash] = "생성 실패 (#{result.failure}) — 사건 키워드 등장 + 전후 entries 5건 이상 필요"
           redirect "/synth"
         end
       end

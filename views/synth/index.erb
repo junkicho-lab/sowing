@@ -302,6 +302,46 @@
               <button type="submit" class="button button--ghost">생성/재생성</button>
               <small class="synth-generate-form__hint">교사 자신의 집필 패턴 메타-합성. 톤 신호어 + 시간대 + 작성 공백. 단정 0 — 통계와 인용만.</small>
             </form>
+          <% when "learning-progress" %>
+            <form action="/synth/learning-progress/__SLUG__/generate" method="post" class="synth-generate-form"
+                  data-controller="synth-learning-progress-form">
+              <label>
+                학습 키워드:
+                <input type="text" name="keyword" required placeholder="예: 분수 / 협동학습"
+                       data-action="input->synth-learning-progress-form#updateAction">
+              </label>
+              <label>
+                기간 시작 (선택, default 6개월 전):
+                <input type="datetime-local" name="since">
+              </label>
+              <label>
+                기간 종료 (선택, default 지금):
+                <input type="datetime-local" name="until_time">
+              </label>
+              <button type="button" class="button button--ghost button--small"
+                      data-synth-preset="all-time">📅 전체 기간 (30년)</button>
+              <button type="submit" class="button button--ghost">생성/재생성</button>
+              <small class="synth-generate-form__hint">차시 페이스 + 누적 곡선 + 활동 분포 + 학습 cohort. 진행 중/휴면/종료 자동 판정.</small>
+            </form>
+          <% when "event-causality" %>
+            <form action="/synth/event-causality/__SLUG__/generate" method="post" class="synth-generate-form"
+                  data-controller="synth-event-causality-form">
+              <label>
+                사건 키워드:
+                <input type="text" name="event_keyword" required placeholder="예: 협동학습 / 학부모 모임"
+                       data-action="input->synth-event-causality-form#updateAction">
+              </label>
+              <label>
+                window 일수 (default 30):
+                <input type="number" name="window_days" min="7" max="180" placeholder="30">
+              </label>
+              <label>
+                사건 시점 (선택, 비우면 자동 첫 등장):
+                <input type="datetime-local" name="event_at">
+              </label>
+              <button type="submit" class="button button--ghost">생성/재생성</button>
+              <small class="synth-generate-form__hint">⚠ <strong>상관 = 인과 아님</strong>. before/after 통계 변화만 표시 — 실제 인과 판단은 사용자 본인.</small>
+            </form>
           <% end %>
         </div>
       </div>
@@ -381,6 +421,26 @@
       const slug = encodeURIComponent(input.value.trim())
       if (!slug) { e.preventDefault(); return }
       form.action = `/synth/self-patterns/${slug}/generate`
+    })
+  })
+
+  // 학습 진척 추이 (#11) — keyword 를 slug 로
+  document.querySelectorAll('[data-controller="synth-learning-progress-form"]').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      const input = form.querySelector('input[name="keyword"]')
+      const slug = encodeURIComponent(input.value.trim())
+      if (!slug) { e.preventDefault(); return }
+      form.action = `/synth/learning-progress/${slug}/generate`
+    })
+  })
+
+  // 사건 인과 추론 (#12) — event_keyword 를 slug 로
+  document.querySelectorAll('[data-controller="synth-event-causality-form"]').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      const input = form.querySelector('input[name="event_keyword"]')
+      const slug = encodeURIComponent(input.value.trim())
+      if (!slug) { e.preventDefault(); return }
+      form.action = `/synth/event-causality/${slug}/generate`
     })
   })
 
