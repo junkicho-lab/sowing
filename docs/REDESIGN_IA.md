@@ -337,5 +337,5 @@ ADR-001 (마크다운 SoT) 영향 0. 옵시디언 호환 유지.
 - [USER_GUIDE.md](USER_GUIDE.md) — 현재 IA 기준 사용 설명서. Phase 13 완료 후 재작성 필요.
 - [ROADMAP.md Phase 13](../ROADMAP.md#phase-13) — W25~W28 작업 분해
 - [DECISIONS.md](DECISIONS.md) — ADR-013 (자율 mutation 0), ADR-014 (제안 — 동사 중심 IA)
-- [gb-docs.md](gb-docs.md) — 김교수 "지독한 기록" 영상 transcript (비교 분석 원천)
+- `gb-docs.md` — 김교수 "지독한 기록" 영상 transcript (비교 분석 원천). **로컬 전용 — 저작권 미확인으로 `.gitignore` 처리.** 베타 분석·인용 권리 확보 후 `gb-docs-summary.md` 발췌본으로 교체 예정.
 - [BETA_GUIDE.md](BETA_GUIDE.md) — Phase 13 후 베타 검증 질문 추가
