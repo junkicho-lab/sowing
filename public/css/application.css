@@ -2243,6 +2243,73 @@ pre code {
   margin-top: var(--space-1);
 }
 
+/* ─── LLM 모드 toggle + 모델 선택 (4 type 공통) ─── */
+
+.synth-llm-toggle {
+  flex-basis: 100%;
+  padding: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+  background: rgba(34, 197, 94, 0.07);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.synth-llm-toggle legend {
+  padding: 0 var(--space-1);
+  font-weight: 500;
+}
+
+.synth-llm-toggle legend label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: pointer;
+}
+
+.synth-llm-toggle input[type="checkbox"] {
+  margin-right: 0.4em;
+  flex-shrink: 0;
+}
+
+.synth-llm-toggle__model {
+  display: block;
+  margin-top: var(--space-2);
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+
+.synth-llm-toggle__model select {
+  margin-left: var(--space-1);
+  padding: 0.25em 0.4em;
+  font-size: 0.85rem;
+  max-width: 100%;
+}
+
+/* 체크 시 모델 select 활성화 (CSS-only) — :has() 지원 브라우저용. */
+.synth-llm-toggle:has(input[type="checkbox"]:checked) .synth-llm-toggle__model {
+  opacity: 1;
+}
+
+.synth-llm-toggle__hint {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  margin-top: var(--space-1);
+}
+
+.synth-llm-toggle--unavailable {
+  background: rgba(148, 163, 184, 0.07);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.synth-llm-toggle code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+
 /* ─── 합성 사용 지표 (베타 검증) ─── */
 
 .synth-metrics__totals {

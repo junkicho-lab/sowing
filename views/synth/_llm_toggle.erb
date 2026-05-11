@@ -1,0 +1,35 @@
+<%# LLM 모드 toggle + 모델 선택 — 4 type 공통 partial.
+    ENV["ANTHROPIC_API_KEY"] 설정됐을 때만 활성. 모델 카탈로그는 Anthropic::MODELS 가 SoT. %>
+<% if llm_available? %>
+  <fieldset class="synth-llm-toggle">
+    <legend>
+      <label>
+        <input type="checkbox" name="llm" value="1" data-llm-toggle>
+        🌱 <strong>LLM 모드</strong> — 자연어 패턴 분석 (결정적 fallback 대신)
+      </label>
+    </legend>
+
+    <label class="synth-llm-toggle__model">
+      모델:
+      <select name="model" data-llm-model>
+        <% llm_models_catalog.each do |model_id, meta| %>
+          <% cost = llm_cost_estimate(model_id) %>
+          <option value="<%= h(model_id) %>"
+                  <%= "selected" if model_id == Sowing::Eval::Backends::Anthropic::DEFAULT_MODEL %>>
+            <%= h(meta[:label]) %> — <%= h(meta[:tier]) %>
+            (≈ $<%= format("%.4f", cost) %> / 합성 1건, <%= h(meta[:speed_seconds]) %>s)
+          </option>
+        <% end %>
+      </select>
+    </label>
+
+    <small class="synth-llm-toggle__hint">
+      미체크 시 결정적 fallback 즉시 생성 (API 비용 0). 비용은 Anthropic 공시 단가 기준 추정 (input ~3K + output ~1K tokens).
+    </small>
+  </fieldset>
+<% else %>
+  <p class="synth-llm-toggle synth-llm-toggle--unavailable">
+    💡 <strong>LLM 모드 사용</strong> 하려면 <code>.env</code> 에
+    <code>ANTHROPIC_API_KEY=sk-ant-...</code> 추가 후 앱 재시작 — 결정적 fallback 으로도 정상 작동합니다.
+  </p>
+<% end %>

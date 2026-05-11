@@ -189,6 +189,47 @@ module Sowing
           SYNTH_TYPES.keys.to_h { |type| [type, list_synth(type)] }
         end
 
+        # LLM 토글 지원 — 4 type (parent-patterns / self-patterns / event-causality / contradictions)
+        # 에서 폼 체크박스 "🌱 LLM 모드" 선택 + ENV 키 설정됐을 때만 backend 반환.
+        # 그 외에는 nil → use case 가 결정적 fallback 사용.
+        # ENV 키 누락 또는 체크 안 함 → 안전하게 결정적 모드.
+        def llm_available?
+          !ENV["ANTHROPIC_API_KEY"].to_s.strip.empty?
+        end
+
+        # 폼에서 llm=1 선택 + 키 설정된 경우만 backend 인스턴스화.
+        # 모델 우선순위 (강 → 약): 폼 model 파라미터 > ENV ANTHROPIC_MODEL > DEFAULT_MODEL.
+        # 카탈로그(MODELS) 에 없는 model 문자열은 무시 → DEFAULT_MODEL 사용 (allowlist 보안).
+        def llm_backend_from_params
+          return nil unless params["llm"].to_s == "1"
+          return nil unless llm_available?
+          model = resolve_llm_model
+          Eval::Backends::Anthropic.new(model: model)
+        end
+
+        # UI 드롭다운 노출용 모델 카탈로그 (정렬: 비용 오름차순).
+        def llm_models_catalog
+          Eval::Backends::Anthropic::MODELS.sort_by { |_id, m| m[:in_per_mtok] }
+        end
+
+        # 모델 1건 합성 추정 비용 (USD) — partial 안내 표시용.
+        def llm_cost_estimate(model_id)
+          Eval::Backends::Anthropic.estimated_cost_per_synth(model_id)
+        end
+
+        # 폼/ENV 의 model 파라미터를 검증 후 반환. 잘못된 값은 DEFAULT_MODEL.
+        def resolve_llm_model
+          form_model = params["model"].to_s.strip
+          if !form_model.empty? && Eval::Backends::Anthropic.valid_model?(form_model)
+            return form_model
+          end
+          env_model = ENV["ANTHROPIC_MODEL"].to_s.strip
+          if !env_model.empty? && Eval::Backends::Anthropic.valid_model?(env_model)
+            return env_model
+          end
+          Eval::Backends::Anthropic::DEFAULT_MODEL
+        end
+
         def synth_target_or_404(type, slug)
           halt_with_404("알 수 없는 합성 type: #{type}") unless SYNTH_TYPES.key?(type)
           target = synth_subdir(type).join("#{slug}.md")
@@ -504,7 +545,7 @@ module Sowing
       # 학부모 상담 패턴 (학급) — slug = semester_label
       post "/synth/parent-patterns/:slug/generate" do
         label = params["slug"]
-        result = UseCases::SynthesizeParentPatterns.new.call(
+        result = UseCases::SynthesizeParentPatterns.new(llm_backend: llm_backend_from_params).call(
           semester_label: label,
           since: params["since"].to_s.strip.empty? ? nil : params["since"],
           until_time: params["until_time"].to_s.strip.empty? ? nil : params["until_time"]
@@ -527,7 +568,7 @@ module Sowing
       # 자기 회고 패턴 — slug = period_label
       post "/synth/self-patterns/:slug/generate" do
         label = params["slug"]
-        result = UseCases::SynthesizeSelfPatterns.new.call(
+        result = UseCases::SynthesizeSelfPatterns.new(llm_backend: llm_backend_from_params).call(
           period_label: label,
           since: params["since"].to_s.strip.empty? ? nil : params["since"],
           until_time: params["until_time"].to_s.strip.empty? ? nil : params["until_time"]
@@ -577,7 +618,7 @@ module Sowing
         kwargs = {event_keyword: keyword}
         kwargs[:window_days] = window_days_param.to_i if window_days_param.match?(/\A\d+\z/)
         kwargs[:event_at] = params["event_at"] unless params["event_at"].to_s.strip.empty?
-        result = UseCases::SynthesizeEventCausality.new.call(**kwargs)
+        result = UseCases::SynthesizeEventCausality.new(llm_backend: llm_backend_from_params).call(**kwargs)
         if result.success?
           synth_audit_log.append(
             action: :synth_generate,
@@ -595,7 +636,7 @@ module Sowing
 
       # 학생 변화 — 고정 slug "observations"
       post "/synth/contradictions/observations/generate" do
-        result = UseCases::DetectContradictions.new.call
+        result = UseCases::DetectContradictions.new(llm_backend: llm_backend_from_params).call
         if result.success?
           synth_audit_log.append(
             action: :synth_generate,

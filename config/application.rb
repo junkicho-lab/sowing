@@ -22,9 +22,18 @@ module Sowing
 
     # 앱 전체 부트스트랩 (paths + db + 자동 로딩)
     def boot!
+      boot_dotenv!
       boot_paths!
       boot_loader!
       boot_db!
+    end
+
+    # 프로젝트 루트의 .env / .env.local 을 ENV 에 머지 (시스템 ENV 우선).
+    # boot 가장 앞에 와야 함 — 이후 단계 (Paths, Logger 등) 가 ENV 를 읽을 수 있도록.
+    # Zeitwerk 로드 전이라 require_relative 로 직접 로드.
+    def boot_dotenv!
+      require_relative "../lib/sowing/infrastructure/dotenv"
+      Sowing::Infrastructure::Dotenv.load(root)
     end
 
     # 동기화 부팅 — 볼트 ↔ 인덱스 일관성 검증 후 watcher 시작 (W5-T04).

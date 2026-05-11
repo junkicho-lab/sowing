@@ -7,6 +7,93 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+(다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
+
+## [0.1.1] - 2026-05-11 — LLM 통합 강화 (.env 자동 로딩 + UI 모드 toggle + 모델 선택)
+
+v0.1.0 의 LLM 합성기 인프라를 사용성 측면으로 끌어올림. 사용자가 셸에서 `export`
+없이 `.env` 만 만들면 즉시 LLM 모드 사용 가능. UI 의 4 LLM-capable 합성기 폼
+(parent-patterns / self-patterns / event-causality / contradictions) 에 모드
+체크박스 + 모델 드롭다운 + 1건당 비용 추정 표시.
+
+**.env 자동 로딩 (외부 gem 0)**:
+- `Sowing::Infrastructure::Dotenv` 신규 — 자체 ~50줄 파서.
+  - 형식: `KEY=value`, `KEY="..."`, `KEY='...'`, `export KEY=val`, 인라인 주석, 빈 값
+  - 우선순위 (강 → 약): 시스템 ENV > `.env.local` > `.env`
+  - **시스템 ENV 가 명시 export 한 값은 절대 덮지 않음** — 운영 환경 안전.
+  - 변수 보간 (`${VAR}`) / 다중라인 / 명령 치환은 의도적 미지원 (단순함 우선).
+- `Sowing.boot!` 의 가장 앞 단계로 `boot_dotenv!` 추가 — 이후 단계 (Paths,
+  DB 등) 가 ENV 를 안전하게 읽음.
+- `.env.example` 템플릿 신규 — `ANTHROPIC_API_KEY`, `SOWING_PORT`, `SOWING_ENV`
+  주석 + 우선순위 안내.
+- 기존 `.gitignore` 의 `.env` / `.env.local` 패턴 그대로 유지 — 비밀 누출 0.
+
+**Anthropic backend fix**:
+- `DEFAULT_MODEL` 가짜 모델 ID `claude-haiku-4-20260114` (존재 안 함) →
+  실제 존재하는 `claude-haiku-4-5-20251001` (Claude Haiku 4.5) 로 교정.
+- v0.1.0 의 LLM 모드 기본 호출은 모델 ID 오류로 실제 동작 불가 상태였음.
+  Anthropic Models API 로 가용 모델 확인 후 fix.
+
+**UI LLM 모드 toggle (4 type)**:
+- 신규 partial `views/synth/_llm_toggle.erb` — 4 폼 (parent-patterns,
+  self-patterns, event-causality, contradictions) 에서 공통 사용.
+- ENV 키 유무에 따라 두 가지 분기:
+  - **키 설정됨**: `🌱 LLM 모드` 체크박스 + 모델 드롭다운 + 비용 안내
+  - **키 미설정**: `.env` 설정 안내 + 결정적 fallback 동작 안내
+- `SynthController` helpers: `llm_available?`, `llm_backend_from_params`,
+  `resolve_llm_model` — backend 주입 분기 + 폼 model > ENV > DEFAULT 우선순위.
+- `:has(input:checked)` CSS-only 활성화 — 체크 안 하면 모델 select 흐릿.
+  JS 추가 의존성 0.
+
+**모델 선택 드롭다운 (3 모델 카탈로그)**:
+- `Anthropic::MODELS` 상수 — 모델별 메타 (label, tier, in/out per Mtok, speed):
+  - `claude-haiku-4-5-20251001` (Haiku 4.5) — $1/$5 per Mtok, 2~5s, **default**
+  - `claude-sonnet-4-5-20250929` (Sonnet 4.5) — $3/$15, 5~10s
+  - `claude-opus-4-7` (Opus 4.7) — $15/$75, 15~30s
+- `Anthropic.estimated_cost_per_synth(model)` — 합성 1건당 USD 추정 (input
+  ~3K + output ~1K tokens 가정). UI 에 `≈ $0.0080 / 합성 1건` 형식으로 표시.
+- `Anthropic.valid_model?` allowlist 검증 — 카탈로그에 없는 model 문자열은
+  무시 → DEFAULT 폴백. 폼/ENV 에서 임의 문자열 주입 시도 시 안전.
+- `ANTHROPIC_MODEL` ENV 변수도 인식 — 운영자 기본값 설정 가능.
+
+**Spec (LLM 통합 검증, 1430 → 1440)**:
+- `spec/infrastructure/dotenv_spec.rb` — 10 case (KEY=value, 따옴표, 주석,
+  export, 빈 값, 시스템 ENV 우선, .env.local 우선, 잘못된 키 무시, 로딩 결과
+  배열, 빈 디렉토리)
+- `spec/system/synth_llm_toggle_spec.rb` — 10 case:
+  - 표시 분기: 키 미설정 시 안내 + 키 설정 시 체크박스/드롭다운/Haiku/Sonnet/Opus/비용
+  - backend 주입: 키+llm=1 → Anthropic, 키만 → nil, llm=1만 → nil, ENV 모델, 폼 우선, allowlist 폴백
+  - 비용 추정: Haiku < Sonnet < Opus 단조증가 + unknown nil
+
+**검증 (실 서버 + LLM 호출)**:
+- self-patterns LLM 모드 재시도 → ✅ 3271B 출력 (이전 v0.1.0 출시 시
+  DEFAULT_MODEL 가짜로 LLM batch 실패해 결정적 fallback 만 시연됐던 항목 회복).
+- parent-patterns / event-causality / contradictions 모두 LLM 모드 batch 시연
+  성공 — 4/4 합성기 `synth_model: Anthropic` frontmatter + 결정적 fallback
+  trailer 없음 + audit log `actor: agent` 정상.
+- 1440 spec / 0 failures.
+
+**ADR 영향**:
+- ADR-013 (자율 mutation 0): UI 체크박스 = 사용자 명시 클릭. 비용 표시로
+  사용자가 "지금 합성 1건 = $0.0080" 인지하고 누름 — 동의 강화.
+- ADR-009 (LLM opt-in): ENV 키 + UI 체크 둘 다 명시적. 안전 fallback.
+
+**파일 (12)**:
+```
+lib/sowing/infrastructure/dotenv.rb            (신규, ~75 lines)
+lib/sowing/eval/backends/anthropic.rb          (MODELS 카탈로그 + DEFAULT_MODEL fix + 비용/allowlist)
+lib/sowing/controllers/synth_controller.rb     (5 helpers + 4 routes 에 llm_backend 주입)
+config/application.rb                          (boot_dotenv! 추가)
+views/synth/_llm_toggle.erb                    (신규 partial)
+views/synth/index.erb                          (4 폼에 partial 삽입)
+public/css/application.css                     (.synth-llm-toggle 스타일)
+spec/infrastructure/dotenv_spec.rb             (신규, 10 case)
+spec/system/synth_llm_toggle_spec.rb           (신규, 10 case)
+.env.example                                   (신규 가이드 템플릿)
+CHANGELOG.md                                   (이 항목)
+lib/sowing/version.rb                          (0.1.0 → 0.1.1)
+```
+
 ### 확장 합성기 #11 + #12 — 학습 진척 추이 + 사건 인과 추론 (2026-05-11)
 
 /synth 16 type 완성. 두 신규 합성기는 *시계열 분석* 강화 — 페이스/누적 곡선/

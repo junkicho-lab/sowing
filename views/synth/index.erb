@@ -132,6 +132,7 @@
             </form>
           <% when "contradictions" %>
             <form action="/synth/contradictions/observations/generate" method="post" class="synth-generate-form">
+              <%= erb :"synth/_llm_toggle", layout: false %>
               <button type="submit" class="button button--ghost">생성/재생성 (학생 변화 후보)</button>
               <small class="synth-generate-form__hint">학생당 mention 2건 이상 + 반의어 차원 매칭이 필요합니다.</small>
             </form>
@@ -278,6 +279,7 @@
               </label>
               <button type="button" class="button button--ghost button--small"
                       data-synth-preset="all-time">📅 전체 기간 (30년)</button>
+              <%= erb :"synth/_llm_toggle", layout: false %>
               <button type="submit" class="button button--ghost">생성/재생성</button>
               <small class="synth-generate-form__hint">학급 전체 학기 상담 분석. 학생별 빈도 + 미상담 학생 + 공통 키워드. (Settings 의 학급 명단 활용 권장.)</small>
             </form>
@@ -299,6 +301,7 @@
               </label>
               <button type="button" class="button button--ghost button--small"
                       data-synth-preset="all-time">📅 전체 기간 (30년)</button>
+              <%= erb :"synth/_llm_toggle", layout: false %>
               <button type="submit" class="button button--ghost">생성/재생성</button>
               <small class="synth-generate-form__hint">교사 자신의 집필 패턴 메타-합성. 톤 신호어 + 시간대 + 작성 공백. 단정 0 — 통계와 인용만.</small>
             </form>
@@ -339,6 +342,7 @@
                 사건 시점 (선택, 비우면 자동 첫 등장):
                 <input type="datetime-local" name="event_at">
               </label>
+              <%= erb :"synth/_llm_toggle", layout: false %>
               <button type="submit" class="button button--ghost">생성/재생성</button>
               <small class="synth-generate-form__hint">⚠ <strong>상관 = 인과 아님</strong>. before/after 통계 변화만 표시 — 실제 인과 판단은 사용자 본인.</small>
             </form>
