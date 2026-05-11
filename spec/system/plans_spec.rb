@@ -17,6 +17,9 @@ RSpec.describe "쓸 글 계획 (Phase 13 W27-T01)", type: :request do
   before do
     header "Host", "127.0.0.1"
     FileUtils.rm_rf(plans_dir) if plans_dir.exist?
+    # W27-T03: PlanRepo 가 entries 테이블에도 인덱싱 — 격리 위해 cleanup
+    db = Sowing::Infrastructure::DB.connection
+    %i[entries_fts links entry_tags tags entries].each { |t| db[t].delete }
   end
 
   after { FileUtils.rm_rf(plans_dir) if plans_dir.exist? }

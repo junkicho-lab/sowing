@@ -31,12 +31,17 @@ module Sowing
           @view_vault_repo ||= Repositories::VaultRepo.new(vault_dir: Infrastructure::Paths.vault_dir)
         end
 
-        # entries 의 본문 첫 N 글자 발췌. 인덱스만으로는 부족해 vault 에서 읽음.
+        # entries 의 본문 첫 N 글자 발췌.
+        # VaultRepo.read 는 mode 별 reconstruct (Memo/Note/Record) 만 알고 :plan 거부.
+        # 따라서 직접 파일 읽기 + frontmatter 제거 — mode-agnostic.
         # 파일 누락 시 빈 문자열 — graceful (인덱스 정합성 깨진 경우).
         def view_body_excerpt(indexed_entry, limit: 160)
-          full = view_vault_repo.read(indexed_entry.path)
-          full.respond_to?(:body) ? full.body.to_s.strip[0, limit] : ""
-        rescue Errno::ENOENT, NoMethodError
+          full_path = Infrastructure::Paths.vault_dir.join(indexed_entry.path)
+          raw = File.read(full_path, encoding: "UTF-8")
+          # frontmatter 제거 + H1 (`# title`) 제거 후 발췌
+          body = raw.sub(/\A---\n.*?\n---\n+/m, "").sub(/\A# .+\n+/, "").strip
+          body[0, limit]
+        rescue Errno::ENOENT
           ""
         end
 
@@ -45,6 +50,7 @@ module Sowing
           when :memo then "💭 메모"
           when :note then "📝 필기"
           when :record then "📖 기록"
+          when :plan then "🗓 계획"
           else mode.to_s
           end
         end
@@ -54,6 +60,7 @@ module Sowing
           when :memo then "memos"
           when :note then "notes"
           when :record then "records"
+          when :plan then "plans"
           end
           "/#{mode_dir}/#{entry.id}"
         end
@@ -65,7 +72,7 @@ module Sowing
 
       get "/view/recent" do
         @page_title = "최근 (통합)"
-        @selected_mode = (%w[memo note record].include?(params["mode"]) ? params["mode"] : nil)
+        @selected_mode = (%w[memo note record plan].include?(params["mode"]) ? params["mode"] : nil)
         @selected_category = params["category"].to_s.strip.empty? ? nil : params["category"]
         @limit = parse_limit(params["limit"])
 

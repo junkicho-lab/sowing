@@ -22,6 +22,8 @@ RSpec.describe "Plan 확장 + 대시보드 위젯 (Phase 13 W27-T02)", type: :re
   before do
     header "Host", "127.0.0.1"
     FileUtils.rm_rf(plans_dir) if plans_dir.exist?
+    db = Sowing::Infrastructure::DB.connection
+    %i[entries_fts links entry_tags tags entries].each { |t| db[t].delete }
   end
 
   after { FileUtils.rm_rf(plans_dir) if plans_dir.exist? }

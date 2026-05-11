@@ -3,6 +3,7 @@
 require "yaml"
 require "pathname"
 require "fileutils"
+require "digest"
 require "front_matter_parser"
 
 module Sowing
@@ -22,14 +23,16 @@ module Sowing
     # 한 period+date 당 단일 파일 — 여러 계획을 한 파일의 마크다운 todo list 로
     # 작성. 옵시디언에서 그대로 열어 [ ] / [x] 토글 가능.
     #
-    # IndexRepo·entries 테이블 통합은 W27-T02. 본 PoC 에선 파일 시스템 직접.
+    # IndexRepo·entries 테이블 통합은 W27-T03 (마이그레이션 008).
+    # 본 repo 는 파일 + entries 인덱스 동시 영속화 — Memo/Note/Record 와 동등.
     class PlanRepo
       PLANS_DIR = "40_Plans"
 
       attr_reader :vault_dir
 
-      def initialize(vault_dir:)
+      def initialize(vault_dir:, index_repo: nil)
         @vault_dir = Pathname.new(vault_dir.to_s).expand_path
+        @index_repo = index_repo
       end
 
       # @param plan [Sowing::Domain::Plan]
@@ -38,6 +41,7 @@ module Sowing
         target = resolve_path(plan)
         FileUtils.mkdir_p(target.dirname)
         File.write(target, serialize(plan), encoding: "UTF-8")
+        upsert_index(plan, target)
         target
       end
 
@@ -100,10 +104,29 @@ module Sowing
           updated_at: Time.now
         )
         File.write(path, serialize(toggled), encoding: "UTF-8")
+        upsert_index(toggled, path)
         toggled
       end
 
       private
+
+      # W27-T03 — entries 테이블에도 plan 인덱싱.
+      # IndexRepo 가 nil 이면 lazy 생성. mode='plan' 으로 upsert.
+      # 인덱싱 실패해도 vault 파일 쓰기는 성공 — graceful (마이그레이션 008 미적용 시).
+      def upsert_index(plan, absolute_path)
+        repo = @index_repo || IndexRepo.new
+        relative_path = Pathname.new(absolute_path.to_s).relative_path_from(@vault_dir).to_s
+        repo.upsert(
+          plan,
+          path: relative_path,
+          file_mtime: File.mtime(absolute_path).to_i,
+          file_hash: Digest::SHA256.hexdigest(File.binread(absolute_path))[0, 16],
+          word_count: plan.body.split.size
+        )
+      rescue Sequel::CheckConstraintViolation
+        # 마이그레이션 008 미적용 시 무시 — file 은 저장됨, IndexRepo 통합만 skip
+        nil
+      end
 
       def resolve_path(plan)
         @vault_dir.join(PLANS_DIR, plan.period.to_s, "#{plan.plan_date}.md")

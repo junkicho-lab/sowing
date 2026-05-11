@@ -1881,6 +1881,7 @@ pre code {
 .view-recent__item--memo { border-left-color: rgb(217, 119, 6); /* amber */ }
 .view-recent__item--note { border-left-color: rgb(37, 99, 235); /* blue */ }
 .view-recent__item--record { border-left-color: var(--color-primary); /* green */ }
+.view-recent__item--plan { border-left-color: rgb(168, 85, 247); /* purple */ }
 
 .view-recent__item-head {
   display: flex;
@@ -1901,6 +1902,7 @@ pre code {
 .view-recent__badge--memo { background: rgb(217, 119, 6); }
 .view-recent__badge--note { background: rgb(37, 99, 235); }
 .view-recent__badge--record { background: var(--color-primary); }
+.view-recent__badge--plan { background: rgb(168, 85, 247); }
 
 .view-recent__cat {
   background: rgba(0, 0, 0, 0.05);

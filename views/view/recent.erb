@@ -13,7 +13,7 @@
   <nav class="view-recent__filters" aria-label="모드 필터">
     <a href="/view/recent<%= @selected_category ? "?category=#{Rack::Utils.escape(@selected_category)}" : "" %>"
        class="view-recent__chip <%= "view-recent__chip--active" unless @selected_mode %>">전체</a>
-    <% %w[memo note record].each do |m| %>
+    <% %w[memo note record plan].each do |m| %>
       <% q = {mode: m} %>
       <% q[:category] = @selected_category if @selected_category %>
       <a href="/view/recent?<%= Rack::Utils.build_query(q) %>"
