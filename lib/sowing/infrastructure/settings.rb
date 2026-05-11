@@ -28,7 +28,11 @@ module Sowing
         # Phase 13 W28-T02: 대시보드 '오늘의 자기' 위젯 활성화 (opt-in).
         # true 면 오늘 entries 3건 이상일 때 위젯에 '생성하기' 버튼 표시.
         # 자동 생성 (boot hook) 은 W28-T03 별도 — 본 옵션은 위젯 노출만.
-        "daily_mirror_enabled" => false
+        "daily_mirror_enabled" => false,
+        # Phase 14 W29 PoC: 다크 모드 (auto/light/dark).
+        # auto = OS prefers-color-scheme 자동 따라감 (default)
+        # light = 강제 라이트 / dark = 강제 다크
+        "theme" => "auto"
       }.freeze
 
       module_function

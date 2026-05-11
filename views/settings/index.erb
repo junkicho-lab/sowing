@@ -99,6 +99,28 @@ bin/sowing dev</code></pre>
   </article>
 
   <article class="settings__section">
+    <h2>🌗 테마 (Phase 14 W29 PoC)</h2>
+    <form action="/settings/theme" method="post" class="settings__form">
+      <div class="settings__radios">
+        <% current_theme = @settings_data["theme"] || "auto" %>
+        <label class="settings__radio">
+          <input type="radio" name="theme" value="auto" <%= "checked" if current_theme == "auto" %>>
+          <strong>🌗 시스템 자동</strong> (OS 모드 따라감, 기본)
+        </label>
+        <label class="settings__radio">
+          <input type="radio" name="theme" value="light" <%= "checked" if current_theme == "light" %>>
+          <strong>☀ 라이트</strong> (워밍 페이퍼)
+        </label>
+        <label class="settings__radio">
+          <input type="radio" name="theme" value="dark" <%= "checked" if current_theme == "dark" %>>
+          <strong>🌑 다크</strong> (딥 포레스트)
+        </label>
+      </div>
+      <button type="submit" class="button button--ghost">테마 저장</button>
+    </form>
+  </article>
+
+  <article class="settings__section">
     <h2>🪞 자기 거울 (Phase 13 W28-T02)</h2>
     <form action="/settings/daily_mirror" method="post" class="settings__form">
       <label class="settings__checkbox">

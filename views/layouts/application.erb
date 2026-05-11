@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="ko">
+<%# Phase 14 W29 — 다크 모드. theme = auto/light/dark. auto 면 data-theme 없음 →
+    CSS @media prefers-color-scheme 가 결정. light/dark 면 명시 (OS 무시). %>
+<% _theme_value = begin
+     Sowing::Infrastructure::Settings.load["theme"] || "auto"
+   rescue
+     "auto"
+   end %>
+<html lang="ko"<%= " data-theme=\"#{_theme_value}\"" unless _theme_value == "auto" %>>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light">
+  <%# color-scheme: 브라우저에 알림. auto = OS, light/dark = 강제. %>
+  <meta name="color-scheme" content="<%= _theme_value == "auto" ? "light dark" : _theme_value %>">
   <title><%= page_title %></title>
   <link rel="stylesheet" href="/css/application.css">
 

@@ -78,6 +78,20 @@ module Sowing
         redirect "/settings"
       end
 
+      # Phase 14 W29 PoC — 다크 모드 테마 토글.
+      # theme = auto|light|dark (allowlist, 그 외는 auto 폴백).
+      post "/settings/theme" do
+        theme = params["theme"].to_s
+        theme = "auto" unless %w[auto light dark].include?(theme)
+        user_settings.update(theme: theme)
+        session[:flash] = case theme
+                         when "auto"  then "🌗 테마: 시스템 자동 (OS 따라감)"
+                         when "light" then "☀ 테마: 라이트 모드"
+                         when "dark"  then "🌑 테마: 다크 모드"
+                         end
+        redirect "/settings"
+      end
+
       # Phase 13 W25-T02 — 동사 중심 nav 변경 안내 모달 닫기.
       # AJAX POST (fetch) — JS 가 모달 hide 후 200 OK 받으면 종료.
       # form fallback (HTML POST) 도 작동 — JS 비활성화 시 redirect.
