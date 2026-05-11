@@ -9,6 +9,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 (다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
 
+## [0.1.6] - 2026-05-11 — Phase 14 W31 PoC: 모바일 햄버거 + 터치 chip 크기
+
+v0.1.5 의 단축키 (W30) 에 이어 세 번째 Phase 14 PoC. 모바일 viewport (≤768px)
+에서 햄버거 메뉴 + 모든 chip 의 터치 영역 확대.
+
+**JS 0 햄버거 패턴**:
+- `<input type="checkbox" id="nav_mobile_toggle">` (hidden)
+- `<label for="nav_mobile_toggle">` 햄버거 버튼 (☰ / ✕)
+- `.nav-mobile-toggle:checked ~ .nav-v2 { display: flex }` 로 CSS-only 토글
+- Sowing 의 'JS 의존성 최소화' 원칙 (CLAUDE.md) 일관
+
+**모바일 변화 (@media max-width 768px)**:
+- nav-v2: vertical drawer (`position: absolute`), `box-shadow` + `border-top`
+- 1급 메뉴: padding 0.8em + min-height 44px (HIG 권장)
+- dropdown panel: `position: static` (drawer 안에서 inline 펼침, 화면 밖 X)
+- 햄버거 버튼: min-width/height 44px
+
+**터치 chip 크기**:
+- `.quick-modal__chip` / `.quick-modal__emotion-chip` /
+  `.view-recent__chip` / `.plans__chip` / `.synth-llm-toggle__model select`
+  모두 min-height 40px + padding 확대
+- emotion chip min-width 64px (얇은 chip 도 탭 영역)
+- stats / view-recent / plans 아이템 패딩 보충
+- body 폰트 0.96rem
+
+**ADR 영향**: 0
+- ADR-001 / ADR-009 / ADR-013 / ADR-014 모두 무관
+- 모든 변경 CSS + 1 input markup — 데이터·도메인·라우트 0
+
+**Spec & 검증**:
+- spec/system/mobile_ux_spec.rb 신규 (13 case)
+- HTML markup 4 / CSS 햄버거 4 / CSS chip 3 / 회귀 2
+- 1648 → 1661 (+13), 0 failures
+- standardrb clean
+
+**캡쳐 한계 안내**:
+- Chrome headless `--window-size 375` 만으로는 viewport media query 100% 일치 X
+- 실제 모바일 기기 또는 Chrome DevTools 모바일 에뮬레이션으로 확인 권장
+- Markup + spec 으로 동작 보장 (햄버거 토글 = 순수 CSS, timing 이슈 0)
+
+**파일 5**:
+- views/layouts + public/css + spec + 캡쳐 × 2
+
+**사용자 가치**:
+- 출퇴근 중 폰으로 메모 즉시 가능
+- 모바일 nav 5+1 동사 메뉴 접근성 보장
+- 교실 책상에 폰 둔 채 chip 정확 탭
+
+다음 단계:
+- 다국어 (r18n 영문) — 해외 베타 가능성
+- 또는 베타 인터뷰 (2026-08) 후 Phase 14 본격 진입
+
 ## [0.1.5] - 2026-05-11 — Phase 14 W30 PoC: 단축키 사용자 정의
 
 v0.1.4 의 다크 모드 (W29) 에 이어 두 번째 Phase 14 PoC. 글로벌 단축키의
