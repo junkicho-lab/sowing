@@ -33,7 +33,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # Windows 는 ruby/setup-ruby 가 windows-latest + 3.3 조합에서 종종 실패 —
+        # Windows 사용자는 WSL2/Docker/sowing-install 우회 권장 (README + packaging/README).
+        # 정식 Windows MSI 인스톨러 (W8-T04) 는 외부 리소스 (Inno Setup) 확보 후.
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
