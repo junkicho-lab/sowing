@@ -205,10 +205,116 @@ body {
   color: var(--color-muted);
 }
 
-/* 모바일·좁은 화면 — 햄버거는 W25-T01 PoC 범위 밖. 일단 wrap. */
+/* Phase 14 W31 — 모바일 햄버거 + 터치 chip 크기 ─── */
+
+/* 햄버거 checkbox 자체는 hidden, label 이 토글 UI */
+.nav-mobile-toggle {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nav-mobile-toggle__btn {
+  display: none; /* 데스크톱 hidden */
+  cursor: pointer;
+  font-size: 1.5rem;
+  padding: 0.3em 0.5em;
+  user-select: none;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-mobile-toggle__btn:hover { color: var(--color-primary); }
+
+.nav-mobile-toggle__icon,
+.nav-mobile-toggle__close { line-height: 1; }
+.nav-mobile-toggle__close { display: none; }
+
 @media (max-width: 768px) {
-  .nav-v2 { gap: var(--space-2); font-size: 0.9rem; }
-  .nav-v2__panel { min-width: 200px; }
+  /* 햄버거 버튼 노출 */
+  .nav-mobile-toggle__btn { display: inline-flex; }
+
+  /* 햄버거 열림 상태 — 아이콘 토글 */
+  .nav-mobile-toggle:checked ~ .nav-mobile-toggle__btn .nav-mobile-toggle__icon { display: none; }
+  .nav-mobile-toggle:checked ~ .nav-mobile-toggle__btn .nav-mobile-toggle__close { display: inline; }
+
+  /* 모바일 nav 기본 hidden, 햄버거 체크 시 표시 */
+  .nav-v2 {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--color-card-bg);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 4px 12px var(--color-shadow);
+    z-index: 50;
+    padding: var(--space-2);
+  }
+
+  .nav-mobile-toggle:checked ~ .nav-v2 { display: flex; }
+
+  /* 1급 메뉴를 모바일에서 vertical, 큰 터치 영역 */
+  .nav-v2 > a,
+  .nav-v2__group > summary {
+    padding: 0.8em 0.4em;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .nav-v2__group:last-child > summary { border-bottom: 0; }
+
+  /* dropdown panel 을 모바일에서는 inline (drop 위치 무관, 항상 아래) */
+  .nav-v2__panel {
+    position: static;
+    margin-top: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    padding: 0.3em 0 0.6em var(--space-3);
+  }
+
+  .nav-v2__panel a {
+    padding: 0.55em 0.5em;
+    min-height: 40px;
+  }
+
+  /* app-header 자체에 relative — nav 의 absolute 기준 */
+  .app-header { position: relative; flex-wrap: wrap; }
+}
+
+/* ─── Phase 14 W31 — 터치 chip 크기 (모바일 ≥44px 권장) ─── */
+@media (max-width: 768px) {
+  .quick-modal__chip,
+  .quick-modal__emotion-chip,
+  .view-recent__chip,
+  .plans__chip,
+  .synth-llm-toggle__model select {
+    min-height: 40px;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+  }
+
+  .quick-modal__emotion-chip { min-width: 64px; }
+
+  /* dashboard stats / synth cards 의 패딩 약간 보충 */
+  .stats__card,
+  .view-recent__item,
+  .plans__item { padding: var(--space-2) var(--space-3); }
+
+  /* body 폰트 약간 조절 */
+  body { font-size: 0.96rem; }
 }
 
 /* ─── Phase 13 W25-T02 — 동사 nav 변경 안내 모달 (1회 표시) ─── */

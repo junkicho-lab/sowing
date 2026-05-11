@@ -73,6 +73,14 @@
 <body>
   <header class="app-header">
     <a href="/" class="brand">Sowing 🌱</a>
+
+    <%# Phase 14 W31 — 모바일 햄버거. JS 0 — checkbox + label + CSS :checked. %>
+    <input type="checkbox" id="nav_mobile_toggle" class="nav-mobile-toggle"
+           aria-label="메뉴 토글">
+    <label for="nav_mobile_toggle" class="nav-mobile-toggle__btn" aria-hidden="true">
+      <span class="nav-mobile-toggle__icon">☰</span>
+      <span class="nav-mobile-toggle__close">✕</span>
+    </label>
     <%# Phase 13 W25-T01 — 동사 중심 IA. 명사 mode (메모·필기·기록) 는 저장 단위로
         그대로 유지하되, 사용자 노출 nav 는 동사 (글쓰기·보기·계획·회고) 5+1 로.
         <details> + CSS :focus-within 으로 JS 0 dropdown. ADR-014 제안. %>
