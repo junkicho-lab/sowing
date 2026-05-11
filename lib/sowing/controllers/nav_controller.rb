@@ -38,11 +38,9 @@ module Sowing
       # /view 는 ViewController 가 처리 — NavController 에서는 라우트 정의 안 함.
       # (Sinatra mount 순서로 인해 ViewController 가 먼저 매칭됨)
 
+      # W27-T01 — Plan mode 실 구현. /plan → /plans redirect (명사 mode 진입점).
       get "/plan" do
-        # W27 에서 Plan 도메인 객체 + 40_Plans/ 폴더 진입으로 교체.
-        # 현재는 안내 메시지 + 설정 페이지로 임시 우회.
-        session[:flash] = "🗓 쓸 글 계획 mode 는 Phase 13 W27 에 추가됩니다 — ROADMAP.md 참조."
-        redirect "/settings"
+        redirect "/plans"
       end
 
       get "/mirror" do

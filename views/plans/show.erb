@@ -1,0 +1,48 @@
+<section class="plans-show">
+  <header class="plans__header">
+    <p class="plans__lede">
+      <a href="/plans?period=<%= @plan.period %>">← <%= plan_period_label(@plan.period) %> 목록</a>
+    </p>
+
+    <div class="plans__item-head">
+      <span class="plans__badge plans__badge--<%= @plan.period %>">
+        <%= plan_period_label(@plan.period) %>
+      </span>
+      <span class="plans__date"><%= h(@plan.plan_date) %></span>
+      <% if @plan.done %>
+        <span class="plans__done-badge">✅ 완료</span>
+      <% end %>
+    </div>
+
+    <h1><%= h(@plan.title) %></h1>
+  </header>
+
+  <% if @flash %>
+    <div class="alert alert--info" role="status"><%= h(@flash) %></div>
+  <% end %>
+
+  <article class="plans__body">
+    <%= markdown_to_html(@plan.body) %>
+  </article>
+
+  <% if @plan.tags.to_a.any? %>
+    <div class="plans__tags">
+      <% @plan.tags.to_a.each do |tag| %>
+        <a href="/tags/<%= Rack::Utils.escape(tag) %>" class="plans__tag">#<%= h(tag) %></a>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%# 토글 — 사용자 명시 클릭만 (ADR-013) %>
+  <div class="plans__actions">
+    <form action="/plans/<%= h(@plan.id.to_s) %>/toggle" method="post" style="display:inline">
+      <button type="submit" class="button <%= @plan.done ? 'button--ghost' : 'button--primary' %>">
+        <%= @plan.done ? '↺ 다시 진행 중으로' : '✅ 완료 표시' %>
+      </button>
+    </form>
+  </div>
+
+  <p class="plans__footer-note">
+    💡 옵시디언에서도 편집 가능 — <code>40_Plans/<%= @plan.period %>/<%= h(@plan.plan_date) %>.md</code>
+  </p>
+</section>

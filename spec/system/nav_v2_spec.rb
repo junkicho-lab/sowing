@@ -81,13 +81,10 @@ RSpec.describe "동사 중심 nav (Phase 13 W25-T01)", type: :request do
       expect(last_response.location).to end_with("/view/recent")
     end
 
-    it "GET /plan → /settings redirect + flash 안내" do
+    it "GET /plan → /plans redirect (W27-T01 실 구현으로 교체)" do
       get "/plan"
       expect(last_response.status).to eq(302)
-      expect(last_response.location).to end_with("/settings")
-      # 다음 요청 시 flash 노출 확인
-      follow_redirect!
-      expect(last_response.body).to include("W27")
+      expect(last_response.location).to end_with("/plans")
     end
 
     it "GET /mirror → /synth redirect" do

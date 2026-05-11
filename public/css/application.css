@@ -1424,6 +1424,237 @@ pre code {
   border-color: var(--color-primary);
 }
 
+/* ─── Phase 13 W27-T01 — 쓸 글 계획 (Plans) ─── */
+
+.plans__header h1 {
+  margin: 0 0 var(--space-1) 0;
+}
+
+.plans__lede {
+  color: var(--color-muted);
+  font-size: 0.92rem;
+  margin: 0 0 var(--space-2) 0;
+}
+
+.plans__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.plans__chip {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.4em 1em;
+  font-size: 0.92rem;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: all 0.12s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.plans__chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.plans__chip--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  font-weight: 500;
+}
+
+.plans__chip small {
+  font-size: 0.8em;
+  opacity: 0.85;
+}
+
+.plans__cta {
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.plans__list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-3) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.plans__item {
+  padding: var(--space-3);
+  background: white;
+  border: 1px solid var(--color-border);
+  border-left-width: 4px;
+  border-left-color: rgb(168, 85, 247); /* purple — plan mode color */
+  border-radius: 6px;
+}
+
+.plans__item--done {
+  opacity: 0.65;
+  background: rgba(168, 85, 247, 0.04);
+}
+
+.plans__item-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  flex-wrap: wrap;
+  margin-bottom: 0.4em;
+  font-size: 0.85rem;
+}
+
+.plans__badge {
+  padding: 0.15em 0.6em;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: white;
+  background: rgb(168, 85, 247);
+}
+
+.plans__badge--daily   { background: rgb(217, 70, 239); }
+.plans__badge--weekly  { background: rgb(168, 85, 247); }
+.plans__badge--monthly { background: rgb(124, 58, 237); }
+
+.plans__date {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.15em 0.6em;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-family: ui-monospace, monospace;
+}
+
+.plans__done-badge {
+  color: var(--color-primary);
+  font-size: 0.82rem;
+}
+
+.plans__created {
+  margin-left: auto;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.plans__title {
+  margin: 0.3em 0;
+  font-size: 1.1rem;
+}
+
+.plans__title a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.plans__title a:hover { color: rgb(124, 58, 237); }
+
+.plans__excerpt {
+  margin: 0.4em 0;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  opacity: 0.85;
+  white-space: pre-wrap;
+}
+
+.plans__tags {
+  margin-top: 0.4em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+}
+
+.plans__tag {
+  font-size: 0.78rem;
+  color: rgb(124, 58, 237);
+  text-decoration: none;
+  background: rgba(168, 85, 247, 0.07);
+  padding: 0.1em 0.5em;
+  border-radius: 3px;
+}
+
+.plans__tag:hover { background: rgba(168, 85, 247, 0.15); }
+
+.plans__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 720px;
+  margin: var(--space-3) 0;
+}
+
+.plans__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+
+.plans__field > span {
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+.plans__field small {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.plans__input {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.plans__textarea {
+  padding: 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 0.92rem;
+  font-family: ui-monospace, monospace;
+  line-height: 1.55;
+  background: var(--color-bg);
+  color: var(--color-text);
+  resize: vertical;
+}
+
+.plans__form-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.plans__body {
+  background: white;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  margin: var(--space-3) 0;
+}
+
+.plans__body h1, .plans__body h2, .plans__body h3 { margin-top: 1em; }
+.plans__body ul li { margin: 0.2em 0; }
+
+.plans__actions {
+  margin: var(--space-3) 0;
+}
+
+.plans__footer-note {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  margin-top: var(--space-4);
+  padding: var(--space-2);
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+}
+
 /* ─── Phase 13 W26-T03 — 쓴 글 보기: 최근 통합 시간순 ─── */
 
 .view-recent__header {

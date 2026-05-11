@@ -1,0 +1,54 @@
+<section class="plans-new">
+  <header class="plans__header">
+    <h1>＋ 새 <%= plan_period_label(@period) %> 계획</h1>
+    <p class="plans__lede">
+      <a href="/plans?period=<%= @period %>">← 목록으로</a>
+    </p>
+  </header>
+
+  <form action="/plans" method="post" class="plans__form">
+    <input type="hidden" name="period" value="<%= @period %>">
+
+    <label class="plans__field">
+      <span>제목</span>
+      <input type="text" name="title" required autofocus
+             placeholder="예: 협동학습 평가 루브릭 정리"
+             class="plans__input">
+    </label>
+
+    <label class="plans__field">
+      <span>날짜</span>
+      <input type="text" name="plan_date" required
+             value="<%= h(@default_date) %>"
+             pattern="<%= case @period
+               when :daily then '\d{4}-\d{2}-\d{2}'
+               when :weekly then '\d{4}-W\d{2}'
+               when :monthly then '\d{4}-\d{2}'
+               end %>"
+             title="<%= case @period
+               when :daily then 'YYYY-MM-DD 형식 (예: 2026-05-11)'
+               when :weekly then 'YYYY-Www 형식 (예: 2026-W19)'
+               when :monthly then 'YYYY-MM 형식 (예: 2026-05)'
+               end %>"
+             class="plans__input">
+      <small><%= case @period
+        when :daily then 'YYYY-MM-DD (예: 2026-05-11)'
+        when :weekly then 'YYYY-Www ISO 8601 주 번호 (예: 2026-W19)'
+        when :monthly then 'YYYY-MM (예: 2026-05)'
+      end %></small>
+    </label>
+
+    <label class="plans__field">
+      <span>본문 (마크다운)</span>
+      <textarea name="body" rows="10"
+                placeholder="- [ ] 첫 번째 할 일&#10;- [ ] 두 번째 할 일&#10;&#10;본문은 마크다운입니다. todo 체크박스, 위키링크 [[...]], 태그 #예 모두 작동합니다."
+                class="plans__textarea"></textarea>
+      <small>옵시디언 호환 — todo list, 위키링크, 태그 모두 자동 인식</small>
+    </label>
+
+    <div class="plans__form-actions">
+      <a href="/plans?period=<%= @period %>" class="button button--ghost">취소</a>
+      <button type="submit" class="button button--primary">계획 만들기</button>
+    </div>
+  </form>
+</section>

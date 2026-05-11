@@ -1,0 +1,86 @@
+<section class="plans">
+  <header class="plans__header">
+    <h1>🗓 쓸 글 계획</h1>
+    <p class="plans__lede">
+      회상 (메모·필기·기록) 이 과거라면, 계획은 미래입니다.
+      <strong>오늘·이번 주·이번 달</strong> 무엇을 적을지·할지 청사진을 만들어 두세요.
+    </p>
+  </header>
+
+  <% if @flash %>
+    <div class="alert alert--info" role="status"><%= h(@flash) %></div>
+  <% end %>
+
+  <%# period chip — daily/weekly/monthly 토글 %>
+  <nav class="plans__filters" aria-label="기간 필터">
+    <% Sowing::Domain::Plan::PERIODS.each do |period| %>
+      <% count = @plans_by_period[period].size %>
+      <a href="/plans?period=<%= period %>"
+         class="plans__chip <%= "plans__chip--active" if @selected_period == period %>">
+        <%= plan_period_label(period) %>
+        <small>(<%= count %>건)</small>
+      </a>
+    <% end %>
+  </nav>
+
+  <%# 신규 작성 CTA %>
+  <div class="plans__cta">
+    <a href="/plans/new?period=<%= @selected_period %>" class="button button--primary">
+      ＋ 새 <%= plan_period_label(@selected_period) %> 계획
+    </a>
+  </div>
+
+  <%# plan 목록 %>
+  <% if @selected_plans.empty? %>
+    <div class="empty-state empty-state--inline">
+      <p>아직 <%= plan_period_label(@selected_period) %> 계획이 없습니다.</p>
+      <p class="empty-state__hint">
+        위 '새 계획' 버튼을 눌러 첫 계획을 만들어 보세요.
+        <strong>꾸준한 계획 → 회고 → 다음 계획</strong> 이 30년 누적의 핵심입니다.
+      </p>
+    </div>
+  <% else %>
+    <ul class="plans__list">
+      <% @selected_plans.each do |plan| %>
+        <li class="plans__item <%= "plans__item--done" if plan.done %>">
+          <div class="plans__item-head">
+            <span class="plans__badge plans__badge--<%= plan.period %>">
+              <%= plan_period_label(plan.period) %>
+            </span>
+            <span class="plans__date"><%= h(plan.plan_date) %></span>
+            <% if plan.done %>
+              <span class="plans__done-badge">✅ 완료</span>
+            <% end %>
+            <time class="plans__created" datetime="<%= plan.created_at.iso8601 %>">
+              <%= plan.created_at.strftime("%m/%d %H:%M") %> 작성
+            </time>
+          </div>
+
+          <h3 class="plans__title">
+            <a href="/plans/<%= h(plan.id.to_s) %>"><%= h(plan.title) %></a>
+          </h3>
+
+          <% if plan.body && !plan.body.empty? %>
+            <p class="plans__excerpt">
+              <%= h(plan.body.strip[0, 160]) %><%= "…" if plan.body.strip.length > 160 %>
+            </p>
+          <% end %>
+
+          <% if plan.tags.to_a.any? %>
+            <div class="plans__tags">
+              <% plan.tags.to_a.first(5).each do |tag| %>
+                <a href="/tags/<%= Rack::Utils.escape(tag) %>" class="plans__tag">#<%= h(tag) %></a>
+              <% end %>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <p class="plans__footer-note">
+    💡 <strong>옵시디언 호환</strong> — 각 계획은
+    <code>40_Plans/{period}/{plan_date}.md</code> 마크다운으로 저장.
+    옵시디언에서 <code>- [ ]</code> / <code>- [x]</code> todo 체크박스 그대로 작동.
+  </p>
+</section>
