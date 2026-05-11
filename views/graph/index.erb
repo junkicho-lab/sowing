@@ -1,0 +1,80 @@
+<section class="graph-page" aria-labelledby="graph_heading"
+         data-controller="graph"
+         data-graph-api-value="/api/graph_data?<%= h(request.query_string) %>">
+  <header class="graph-page__header">
+    <h1 id="graph_heading">🕸 위키링크 그래프</h1>
+    <p class="graph-page__lede">
+      위키링크 (`[[target]]`) 로 연결된 entries 를 시각화. 30년 누적 시
+      클러스터 발견·고립 entries 강조·연도 색상으로 시간 흐름 파악.
+      <br><strong>인라인 SVG + 자체 force-directed</strong> — 외부 라이브러리 0,
+      수백 노드까지 부드럽게 처리.
+    </p>
+  </header>
+
+  <form class="graph-page__filters" method="get" action="/graph">
+    <div class="graph-page__filter-group">
+      <strong>모드:</strong>
+      <% %w[memo note record].each do |m| %>
+        <label class="graph-page__chip">
+          <input type="checkbox" name="modes[]" value="<%= m %>" <%= "checked" if @selected_modes.include?(m) %>>
+          <%= {memo: "💭 메모", note: "📝 필기", record: "📖 기록"}[m.to_sym] %>
+        </label>
+      <% end %>
+    </div>
+
+    <% if @categories_all.any? %>
+      <div class="graph-page__filter-group">
+        <strong>카테고리:</strong>
+        <% @categories_all.each do |c| %>
+          <label class="graph-page__chip">
+            <input type="checkbox" name="categories[]" value="<%= h(c) %>" <%= "checked" if @selected_categories&.include?(c) %>>
+            <%= h(c) %>
+          </label>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="graph-page__filter-group">
+      <label>기간 시작: <input type="date" name="since" value="<%= @since&.strftime("%Y-%m-%d") %>"></label>
+      <label>기간 종료: <input type="date" name="until" value="<%= @until&.strftime("%Y-%m-%d") %>"></label>
+      <label>최대 노드: <input type="number" name="max" value="<%= @max_nodes %>" min="10" max="1000" step="50"></label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="button button--primary">필터 적용</button>
+      <a href="/graph" class="button button--ghost">초기화</a>
+    </div>
+  </form>
+
+  <div class="graph-page__legend">
+    <strong>범례:</strong>
+    <span class="graph-page__legend-item"><span class="graph-legend-dot graph-legend-dot--memo"></span> 메모</span>
+    <span class="graph-page__legend-item"><span class="graph-legend-dot graph-legend-dot--note"></span> 필기</span>
+    <span class="graph-page__legend-item"><span class="graph-legend-dot graph-legend-dot--record"></span> 기록</span>
+    <span class="graph-page__legend-item"><span class="graph-legend-ring"></span> 고립 (backlink 0)</span>
+    <span class="graph-page__legend-item">노드 크기 = 연결 수</span>
+    <span class="graph-page__legend-item">색상 명도 = 연도 (옅음=오래됨)</span>
+  </div>
+
+  <div class="graph-page__stats" data-graph-target="stats">
+    <span data-graph-target="nodeCount">0</span> 노드 ·
+    <span data-graph-target="edgeCount">0</span> 엣지
+    <span data-graph-target="truncated" hidden>(⚠ 일부만 표시 — 최대 노드 늘리거나 필터 좁히기)</span>
+  </div>
+
+  <div class="graph-page__container">
+    <svg data-graph-target="svg" class="graph-svg" width="100%" height="600" role="img" aria-label="위키링크 그래프"></svg>
+
+    <div data-graph-target="empty" class="graph-page__empty" hidden>
+      <p>조건에 맞는 entries 가 없습니다.</p>
+      <p class="empty-state__hint">필터를 비우거나 기간을 넓혀보세요.</p>
+    </div>
+
+    <div data-graph-target="tooltip" class="graph-tooltip" hidden></div>
+  </div>
+
+  <p class="graph-page__hint">
+    💡 노드 클릭 → entry 상세. 마우스 hover → 제목·연도·연결 수.
+    드래그 → 노드 이동 (force layout 재배치).
+  </p>
+</section>

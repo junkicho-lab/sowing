@@ -17,6 +17,7 @@ class Sowing::Application
   use Sowing::Controllers::GuidesController
   use Sowing::Controllers::SettingsController
   use Sowing::Controllers::SynthController
+  use Sowing::Controllers::GraphController
   use Sowing::Controllers::PreviewController
   use Sowing::Controllers::ApiController
 

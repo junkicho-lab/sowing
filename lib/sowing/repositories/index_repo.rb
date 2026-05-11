@@ -393,6 +393,68 @@ module Sowing
         ds.count
       end
 
+      # 위키링크 그래프 데이터 — `/graph` 시각화용. 30년 시나리오 #4.
+      #
+      # 노드 = entry, 엣지 = wikilink (source_id → target_id, target NULL 제외).
+      # 30년 누적 시 노드 수천 개 가능 — `max_nodes` 가드 + 필터 필수.
+      #
+      # @param mode_in [Array<String>, nil] 모드 필터 (nil = 전체 — memo/note/record)
+      # @param category_in [Array<String>, nil] 카테고리 필터
+      # @param since [Time, String, nil]
+      # @param until_time [Time, String, nil]
+      # @param max_nodes [Integer] 안전 가드 (default 300, force-directed 가 부드럽게 처리 가능한 한계)
+      # @return [Hash] {nodes: [{id, mode, title, category, year, inbound, outbound}],
+      #                 edges: [{source, target}],
+      #                 truncated: bool}
+      def graph_data(mode_in: nil, category_in: nil, since: nil, until_time: nil, max_nodes: 300)
+        ds = @db[:entries]
+        ds = ds.where(mode: mode_in) if mode_in && !mode_in.empty?
+        ds = ds.where(category: category_in) if category_in && !category_in.empty?
+        ds = ds.where { created_at >= since.iso8601 } if since.is_a?(Time)
+        ds = ds.where { created_at <= until_time.iso8601 } if until_time.is_a?(Time)
+
+        total = ds.count
+        truncated = total > max_nodes
+        rows = ds.order(Sequel.desc(:created_at)).limit(max_nodes).all
+        node_ids = rows.map { |r| r[:id] }.to_set
+
+        # inbound / outbound degree — links 테이블 join
+        inbound_counts = @db[:links]
+          .where(target_id: node_ids.to_a)
+          .group_and_count(:target_id)
+          .all
+          .to_h { |r| [r[:target_id], r[:count]] }
+        outbound_counts = @db[:links]
+          .where(source_id: node_ids.to_a)
+          .exclude(target_id: nil)
+          .group_and_count(:source_id)
+          .all
+          .to_h { |r| [r[:source_id], r[:count]] }
+
+        nodes = rows.map { |r|
+          {
+            id: r[:id],
+            mode: r[:mode],
+            title: r[:title].to_s.empty? ? "(제목 없음)" : r[:title],
+            category: r[:category].to_s,
+            year: r[:created_at].to_s[0, 4].to_i,
+            created_at: r[:created_at].to_s[0, 10],
+            inbound: inbound_counts[r[:id]] || 0,
+            outbound: outbound_counts[r[:id]] || 0
+          }
+        }
+
+        # 엣지 — 양 끝이 모두 visible nodes 안에 있어야 표시 (filter 결과의 internal links)
+        edges = @db[:links]
+          .where(source_id: node_ids.to_a, target_id: node_ids.to_a)
+          .exclude(target_id: nil)
+          .select(:source_id, :target_id)
+          .all
+          .map { |r| {source: r[:source_id], target: r[:target_id]} }
+
+        {nodes: nodes, edges: edges, truncated: truncated, total: total}
+      end
+
       # 카테고리 × 연도 매트릭스 — `/records/by-category` 용.
       # 결과: {category => {year(Integer) => count}, ...}
       # 카테고리는 빈도순(전체 합계) 내림차순, 연도는 오름차순 정렬은 호출 측 책임.

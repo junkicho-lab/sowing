@@ -22,6 +22,7 @@
       "controllers/quick_search": "/js/controllers/quick_search_controller.js",
       "controllers/editor": "/js/controllers/editor_controller.js",
       "controllers/preview": "/js/controllers/preview_controller.js",
+      "controllers/graph": "/js/controllers/graph_controller.js",
       "codemirror": "https://esm.sh/codemirror@6.0.1",
       "@codemirror/lang-markdown": "https://esm.sh/@codemirror/lang-markdown@6.2.5",
       "@codemirror/autocomplete": "https://esm.sh/@codemirror/autocomplete@6.18.1"
@@ -35,12 +36,14 @@
     import QuickSearchController from "controllers/quick_search"
     import EditorController from "controllers/editor"
     import PreviewController from "controllers/preview"
+    import GraphController from "controllers/graph"
 
     const stimulus = Application.start()
     stimulus.register("quick-memo", QuickMemoController)
     stimulus.register("quick-search", QuickSearchController)
     stimulus.register("editor", EditorController)
     stimulus.register("preview", PreviewController)
+    stimulus.register("graph", GraphController)
     window.Stimulus = stimulus
   </script>
 </head>
@@ -55,6 +58,7 @@
       <a href="/tags">태그</a>
       <a href="/search">검색</a>
       <a href="/templates">템플릿</a>
+      <a href="/graph">🕸 그래프</a>
       <a href="/settings">설정</a>
     </nav>
   </header>

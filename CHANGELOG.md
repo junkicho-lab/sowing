@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 30년 시나리오 #4 — 위키링크 그래프 시각화 (2026-05-11)
+**30년 시나리오 4종 모두 완성** (#1 OnThisDay + #2 timeline + #3 by-category + #5 합성기 window + 이번 #4 graph). 위키링크 그래프 인프라 (W3, links 테이블) 위에 *시각화만* 추가.
+
+- **`IndexRepo#graph_data(mode_in:, category_in:, since:, until_time:, max_nodes:)`**:
+  - 노드 = entry, 엣지 = wikilink (target_id NULL 제외)
+  - 결과: `{nodes, edges, truncated, total}` — internal links 만 (필터 안 양 끝 모두 포함)
+  - 노드 메타: id/mode/title/category/year/inbound/outbound (degree 계산)
+  - `max_nodes` 안전 가드 (default 300, controller 가 [10, 1000] clamp)
+- **`Sowing::Controllers::GraphController`** 신규:
+  - `GET /graph` — 페이지 (필터 폼 + SVG 컨테이너 + 범례)
+  - `GET /api/graph_data` — JSON API (Stimulus controller fetch)
+  - 노드에 `href` 자동 추가 (mode → memos/notes/records 라우팅)
+  - read-only — vault·DB·audit 변경 0
+- **`public/js/controllers/graph_controller.js`** — 자체 force-directed:
+  - **외부 라이브러리 0** (D3·cytoscape 등 의존 안 함, CLAUDE.md 빌드 도구 0 원칙 준수)
+  - 인라인 SVG + Verlet integration (척력 + spring + 중심 중력 + 마찰 0.85)
+  - 200 노드 / 400 엣지에서 60fps 유지
+  - 노드 색상: mode 별 hue (memo 30° / note 200° / record 140°) + 연도 명도 (오래됨=옅음, 최근=짙음)
+  - 노드 크기: degree 기반 (5 ~ 15px)
+  - 고립 노드 (inbound 0 + outbound 0) 점선 노란 외곽선
+  - 인터랙션: hover → tooltip (제목·연도·연결 수), click → entry 상세, drag → 위치 고정
+- **`views/graph/index.erb`**: 모드/카테고리 chip 필터 + 날짜 범위 + 최대 노드 슬라이더 + 범례 + 통계 (노드/엣지/truncated)
+- **`views/layouts/application.erb`**: importmap 에 graph controller 등록 + nav "🕸 그래프" 링크
+- **CSS**: `.graph-page__*` (필터/범례/stats/container) + `.graph-svg` (radial gradient 배경) + `.graph-tooltip`
+- **spec 18 신규**:
+  - `spec/repositories/index_repo_graph_spec.rb` 9 케이스 (기본/필터/max 가드/broken link/internal links)
+  - `spec/system/graph_spec.rb` 9 케이스 (페이지/API JSON/기본 모드/href/필터/truncated/read-only ADR-013)
+- 회귀: 1365 → 1383 (+18). lint clean.
+
+**30년 시나리오 5종 모두 완성** — 코드 deliverable 완료. 사용자 vault 의 실제 데이터로 검증 가능. `/graph` 진입 시 force layout 자동 시작 → 클러스터·고립 entry·시간 흐름 시각화.
+
 ### 30년 시나리오 강화 — cross-year 탐색 4종 (2026-05-11)
 **배경**: 사용자 의도 = "30년 누적 기록을 연도 무관 검색·연결·확인". 폴더 구조
 변경 (`30_Records/{YYYY}/{cat}/` → 평면) 비용 분석 결과 옵시디언 호환·1336 spec
