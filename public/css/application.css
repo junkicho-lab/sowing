@@ -179,6 +179,123 @@ body {
   .nav-v2__panel { min-width: 200px; }
 }
 
+/* ─── Phase 13 W25-T02 — 동사 nav 변경 안내 모달 (1회 표시) ─── */
+
+.ia-v2-modal {
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 720px;
+  width: 90vw;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.ia-v2-modal::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.ia-v2-modal > article {
+  padding: var(--space-4);
+}
+
+.ia-v2-modal header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-3);
+}
+
+.ia-v2-modal h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--color-primary);
+}
+
+.ia-v2-modal__close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--color-muted);
+  padding: 0.2em 0.5em;
+}
+
+.ia-v2-modal__close:hover { color: var(--color-text); }
+
+.ia-v2-modal__lede {
+  margin: 0 0 var(--space-3) 0;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.ia-v2-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+.ia-v2-modal__grid section {
+  padding: var(--space-2) var(--space-3);
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 8px;
+}
+
+.ia-v2-modal__grid h3 {
+  margin: 0 0 0.4em 0;
+  font-size: 1rem;
+}
+
+.ia-v2-modal__grid p {
+  margin: 0 0 0.3em 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.ia-v2-modal__grid small {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.ia-v2-modal__upcoming {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.ia-v2-modal__details {
+  margin: var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 6px;
+}
+
+.ia-v2-modal__details summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.ia-v2-modal__details p {
+  margin: var(--space-2) 0 0 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.ia-v2-modal footer {
+  margin-top: var(--space-3);
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .ia-v2-modal__grid { grid-template-columns: 1fr; }
+}
+
 /* Main */
 
 main {

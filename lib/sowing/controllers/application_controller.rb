@@ -59,6 +59,21 @@ module Sowing
           Rack::Utils.escape_html(text.to_s)
         end
 
+        # Phase 13 W25-T02 — 동사 중심 nav 변경 안내 모달 표시 여부.
+        # 1회 표시 조건 (모두 충족):
+        #   - 온보딩 완료 (튜토리얼·온보딩 중간엔 모달 충돌 방지)
+        #   - ia_v2_seen_at 미설정 (사용자가 닫지 않음)
+        #   - GET 요청 (POST 후 redirect 시점에 깜빡임 방지)
+        # 예외: /onboarding/*, /tutorial/* — 첫 진입 사용자에 정보 과다 회피.
+        def show_ia_v2_modal?
+          path = request.path_info
+          return false if path.start_with?("/onboarding", "/tutorial", "/health")
+          return false if request.request_method != "GET"
+          settings = Infrastructure::Settings.load
+          return false unless settings["onboarding_completed"] == true
+          settings["ia_v2_seen_at"].nil?
+        end
+
         # 옵시디언 호환 마크다운 → HTML.
         # - 헤더 앵커 비활성 (옵시디언 native 동작과 일치, 본문 깔끔)
         # - syntax highlighter 비활성 — 인라인 style 대신 우리 CSS로 통제

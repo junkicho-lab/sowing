@@ -21,7 +21,10 @@ module Sowing
         "completed_at" => nil,
         "tutorial_step" => 1,
         "tutorial_completed_at" => nil,
-        "class_roster" => [] # W17-T03: 학급 명단 (학생 이름 배열). GapDetector 의 입력.
+        "class_roster" => [], # W17-T03: 학급 명단 (학생 이름 배열). GapDetector 의 입력.
+        # Phase 13 W25-T02: 동사 중심 nav 변경 안내 모달 1회 표시. 사용자가 'X' 또는
+        # '이해했습니다' 클릭 시 ISO8601 timestamp 기록. nil 이면 다음 진입 시 모달 표시.
+        "ia_v2_seen_at" => nil
       }.freeze
 
       module_function

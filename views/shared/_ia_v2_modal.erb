@@ -1,0 +1,105 @@
+<%# Phase 13 W25-T02 — 동사 중심 nav 변경 안내 모달. 1회만 표시.
+    user_settings.ia_v2_seen_at == nil 일 때 layout 이 이 partial 을 include.
+    닫기 시 POST /settings/dismiss-ia-v2 — settings.json 에 timestamp 기록 → 다시 안 보임.
+    ESC 또는 backdrop 클릭으로도 닫힘 (HTML <dialog> 기본 동작). %>
+<dialog id="ia_v2_modal" class="ia-v2-modal" aria-labelledby="ia_v2_title">
+  <article>
+    <header>
+      <h2 id="ia_v2_title">🌿 Sowing 의 nav 가 더 직관적이 됐어요</h2>
+      <button type="button" class="ia-v2-modal__close"
+              data-action="ia-v2#dismiss"
+              aria-label="닫기">✕</button>
+    </header>
+
+    <p class="ia-v2-modal__lede">
+      메모·필기·기록 같은 <strong>저장 단위</strong> 대신,
+      적기·보기·계획·회고 같은 <strong>동사 (행위)</strong> 로 nav 를 재구성했습니다.
+      기존 URL 은 모두 그대로 작동합니다 — 북마크 영향 0.
+    </p>
+
+    <div class="ia-v2-modal__grid">
+      <section>
+        <h3>🖊 글쓰기</h3>
+        <p>빠른 메모 · 메모 목록 · 필기 작성</p>
+        <small class="ia-v2-modal__upcoming">📖 책 · 🎤 강의 · 💭 감정 · 👤 학생 · 🎙 음성 — W26 예정</small>
+      </section>
+
+      <section>
+        <h3>📚 쓴 글 보기</h3>
+        <p>기록(카테고리별) · 카테고리 × 연도 · Timeline · 태그 · 그래프 · 검색</p>
+        <small class="ia-v2-modal__upcoming">🕐 최근 통합 시간순 — W26 예정</small>
+      </section>
+
+      <section>
+        <h3>🗓 쓸 글 계획</h3>
+        <p class="ia-v2-modal__upcoming">계획 mode — Phase 13 W27 예정</p>
+        <small>오늘 · 이번 주 · 이번 달 · 프로젝트 · 학기</small>
+      </section>
+
+      <section>
+        <h3>🪞 자기 거울</h3>
+        <p>합성기 16종 · 사용 지표</p>
+        <small class="ia-v2-modal__upcoming">🌅 오늘의 자기 (5축 분석) — W28 예정</small>
+      </section>
+    </div>
+
+    <details class="ia-v2-modal__details">
+      <summary>왜 바뀌었나요?</summary>
+      <p>
+        평면 10항목 (홈·메모·필기·기록·태그·검색·템플릿·합성기·그래프·설정) 이
+        신규 사용자에게 진입장벽으로 작용한다는 비교 분석 결과를 반영했습니다.
+        새 IA 는 <strong>사용자 머릿속 동사</strong> (적다·보다·계획하다·회고하다) 와
+        1:1 매칭합니다. 자세한 배경은
+        <a href="https://github.com/junkicho-lab/sowing/blob/main/docs/REDESIGN_IA.md"
+           target="_blank" rel="noopener">REDESIGN_IA.md</a> 참조.
+      </p>
+    </details>
+
+    <footer>
+      <form method="post" action="/settings/dismiss-ia-v2" data-ia-v2-dismiss-form
+            style="display:inline">
+        <button type="submit" class="button button--primary"
+                data-action="ia-v2#dismiss">이해했습니다 — 시작하기</button>
+      </form>
+    </footer>
+  </article>
+</dialog>
+
+<script type="module">
+  // 모달 자동 열기 (서버가 partial 을 include 한 경우만)
+  const dialog = document.getElementById("ia_v2_modal");
+  if (dialog && !dialog.open) {
+    dialog.showModal();
+  }
+
+  // 닫기 — AJAX POST + 모달 close. JS 비활성화 시 form submit 으로 fallback.
+  async function dismiss() {
+    try {
+      await fetch("/settings/dismiss-ia-v2", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      });
+    } catch (e) {
+      // 네트워크 실패해도 모달은 닫아 사용자 차단 안 함. 다음 진입 때 다시 시도.
+    }
+    dialog.close();
+  }
+
+  dialog.querySelector(".ia-v2-modal__close")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    dismiss();
+  });
+
+  dialog.querySelector("[data-ia-v2-dismiss-form] button")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    dismiss();
+  });
+
+  // backdrop 클릭으로도 닫기
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) dismiss();
+  });
+</script>

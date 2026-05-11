@@ -117,5 +117,25 @@
 
   <%= erb :"memos/_quick_modal", layout: false %>
   <%= erb :"shared/_quick_search_modal", layout: false %>
+
+  <%# Phase 13 W25-T02 — 동사 중심 nav 변경 안내 모달.
+      1회 표시 조건: onboarding 완료 + ia_v2_seen_at 미설정 + GET 요청 + nav 노출 경로.
+      onboarding 미완료 사용자에겐 안 보임 (튜토리얼 우선 — 정보 과다 회피).
+      layout 에서 직접 검사 — Sinatra::Base helpers 상속이 자식 컨트롤러에서
+      불완전해 helper 메서드보다 inline 검사가 안전. %>
+  <%
+    _ia_v2_path = request.path_info
+    _ia_v2_show = request.request_method == "GET" &&
+                  !_ia_v2_path.start_with?("/onboarding", "/tutorial", "/health") &&
+                  begin
+                    _s = Sowing::Infrastructure::Settings.load
+                    _s["onboarding_completed"] == true && _s["ia_v2_seen_at"].nil?
+                  rescue
+                    false
+                  end
+  %>
+  <% if _ia_v2_show %>
+    <%= erb :"shared/_ia_v2_modal", layout: false %>
+  <% end %>
 </body>
 </html>

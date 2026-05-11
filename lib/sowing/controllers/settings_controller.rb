@@ -68,6 +68,22 @@ module Sowing
         user_settings.update(tutorial_step: 1, tutorial_completed_at: nil)
         redirect "/tutorial"
       end
+
+      # Phase 13 W25-T02 — 동사 중심 nav 변경 안내 모달 닫기.
+      # AJAX POST (fetch) — JS 가 모달 hide 후 200 OK 받으면 종료.
+      # form fallback (HTML POST) 도 작동 — JS 비활성화 시 redirect.
+      # 분기: X-Requested-With: XMLHttpRequest (명시 AJAX) 또는 Accept 가
+      # 정확히 application/json 인 경우만 JSON. 그 외는 redirect (form fallback).
+      post "/settings/dismiss-ia-v2" do
+        user_settings.update(ia_v2_seen_at: Time.now.iso8601)
+        accept = request.env["HTTP_ACCEPT"].to_s
+        if request.xhr? || accept.include?("application/json") && !accept.start_with?("*/*")
+          content_type :json
+          {status: "ok"}.to_json
+        else
+          redirect back || "/"
+        end
+      end
     end
   end
 end
