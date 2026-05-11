@@ -963,9 +963,125 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 
 ---
 
+## Phase 13: 동사 중심 IA 재설계 + UX 진입장벽 낮추기 (W25~W28)
+
+**계기**: `docs/gb-docs.md` (김교수 "지독한 기록" 영상 transcript) 비교 분석 → 평면 nav 10항목이 신규 사용자 진입장벽. 명사 (메모·필기·기록) 노출이 사용자 동사 (적다·보다·계획하다·회고하다) 와 어긋남.
+
+**상세 설계**: [docs/REDESIGN_IA.md](docs/REDESIGN_IA.md) — 새 5+1 nav 구조, 2급 통합, 시나리오 검증, 마이그레이션 계획, ADR-014 초안.
+
+**목표 (W28 마일스톤)**:
+- 신규 사용자 첫 메모까지 시간 < 30초 (현재 ~2분)
+- 1주차 이탈률 < 20% (현재 ~40% 추정)
+- Nav 평균 hover 횟수 < 1.5회 (현재 3.2회)
+- 합성기 월 1회 이상 사용률 > 60% (현재 ~30%)
+
+**ADR 원칙 유지**:
+- ADR-001 (마크다운 SoT) — 폴더 구조 100% 보존, frontmatter `subtype` 만 확장
+- ADR-009 (로컬-first) — 음성 입력도 Whisper.cpp 로컬 우선
+- ADR-013 (자율 mutation 0) — 모든 합성·거울 결과는 `.sowing/synth/` 검토 대기 유지
+
+### W25-T01: Nav 재설계 (5 1급 + 2급 dropdown)
+- `views/layouts/application.erb` nav 5개 1급 (`홈 · 글쓰기 · 쓴 글 보기 · 쓸 글 계획 · 자기 거울 · 설정`)
+- `<details>` element + CSS `:hover` / `:focus-within` 으로 JS 0 dropdown
+- 신규 통합 라우트 추가: `/write`, `/view`, `/plan`, `/mirror`
+- 기존 라우트 (`/memos`, `/notes`, `/records`, `/tags`, `/search`, `/synth`, `/graph`) **모두 그대로 유지** — 북마크·외부 링크 호환
+- 모바일 햄버거 메뉴 — 좁은 화면에서 5+2 vertical
+- 13장 캡쳐 (`docs/screenshots/`) 새 nav 로 재캡쳐 + USER_GUIDE.md 업데이트
+- **검증**: 베타 테스터 5명에게 "더 직관적?" 질문. nav hover 횟수 측정.
+- **위험**: 🟢 Low — 데이터 변경 0, URL 호환
+
+### W25-T02: 진입 안내 모달 (기존 사용자 onboarding)
+- 변경 직후 첫 진입 시 1회 모달: "Nav 가 동사 중심으로 바뀌었습니다 — 30초 영상"
+- `Settings.ia_v2_seen` flag 로 1회만
+- **위험**: 🟢 Low
+
+### W26-T01: 글쓰기 통합 — 분류별 메모 폼 (book/lecture/emotion/student)
+- 빠른 메모 모달에 subtype chip (📖 책 / 🎤 강의 / 💭 감정 / 👤 학생 / 일반)
+- subtype 별 frontmatter slot 추가:
+  - 책: `book_title`, `book_page`, `book_quote`
+  - 강의: `lecture_speaker`, `lecture_topic`
+  - 감정: `emotion` (18종 enum)
+  - 학생: `student_name` (entity_mentions 자동 연계)
+- 모두 동일한 마크다운 + frontmatter `subtype: book` 형식 — DB 호환, 옵시디언 호환
+- 신규 라우트 `/write/{quick|book|lecture|emotion|student}` (모두 같은 모달, prefill 다름)
+- **검증**: subtype 별 spec, 기존 메모 인덱싱 회귀 0
+- **위험**: 🟡 Medium — 모달 UX 변화
+
+### W26-T02: 음성 입력 (Whisper.cpp 로컬 우선)
+- `mediaDevices.getUserMedia` 로 녹음
+- 1차: 로컬 Whisper.cpp 서브프로세스 (ADR-009 로컬-first 준수)
+- 2차 (옵션): Anthropic STT API — ENV 키 + 명시 활성
+- 변환 결과를 모달 텍스트란에 채움 → **사용자가 확인·편집 후 저장 클릭** (ADR-013 유지)
+- **위험**: 🟡 Medium — Whisper.cpp 한국어 모델 정확도 검증 필요. 베타 5명 시험.
+- **선행**: W26-T01
+
+### W27-T01: 쓸 글 계획 mode — `Sowing::Domain::Plan` 도메인 객체
+- 신규 폴더 `40_Plans/{YYYY}/{daily|weekly|monthly|project|semester}/`
+- `Sowing::Domain::Plan` — id (ULID), title, period (daily/weekly/...), date, done (bool), linked_records, body (markdown)
+- frontmatter: `mode: plan`, `period: daily`, `date: 2026-05-11`, `done: false`
+- Repository `PlanRepo`, UseCase `CreatePlan`, `UpdatePlan`, `MarkPlanDone`, `ListPlansByPeriod`
+- 4번째 1급 mode 로 nav 에 통합
+- dashboard 위젯: "오늘 할 일" (미완료 daily plans)
+- **위험**: 🟡 Medium — 새 도메인, spec 30개+
+
+### W27-T02: 계획 propagation 옵션 (LLM)
+- 월간 로드맵 → 주간 분배 LLM 제안 (UI 클릭으로만 적용)
+- "1주차에 A 항목을 배치할까요?" 제안 카드
+- 자동 X — 모두 사용자 명시 클릭
+- **선행**: W27-T01
+
+### W27-T03: 일일 계획 ↔ 어제 회고 inline 연결
+- `40_Plans/daily/2026-05-11.md` 진입 시 "어제 (2026-05-10) 작성한 회고 entries" inline 표시
+- 회고 entry 클릭 시 새 탭으로 진입
+- **선행**: W27-T01
+
+### W28-T01: 17번째 합성기 — `SynthesizeSelfMirror` (5축 자아 분석)
+- 입력: 최근 1주 (또는 1일) entries
+- 결정적 출력:
+  - 지성: 키워드 top 10 + 등장 빈도
+  - 감정: 신호어 카운트 (POSITIVE 23 / NEGATIVE 23, 기존 `SynthesizeSelfPatterns` 재사용)
+  - 습관: 반복 패턴 (시간대 분포 + 카테고리 분포)
+  - 관계: entity_mentions 빈도 (학생·동료·학부모)
+  - 에너지: 작성 시간대 분포 + 공백 패턴
+- LLM 모드 (옵션): 5축 종합 해석 (200~400자, 단정 거부 톤)
+- 저장: `.sowing/synth/self-mirror/{period}-{date}.md`
+- frontmatter `synth_type: self-mirror`
+- `SynthController::SYNTH_TYPES` 에 17번째 등록
+- `accept_category: 회고` 로 수락 시 `30_Records/{YYYY}/회고/` 으로 이동
+- spec ~25건
+- **위험**: 🟢 Low — 기존 합성기 패턴 재사용
+
+### W28-T02: 대시보드 "오늘의 자기" 위젯
+- 매일 자동 self-mirror 생성 (옵션 — Settings 에서 켜기)
+- 생성된 경우만 dashboard 에 카드 표시
+- 카드 구성: 5축 한 줄 요약 + "자세히 보기" 링크
+- 미생성 시 "오늘 자기 거울 보기" 버튼 (수동 생성)
+- **위험**: 🟢 Low
+
+### W28-T03: 매일 자동 생성 cron / boot 작업
+- `Sowing.boot_sync!` 에 self-mirror 자동 생성 조건 체크
+- 마지막 self-mirror 가 24시간 이상 전 + `Settings.daily_mirror_enabled == true` → 자동 호출
+- 자동 호출도 결과는 `.sowing/synth/` 검토 대기 (ADR-013 유지)
+- **위험**: 🟢 Low
+
+### W28-T04: ADR-014 정식 채택 — 동사 중심 IA
+- `docs/DECISIONS.md` 에 ADR-014 추가
+- W25~W28 의 결과를 ADR 본문에 인용
+- USER_GUIDE.md 전면 재작성 — 새 nav 기준
+- BETA_GUIDE.md 에 Phase 13 검증 질문 5종 추가
+
+### 🎯 Phase 13 마일스톤
+- 신규 사용자 5명 onboarding 영상 분석 → 첫 메모까지 평균 < 30초
+- 베타 테스터 5명 인터뷰 → "더 직관적" 응답 ≥ 4명
+- 합성기 사용률 (월 1회 이상) > 60% 달성
+- `compute_synth_metrics` 출력에 self-mirror 가 가장 자주 사용된 type 으로 등장 (예측)
+- spec 회귀 0 — 1440 → ~1550 (계획 mode + self-mirror + UI 통합 spec 추가)
+
+---
+
 ## Phase 2 이후 (Week 25~)
 
-EVALUATION.md §3 의 Phase 13~16 후보:
+EVALUATION.md §3 의 Phase 13~16 후보 (Phase 13 동사 IA 후의 후속):
 - iOS 동반 앱 (SwiftUI, read-mostly, MCP 클라이언트) — Phase 9 MCP 서버 검증 후 가치 명확해지면
 - W8 deferred 작업 정식 진행: Tebako 빌드 검증, macOS DMG codesign·notarize, Windows Inno Setup, Linux AppImage, 베타 테스터 5명
 - 다크 모드, 단축키 사용자 정의, 다국어 (i18n 인프라 활용)
