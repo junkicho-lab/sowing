@@ -9,6 +9,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 (다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
 
+## [0.1.5] - 2026-05-11 — Phase 14 W30 PoC: 단축키 사용자 정의
+
+v0.1.4 의 다크 모드 (W29) 에 이어 두 번째 Phase 14 PoC. 글로벌 단축키의
+마지막 한 글자만 사용자 정의 가능 (modifier 고정으로 충돌 방지).
+
+**Settings 신규** (DEFAULTS):
+- shortcut_quick_memo: "m" (default — ⌘⇧M)
+- shortcut_quick_search: "k" (default — ⌘K)
+
+**설계 — modifier 고정 + 1 글자만**:
+- modifier (Cmd / Ctrl + Shift) 자유 입력은 OS·브라우저 충돌 검증 부담 큼
+- '⌘⇧M' 의 'M' 만 바꾸면 핵심 needs 90% 커버
+- 안전 charset (a-z) 만 — 숫자·특수문자·다국어는 default 폴백 (sanitize 보안)
+
+**구현**:
+- POST `/settings/shortcuts` + `sanitize_shortcut_key` helper (helpers do)
+- Layout 에 `window.SOWING_SHORTCUTS = {quick_memo, quick_search}` JSON 주입
+- Settings.load rescue → default 폴백 (graceful)
+- quick_memo_controller.js / quick_search_controller.js — hardcoded 'm'/'k'
+  → `window.SOWING_SHORTCUTS?.quick_memo || "m"` 패턴 (JS-side fallback 도 명시)
+
+**Settings UI**:
+- ⌨ 단축키 섹션 — 두 줄 inline (라벨 + ⌘⇧ prefix + 1글자 input + 기본값)
+- HTML5 pattern="[a-zA-Z]" + maxlength=1 — 클라이언트 1차 검증
+- `.settings__shortcut*` 4 sub-class (monospace + uppercase + ⌘⇧ chip)
+
+**사용자 가치**:
+- 옵시디언 이미 ⌘⇧M 사용 중 → Sowing 메모를 ⌘⇧J 로 회피
+- vim 사용자 → ⌘P 같은 친숙한 검색 패턴
+- 한국어 IME 입력 중 충돌 시 다른 글자로 회피
+
+**Spec**:
+- spec/system/shortcuts_spec.rb 신규 (15 case)
+- DEFAULTS / POST sanitize 4종 / Layout 주입 3종 / Settings UI 3종 / JS 자산 3종
+- 1633 → 1648 (+15), 0 failures
+
+**ADR 영향**: 0
+- ADR-001 (SoT) / ADR-009 (로컬-first) / ADR-013 (자율 mutation 0) / ADR-014 (동사 IA) 모두 영향 없음
+- client-side + Settings 키 2개 추가만
+
+**파일 8**:
+- settings + settings_controller + layout + view + 2 JS controller + CSS + spec
+
 ## [0.1.4] - 2026-05-11 — Phase 14 PoC 진입: 다크 모드 + 베타 인터뷰 가이드
 
 Phase 13 (v0.1.2/v0.1.3) 출시 후 Phase 14 의 첫 PoC. 베타 인터뷰 결과 무관하게
