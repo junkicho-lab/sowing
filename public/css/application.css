@@ -1319,6 +1319,111 @@ pre code {
 }
 .quick-modal__submit:hover { opacity: 0.92; }
 
+/* ─── Phase 13 W26-T01 — 빠른 메모 subtype chip + slot fields ─── */
+
+.quick-modal--v2 { max-width: 600px; width: 92vw; }
+
+.quick-modal__subtypes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  padding: 0 var(--space-3) var(--space-2);
+}
+
+.quick-modal__chip {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.3em 0.9em;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--color-text);
+  transition: all 0.12s;
+}
+
+.quick-modal__chip:hover {
+  background: rgba(34, 197, 94, 0.05);
+  border-color: var(--color-primary);
+}
+
+.quick-modal__chip--active {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.quick-modal__slots {
+  padding: 0 var(--space-3);
+}
+
+.quick-modal__slot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+  background: rgba(34, 197, 94, 0.04);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 6px;
+}
+
+.quick-modal__slot[hidden] { display: none; }
+
+.quick-modal__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.quick-modal__input--small { flex: 0 0 110px; }
+
+.quick-modal__input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.quick-modal__slot--emotion { flex-direction: column; align-items: stretch; }
+
+.quick-modal__slot-label {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  margin-bottom: 0.3em;
+}
+
+.quick-modal__emotion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+}
+
+.quick-modal__emotion-chip {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.25em 0.7em;
+  font-size: 0.82rem;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.quick-modal__emotion-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.quick-modal__emotion-chip--active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
 /* Quick search modal (W4-T04) — Cmd/Ctrl+K spotlight */
 
 .visually-hidden {

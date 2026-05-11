@@ -31,12 +31,18 @@ RSpec.describe "동사 중심 nav (Phase 13 W25-T01)", type: :request do
       expect(last_response.body.scan(%r{<details class="nav-v2__group}).size).to be >= 5
     end
 
-    it "글쓰기 dropdown — 빠른 메모·필기 진입점" do
+    it "글쓰기 dropdown — 빠른 메모·필기 + 4 subtype (W26-T01)" do
       get "/"
       expect(last_response.body).to include("⚡ 빠른 메모")
-      expect(last_response.body).to include("💭 메모 목록")
+      expect(last_response.body).to include("📂 메모 목록")
       expect(last_response.body).to include("📝 필기 작성")
-      expect(last_response.body).to include("W26 예정") # 음성·subtype 안내
+      # W26-T01 추가: 4 subtype 진입점
+      expect(last_response.body).to include("📖 책 기록")
+      expect(last_response.body).to include("🎤 강의·연수")
+      expect(last_response.body).to include("💭 감정 기록")
+      expect(last_response.body).to include("👤 학생 관찰")
+      # 음성 입력은 W26-T02 예정 안내
+      expect(last_response.body).to include("W26-T02")
     end
 
     it "쓴 글 보기 dropdown — 회상 9가지 통합" do
@@ -63,10 +69,10 @@ RSpec.describe "동사 중심 nav (Phase 13 W25-T01)", type: :request do
   end
 
   describe "신규 통합 진입 라우트 (W25-T01 stub)" do
-    it "GET /write → /memos redirect" do
+    it "GET /write → / (dashboard) + ?write=general query (W26-T01 모달 자동 열기)" do
       get "/write"
       expect(last_response.status).to eq(302)
-      expect(last_response.location).to end_with("/memos")
+      expect(last_response.location).to include("write=general")
     end
 
     it "GET /view → /records redirect" do

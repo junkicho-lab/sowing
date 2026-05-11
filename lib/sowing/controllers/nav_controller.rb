@@ -20,10 +20,19 @@ module Sowing
     # ADR-014 (제안): 명사 mode (메모·필기·기록·계획·합성) = 저장 단위,
     # 동사 mode (글쓰기·보기·계획·회고) = 의도 단위. 두 계층 명시 분리.
     class NavController < ApplicationController
+      # W26-T01 부분 구현 — /write 일반 + /write/{subtype} 5개.
+      # dashboard (/) 로 redirect + ?write=subtype query param.
+      # quick_memo_controller.js connect() 가 param 읽어 모달 자동 열기 + chip prefill.
+      VALID_WRITE_SUBTYPES = %w[general book lecture emotion student].freeze
+
       get "/write" do
-        # W26 에서 subtype 선택 페이지 (책/강의/감정/학생/일반/음성) 로 교체.
-        # 현재는 기존 메모 목록 + 빠른 메모 모달 진입.
-        redirect "/memos"
+        redirect "/?write=general"
+      end
+
+      get "/write/:subtype" do
+        subtype = params["subtype"].to_s
+        subtype = "general" unless VALID_WRITE_SUBTYPES.include?(subtype)
+        redirect "/?write=#{subtype}"
       end
 
       get "/view" do

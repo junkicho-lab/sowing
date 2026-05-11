@@ -1,5 +1,8 @@
+<%# Phase 13 W26-T01 — 빠른 메모 모달 + 5 subtype 통합.
+    chip 선택에 따라 slot field 표시 → submit 직전 body 자동 결합 + 자동 태그.
+    서버는 그대로 POST /memos body= 받음 — 도메인 변경 0. %>
 <dialog id="quick_modal"
-        class="quick-modal"
+        class="quick-modal quick-modal--v2"
         data-controller="quick-memo"
         data-quick-memo-target="dialog"
         aria-labelledby="quick_modal_title">
@@ -7,14 +10,82 @@
         action="/memos"
         method="post"
         data-quick-memo-target="form"
-        data-action="turbo:submit-end->quick-memo#onSubmitEnd">
+        data-action="submit->quick-memo#onSubmit turbo:submit-end->quick-memo#onSubmitEnd">
     <header class="quick-modal__header">
-      <h2 id="quick_modal_title">💭 빠른 메모</h2>
+      <h2 id="quick_modal_title">🖊 빠른 메모</h2>
       <button type="button"
               class="quick-modal__close"
               aria-label="닫기"
               data-action="click->quick-memo#close">✕</button>
     </header>
+
+    <%# Subtype chip 선택 — 5 type, 일반 default %>
+    <div class="quick-modal__subtypes" role="radiogroup" aria-label="메모 종류">
+      <button type="button" class="quick-modal__chip quick-modal__chip--active"
+              data-quick-memo-target="chip"
+              data-action="click->quick-memo#selectSubtype"
+              data-subtype="general"
+              role="radio" aria-checked="true">⚡ 일반</button>
+      <button type="button" class="quick-modal__chip"
+              data-quick-memo-target="chip"
+              data-action="click->quick-memo#selectSubtype"
+              data-subtype="book"
+              role="radio" aria-checked="false">📖 책</button>
+      <button type="button" class="quick-modal__chip"
+              data-quick-memo-target="chip"
+              data-action="click->quick-memo#selectSubtype"
+              data-subtype="lecture"
+              role="radio" aria-checked="false">🎤 강의</button>
+      <button type="button" class="quick-modal__chip"
+              data-quick-memo-target="chip"
+              data-action="click->quick-memo#selectSubtype"
+              data-subtype="emotion"
+              role="radio" aria-checked="false">💭 감정</button>
+      <button type="button" class="quick-modal__chip"
+              data-quick-memo-target="chip"
+              data-action="click->quick-memo#selectSubtype"
+              data-subtype="student"
+              role="radio" aria-checked="false">👤 학생</button>
+    </div>
+
+    <%# Subtype 별 slot field — chip 선택 시 표시. 본문 textarea 위에 prepend. %>
+    <div class="quick-modal__slots" data-quick-memo-target="slots">
+
+      <%# 책 slot %>
+      <div class="quick-modal__slot" data-subtype-slot="book" hidden>
+        <input type="text" data-slot-key="book_title" placeholder="책 제목"
+               class="quick-modal__input" autocomplete="off">
+        <input type="text" data-slot-key="book_page" placeholder="페이지 (선택)"
+               class="quick-modal__input quick-modal__input--small" autocomplete="off">
+      </div>
+
+      <%# 강의 slot %>
+      <div class="quick-modal__slot" data-subtype-slot="lecture" hidden>
+        <input type="text" data-slot-key="lecture_speaker" placeholder="강사·연사 (선택)"
+               class="quick-modal__input" autocomplete="off">
+        <input type="text" data-slot-key="lecture_topic" placeholder="주제·제목"
+               class="quick-modal__input" autocomplete="off">
+      </div>
+
+      <%# 감정 slot — 18종 chip (Phase 13 제안 — Plutchik + 한국 교사 맥락) %>
+      <div class="quick-modal__slot quick-modal__slot--emotion" data-subtype-slot="emotion" hidden>
+        <small class="quick-modal__slot-label">감정 선택 (한 개):</small>
+        <div class="quick-modal__emotion-chips">
+          <% %w[설렘 기쁨 보람 평온 감사 자부심 걱정 답답 좌절 분노 슬픔 외로움 무력 피로 부끄러움 후회 그리움 기대].each do |emo| %>
+            <button type="button" class="quick-modal__emotion-chip"
+                    data-emotion="<%= emo %>"
+                    data-action="click->quick-memo#selectEmotion"><%= emo %></button>
+          <% end %>
+        </div>
+        <input type="hidden" data-slot-key="emotion" value="">
+      </div>
+
+      <%# 학생 slot %>
+      <div class="quick-modal__slot" data-subtype-slot="student" hidden>
+        <input type="text" data-slot-key="student_name" placeholder="학생 이름 (학급 명단에서 자동 #태그 부여)"
+               class="quick-modal__input" autocomplete="off">
+      </div>
+    </div>
 
     <textarea name="body"
               class="quick-modal__textarea"
