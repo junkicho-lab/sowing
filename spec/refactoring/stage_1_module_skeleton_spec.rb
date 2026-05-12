@@ -26,14 +26,17 @@ RSpec.describe "Phase R Stage 1 — Bounded Context 골격" do
   end
 
   describe "Capture::public_api" do
-    it ".create_item 호출 시 Stage 2 미구현 안내" do
-      expect { Sowing::Capture.create_item(body: "test") }
-        .to raise_error(NotImplementedError, /Stage 2/)
+    # Stage 2 R2-T03 — Capture Façade 실 구현. NotImplementedError stub 폐기.
+    # 본 spec 은 Façade 가 "응답 가능" 만 검증 (단위 spec 은 spec/capture/ 참조).
+    it ".create_item / .find / .recent 모두 호출 가능 (Stage 2 R2 완료)" do
+      expect(Sowing::Capture).to respond_to(:create_item)
+      expect(Sowing::Capture).to respond_to(:find)
+      expect(Sowing::Capture).to respond_to(:recent)
     end
 
-    it ".find / .recent 모두 stub" do
-      expect { Sowing::Capture.find("x") }.to raise_error(NotImplementedError)
-      expect { Sowing::Capture.recent }.to raise_error(NotImplementedError)
+    it ".create_item 은 body 가 비어있으면 ArgumentError" do
+      expect { Sowing::Capture.create_item(body: "") }
+        .to raise_error(ArgumentError, /body/)
     end
   end
 
