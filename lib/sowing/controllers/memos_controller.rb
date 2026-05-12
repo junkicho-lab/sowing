@@ -23,9 +23,9 @@ module Sowing
       }.freeze
 
       helpers do
-        def create_memo_use_case
-          UseCases::CreateMemo.new(vault_repo: vault_repo, index_repo: index_repo)
-        end
+        # 메모 생성 helper 제거됨 (R2-T04 Strangler Fig) — POST /memos 가
+        # Sowing::Capture.create_item 직접 호출. UseCases::CreateMemo 는
+        # MCP::Tools::CreateMemo 만 사용 (별도 strangulation 후보).
 
         def promote_to_note_use_case
           UseCases::PromoteToNote.new(vault_repo: vault_repo, index_repo: index_repo)
@@ -91,18 +91,21 @@ module Sowing
         erb :"memos/index", layout: :"layouts/application"
       end
 
+      # Phase R Stage 2 R2-T04 — Strangler Fig.
+      # UseCases::CreateMemo → Sowing::Capture.create_item Façade 로 위임.
+      # Item 은 Memo 와 duck-type 호환 (id/body/created_at) — 템플릿 무수정.
+      # CreateMemo Use Case 자체는 MCP::Tools::CreateMemo 가 아직 사용 (별도 strangulation).
       post "/memos" do
         body = params["body"].to_s
-        result = create_memo_use_case.call(body: body)
-
-        if result.success?
-          memo = result.value!
+        begin
+          item = Sowing::Capture.create_item(body: body)
           content_type TURBO_STREAM_TYPE
-          erb :"memos/created.turbo_stream", layout: false, locals: {memo: memo}
-        else
+          erb :"memos/created.turbo_stream", layout: false, locals: {memo: item}
+        rescue ArgumentError
+          # Façade 가 빈 body 거부 → 옛 Failure(:empty_body) 와 동일 UX
           status 422
           content_type TURBO_STREAM_TYPE
-          erb :"memos/error.turbo_stream", layout: false, locals: {failure: result.failure}
+          erb :"memos/error.turbo_stream", layout: false, locals: {failure: :empty_body}
         end
       end
 
