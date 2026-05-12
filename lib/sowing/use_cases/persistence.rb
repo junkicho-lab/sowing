@@ -90,7 +90,7 @@ module Sowing
       end
 
       def audit_log
-        Infrastructure::AuditLog.instance
+        Core::AuditLog.instance
       end
     end
   end

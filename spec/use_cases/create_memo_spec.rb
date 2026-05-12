@@ -7,7 +7,7 @@ RSpec.describe Sowing::UseCases::CreateMemo do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("create-memo-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:fixed_now) { Time.new(2026, 5, 8, 9, 23, 14, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }
   let(:use_case) {

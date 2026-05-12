@@ -70,9 +70,9 @@ module Sowing
         parser: nil,
         clock: Time
       )
-        @db = db || Infrastructure::DB.connection
-        @vault_dir = Pathname.new((vault_dir || Infrastructure::Paths.vault_dir).to_s).expand_path
-        @safe_writer = safe_writer || Infrastructure::Filesystem::SafeWriter.new
+        @db = db || Core::DB.connection
+        @vault_dir = Pathname.new((vault_dir || Core::Paths.vault_dir).to_s).expand_path
+        @safe_writer = safe_writer || Core::Filesystem::SafeWriter.new
         @llm_backend = llm_backend
         @parser = parser || FrontMatterParser::Parser.new(:md)
         @clock = clock
@@ -90,7 +90,7 @@ module Sowing
         return Failure(:no_observations) if observations.size < MIN_OBSERVATIONS
 
         body = if @llm_backend
-          Infrastructure::AuditLog.with_actor("agent") {
+          Core::AuditLog.with_actor("agent") {
             synthesize_via_llm(observations, since_t, until_t)
           }
         else

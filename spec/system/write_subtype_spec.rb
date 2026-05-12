@@ -111,8 +111,8 @@ RSpec.describe "글쓰기 subtype (Phase 13 W26-T01)", type: :request do
   end
 
   describe "POST /memos — 회귀 0 (subtype 무관 동일)" do
-    let(:db) { Sowing::Infrastructure::DB.connection }
-    let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+    let(:db) { Sowing::Core::DB.connection }
+    let(:vault_dir) { Sowing::Core::Paths.vault_dir }
 
     before do
       db[:entries_fts].delete

@@ -34,7 +34,7 @@ module Sowing
       PATH_RE = %r{\A\.sowing/synth/(?<type>[^/]+)/(?<slug>.+)\.md\z}
 
       def initialize(audit_log: nil, clock: Time)
-        @audit_log = audit_log || Infrastructure::AuditLog.instance
+        @audit_log = audit_log || Core::AuditLog.instance
         @clock = clock
       end
 

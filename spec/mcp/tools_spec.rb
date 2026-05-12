@@ -10,7 +10,7 @@ RSpec.describe "Sowing::MCP::Tools (W9-T02)" do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("mcp-tools-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
 
   before do
     Sowing::MCP.repositories = {vault: vault_repo, index: index_repo}
@@ -176,14 +176,14 @@ RSpec.describe "Sowing::MCP::Tools (W9-T02)" do
   describe "audit log 통합 — read 도구는 mutation 없음" do
     it "ListMemos / Search / ReadEntry / Health 호출은 audit 줄 추가 안 함 (read-only)" do
       memo = create_memo("기존") # 1줄 기록됨 (CreateMemo)
-      Sowing::Infrastructure::AuditLog.instance.clear! # 깨끗이
+      Sowing::Core::AuditLog.instance.clear! # 깨끗이
 
       Sowing::MCP::Tools::Health.call
       Sowing::MCP::Tools::ListMemos.call
       Sowing::MCP::Tools::Search.call(q: "기존")
       Sowing::MCP::Tools::ReadEntry.call(id: memo.id.to_s)
 
-      expect(Sowing::Infrastructure::AuditLog.instance.read_all).to be_empty
+      expect(Sowing::Core::AuditLog.instance.read_all).to be_empty
     end
   end
 end

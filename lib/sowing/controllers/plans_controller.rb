@@ -21,7 +21,7 @@ module Sowing
       helpers do
         def plan_repo
           @plan_repo ||= Repositories::PlanRepo.new(
-            vault_dir: Infrastructure::Paths.vault_dir
+            vault_dir: Core::Paths.vault_dir
           )
         end
 

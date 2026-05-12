@@ -27,7 +27,7 @@ module Sowing
 
       def default_repositories
         {
-          vault: Repositories::VaultRepo.new(vault_dir: Infrastructure::Paths.vault_dir),
+          vault: Repositories::VaultRepo.new(vault_dir: Core::Paths.vault_dir),
           index: Repositories::IndexRepo.new
         }
       end

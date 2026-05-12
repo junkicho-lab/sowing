@@ -6,7 +6,7 @@ require "fileutils"
 RSpec.describe "템플릿 라우트 (W6-T04)", type: :request do
   include Rack::Test::Methods
 
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:templates_dir) { vault_dir.join("templates") }
 
   def app

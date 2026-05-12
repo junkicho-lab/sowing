@@ -14,7 +14,7 @@ RSpec.describe "Dashboard 라우트", type: :request do
   before do
     header "Host", "127.0.0.1"
     # 다른 spec이 entries를 남기면 빈 상태 CTA 검증이 깨지므로 정리.
-    db = Sowing::Infrastructure::DB.connection
+    db = Sowing::Core::DB.connection
     db[:entries_fts].delete
     db[:links].delete
     db[:entry_tags].delete
@@ -53,7 +53,7 @@ RSpec.describe "Dashboard 라우트", type: :request do
   end
 
   describe "통계 위젯 (W6-T02)" do
-    let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+    let(:vault_dir) { Sowing::Core::Paths.vault_dir }
 
     before do
       FileUtils.rm_rf(vault_dir.join("00_Inbox"))
@@ -88,24 +88,24 @@ RSpec.describe "Dashboard 라우트", type: :request do
   end
 
   describe "GapDetector 카드 (W17-T03)" do
-    let(:db) { Sowing::Infrastructure::DB.connection }
+    let(:db) { Sowing::Core::DB.connection }
 
     before do
       db[:entity_mentions].delete
       db[:entities].delete
     end
 
-    after { Sowing::Infrastructure::Settings.update(class_roster: []) }
+    after { Sowing::Core::Settings.update(class_roster: []) }
 
     it "학급 명단 미설정 시 — 안내 카드 (gap-card--prompt) 표시" do
-      Sowing::Infrastructure::Settings.update(class_roster: [])
+      Sowing::Core::Settings.update(class_roster: [])
       get "/"
       expect(last_response.body).to include("학급 명단을 등록하면")
       expect(last_response.body).to include("gap-card--prompt")
     end
 
     it "전원 활성 — gap 카드 표시 안 함" do
-      Sowing::Infrastructure::Settings.update(class_roster: %w[활성학생])
+      Sowing::Core::Settings.update(class_roster: %w[활성학생])
       db[:entities].insert(
         type: "student", name: "활성학생",
         first_seen_at: Time.now.iso8601, last_seen_at: Time.now.iso8601,
@@ -116,7 +116,7 @@ RSpec.describe "Dashboard 라우트", type: :request do
     end
 
     it "미언급 학생 있을 때 — gap 카드 + 학생 명단 표시" do
-      Sowing::Infrastructure::Settings.update(class_roster: %w[민준 서연 지호])
+      Sowing::Core::Settings.update(class_roster: %w[민준 서연 지호])
       db[:entities].insert(
         type: "student", name: "민준",
         first_seen_at: Time.now.iso8601, last_seen_at: Time.now.iso8601,
@@ -131,7 +131,7 @@ RSpec.describe "Dashboard 라우트", type: :request do
   end
 
   describe "씨앗-숲 시각화 (W6-T03)" do
-    let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+    let(:vault_dir) { Sowing::Core::Paths.vault_dir }
 
     before do
       FileUtils.rm_rf(vault_dir.join("00_Inbox"))
@@ -168,7 +168,7 @@ RSpec.describe "Dashboard 라우트", type: :request do
   end
 
   describe "합성기 검토 위젯 (대시보드 → /synth 진입)" do
-    let(:vault_synth_root) { Sowing::Infrastructure::Paths.vault_dir.join(".sowing/synth") }
+    let(:vault_synth_root) { Sowing::Core::Paths.vault_dir.join(".sowing/synth") }
 
     before do
       FileUtils.rm_rf(vault_synth_root)
@@ -205,8 +205,8 @@ RSpec.describe "Dashboard 라우트", type: :request do
   end
 
   describe "이날의 회고 위젯 (30년 시나리오 #1)" do
-    let(:db_inner) { Sowing::Infrastructure::DB.connection }
-    let(:vault_dir_inner) { Sowing::Infrastructure::Paths.vault_dir }
+    let(:db_inner) { Sowing::Core::DB.connection }
+    let(:vault_dir_inner) { Sowing::Core::Paths.vault_dir }
 
     before do
       db_inner[:entries_fts].delete

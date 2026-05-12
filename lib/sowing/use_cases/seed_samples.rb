@@ -26,7 +26,7 @@ module Sowing
         index_repo: nil,
         samples_dir: DEFAULT_SAMPLES_DIR
       )
-        @vault_repo = vault_repo || Repositories::VaultRepo.new(vault_dir: Infrastructure::Paths.vault_dir)
+        @vault_repo = vault_repo || Repositories::VaultRepo.new(vault_dir: Core::Paths.vault_dir)
         @index_repo = index_repo || Repositories::IndexRepo.new
         @samples_dir = Pathname.new(samples_dir.to_s)
       end

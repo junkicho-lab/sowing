@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Sowing::Repositories::IndexRepo do
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:repo) { described_class.new }
   let(:ulid) { Sowing::Domain::ValueObjects::Ulid.parse("01KR1FE1QYH4EEP6RAGR9DJ6ZH") }
   let(:other_ulid) { Sowing::Domain::ValueObjects::Ulid.parse("01KR1FE1QYH4EEP6RAGR9DJ6ZJ") }

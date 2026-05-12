@@ -3,7 +3,7 @@
 require "date"
 
 RSpec.describe Sowing::Repositories::StatsRepo do
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   # 2026-05-08 (Fri) 14:00 KST 고정.
   let(:fixed_now) { Time.new(2026, 5, 8, 14, 0, 0, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }

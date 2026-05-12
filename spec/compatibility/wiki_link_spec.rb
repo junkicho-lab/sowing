@@ -10,7 +10,7 @@ require "fileutils"
 require "tmpdir"
 
 RSpec.describe "옵시디언 위키링크 호환성", type: :compatibility do
-  let(:wiki_link) { Sowing::Infrastructure::Markdown::WikiLink }
+  let(:wiki_link) { Sowing::Core::Markdown::WikiLink }
 
   describe "옵시디언 표준 형식 인식" do
     it "[[Note Title]] — 가장 단순한 형식" do

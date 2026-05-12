@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Sowing::Infrastructure::Markdown::Parser do
+RSpec.describe Sowing::Core::Markdown::Parser do
   let(:parser) { described_class.new }
 
   describe "#parse" do
@@ -21,7 +21,7 @@ RSpec.describe Sowing::Infrastructure::Markdown::Parser do
       }
 
       it "ParsedDocument를 반환한다" do
-        expect(parser.parse(text)).to be_a(Sowing::Infrastructure::Markdown::ParsedDocument)
+        expect(parser.parse(text)).to be_a(Sowing::Core::Markdown::ParsedDocument)
       end
 
       it "frontmatter를 Hash로 파싱한다" do

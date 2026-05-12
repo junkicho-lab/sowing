@@ -7,7 +7,7 @@ require "yaml"
 
 RSpec.describe Sowing::UseCases::DetectOrphanEntries do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("synth-orphans-spec-")) }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:fixed_now) { Time.new(2026, 7, 31, 18, 0, 0, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }
 
@@ -257,7 +257,7 @@ RSpec.describe Sowing::UseCases::DetectOrphanEntries do
     it "audit log actor=agent — LLM chat 동안" do
       observed = nil
       allow(fake_backend).to receive(:chat).and_wrap_original do |orig, **args|
-        observed ||= Sowing::Infrastructure::AuditLog.current_actor
+        observed ||= Sowing::Core::AuditLog.current_actor
         orig.call(**args)
       end
       use_case.call(since: "2026-04-01T00:00:00+09:00", until_time: "2026-07-31T23:59:59+09:00")

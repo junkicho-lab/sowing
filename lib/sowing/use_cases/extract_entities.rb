@@ -41,7 +41,7 @@ module Sowing
       LOCATIONS = %w[교실 도서관 운동장 강당 음악실 미술실 컴퓨터실 과학실 체육관 보건실 식당 회의실 상담실].freeze
 
       def initialize(db: nil, llm_backend: nil, clock: Time)
-        @db = db || Infrastructure::DB.connection
+        @db = db || Core::DB.connection
         @llm_backend = llm_backend
         @clock = clock
       end
@@ -51,7 +51,7 @@ module Sowing
       # @return [Result] Success({"students"=>[...], "subjects"=>[...], "locations"=>[...]})
       def call(entry_id:, body:)
         entities = if @llm_backend
-          Infrastructure::AuditLog.with_actor("agent") { extract_via_llm(body) }
+          Core::AuditLog.with_actor("agent") { extract_via_llm(body) }
         else
           extract_deterministic(body)
         end

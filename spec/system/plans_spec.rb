@@ -11,14 +11,14 @@ RSpec.describe "쓸 글 계획 (Phase 13 W27-T01)", type: :request do
     Sowing::Application
   end
 
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:plans_dir) { vault_dir.join("40_Plans") }
 
   before do
     header "Host", "127.0.0.1"
     FileUtils.rm_rf(plans_dir) if plans_dir.exist?
     # W27-T03: PlanRepo 가 entries 테이블에도 인덱싱 — 격리 위해 cleanup
-    db = Sowing::Infrastructure::DB.connection
+    db = Sowing::Core::DB.connection
     %i[entries_fts links entry_tags tags entries].each { |t| db[t].delete }
   end
 

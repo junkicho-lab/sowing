@@ -23,7 +23,7 @@ module Sowing
 
       def initialize(vault_repo:,
         index_repo:,
-        safe_writer: Infrastructure::Filesystem::SafeWriter.new,
+        safe_writer: Core::Filesystem::SafeWriter.new,
         clock: Time)
         @vault_repo = vault_repo
         @index_repo = index_repo

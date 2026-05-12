@@ -26,7 +26,7 @@ module Sowing
         def self.call(body:, tags: [], server_context: nil)
           return error_response("body 가 비어있습니다") if body.to_s.strip.empty?
 
-          result = Infrastructure::AuditLog.with_actor("agent") do
+          result = Core::AuditLog.with_actor("agent") do
             UseCases::CreateMemo.new(vault_repo: vault_repo, index_repo: index_repo)
               .call(body: body, tags: Array(tags))
           end

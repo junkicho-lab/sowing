@@ -5,7 +5,7 @@ require "fileutils"
 require "securerandom"
 
 module Sowing
-  module Infrastructure
+  module Core
     # OS별 표준 경로를 결정하는 헬퍼.
     # Zeitwerk 로드 전에 require 되므로 다른 Sowing 클래스를 참조하지 않음.
     module Paths

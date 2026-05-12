@@ -28,10 +28,10 @@ module Sowing
       attr_reader :vault_dir
 
       def initialize(vault_dir:,
-        safe_writer: Infrastructure::Filesystem::SafeWriter.new,
-        parser: Infrastructure::Markdown::Parser.new,
-        serializer: Infrastructure::Markdown::Serializer.new,
-        self_write_registry: Infrastructure::Filesystem::SelfWriteRegistry.instance)
+        safe_writer: Core::Filesystem::SafeWriter.new,
+        parser: Core::Markdown::Parser.new,
+        serializer: Core::Markdown::Serializer.new,
+        self_write_registry: Core::Filesystem::SelfWriteRegistry.instance)
         @vault_dir = Pathname.new(vault_dir.to_s).expand_path
         @safe_writer = safe_writer
         @parser = parser

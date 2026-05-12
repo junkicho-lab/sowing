@@ -10,14 +10,14 @@ RSpec.describe "Sowing::MCP::Tools — write actuators (W9-T03)" do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("mcp-actuators-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
 
   # Persistence 가 호출하는 AuditLog.instance 를 spec vault 로 격리.
-  let!(:audit_log) { Sowing::Infrastructure::AuditLog.new(vault_dir: vault_dir) }
+  let!(:audit_log) { Sowing::Core::AuditLog.new(vault_dir: vault_dir) }
 
   before do
     Sowing::MCP.repositories = {vault: vault_repo, index: index_repo}
-    Sowing::Infrastructure::AuditLog.instance = audit_log
+    Sowing::Core::AuditLog.instance = audit_log
     db[:entries_fts].delete
     db[:links].delete
     db[:entry_tags].delete
@@ -27,7 +27,7 @@ RSpec.describe "Sowing::MCP::Tools — write actuators (W9-T03)" do
 
   after do
     Sowing::MCP.reset!
-    Sowing::Infrastructure::AuditLog.instance = nil
+    Sowing::Core::AuditLog.instance = nil
     FileUtils.rm_rf(vault_dir) if vault_dir.exist?
   end
 

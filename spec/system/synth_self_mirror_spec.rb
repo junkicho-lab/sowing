@@ -10,8 +10,8 @@ RSpec.describe "자기 거울 (5축) UI (Phase 13 W28-T01)", type: :request do
     Sowing::Application
   end
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
   let(:original_key) { ENV["ANTHROPIC_API_KEY"] }

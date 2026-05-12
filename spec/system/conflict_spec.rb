@@ -6,8 +6,8 @@ require "fileutils"
 RSpec.describe "충돌 처리 (W5-T05)", type: :request do
   include Rack::Test::Methods
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
 

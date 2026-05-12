@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module Sowing
-  module Infrastructure
+  module Core
     # `.env` 파일을 ENV 로 로딩하는 가벼운 자체 파서 (외부 gem 0).
     #
     # 사용:
-    #   Sowing::Infrastructure::Dotenv.load(Sowing.root)
+    #   Sowing::Core::Dotenv.load(Sowing.root)
     #
     # 우선순위 (뒤가 앞을 덮지 않음):
     #   1. 시스템 ENV (이미 export 된 값) — 절대 덮지 않음

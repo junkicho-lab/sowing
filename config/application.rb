@@ -32,8 +32,8 @@ module Sowing
     # boot 가장 앞에 와야 함 — 이후 단계 (Paths, Logger 등) 가 ENV 를 읽을 수 있도록.
     # Zeitwerk 로드 전이라 require_relative 로 직접 로드.
     def boot_dotenv!
-      require_relative "../lib/sowing/infrastructure/dotenv"
-      Sowing::Infrastructure::Dotenv.load(root)
+      require_relative "../lib/sowing/core/dotenv"
+      Sowing::Core::Dotenv.load(root)
     end
 
     # 동기화 부팅 — 볼트 ↔ 인덱스 일관성 검증 후 watcher 시작 (W5-T04).
@@ -43,7 +43,7 @@ module Sowing
     def boot_sync!
       return @sync_coordinator if @sync_coordinator&.running?
 
-      vault_dir = Sowing::Infrastructure::Paths.vault_dir
+      vault_dir = Sowing::Core::Paths.vault_dir
       coordinator = Sowing::Sync::Coordinator.new(vault_dir: vault_dir, logger: @logger)
       Sowing::Sync::ConsistencyCheck.new(
         vault_dir: vault_dir,
@@ -57,8 +57,8 @@ module Sowing
     def boot_paths!
       @env ||= ENV["SOWING_ENV"] || "development"
       # Paths 모듈은 Zeitwerk 로드 전에 require 필요
-      require_relative "../lib/sowing/infrastructure/paths"
-      Sowing::Infrastructure::Paths.ensure_data_dirs!
+      require_relative "../lib/sowing/core/paths"
+      Sowing::Core::Paths.ensure_data_dirs!
     end
 
     def boot_loader!
@@ -82,7 +82,7 @@ module Sowing
 
     def boot_db!
       boot_paths!
-      Sowing::Infrastructure::DB.connect!
+      Sowing::Core::DB.connect!
     end
 
     def root
@@ -111,7 +111,7 @@ module Sowing
     enable :sessions
     set :session_secret, ENV.fetch("SOWING_SESSION_SECRET") {
       # 개발 환경에서는 데이터 디렉토리에 자동 생성·보관
-      Sowing::Infrastructure::Paths.session_secret
+      Sowing::Core::Paths.session_secret
     }
 
     # 라우트는 별도 파일에서 로드

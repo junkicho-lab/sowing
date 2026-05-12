@@ -18,7 +18,7 @@ module Sowing
         :created_at, :updated_at, :file_mtime, :file_hash, :word_count, :indexed_at
       ].freeze
 
-      def initialize(db: Infrastructure::DB.connection, clock: Time)
+      def initialize(db: Core::DB.connection, clock: Time)
         @db = db
         @clock = clock
       end
@@ -511,7 +511,7 @@ module Sowing
       def sync_tags(entry_id, frontmatter_tags:, body:)
         @db[:entry_tags].where(entry_id: entry_id).delete
 
-        body_tags = Infrastructure::Markdown::Hashtag.extract(body.to_s)
+        body_tags = Core::Markdown::Hashtag.extract(body.to_s)
         all_tags = (frontmatter_tags + body_tags).map { |t| t.to_s.strip.downcase }
           .reject(&:empty?).uniq
 
@@ -559,7 +559,7 @@ module Sowing
         source_id = entry.id.to_s
         @db[:links].where(source_id: source_id).delete
 
-        targets = Infrastructure::Markdown::WikiLink.extract(entry.body).map(&:target).uniq
+        targets = Core::Markdown::WikiLink.extract(entry.body).map(&:target).uniq
         targets.each do |target_text|
           target_id = lookup_target_id_by_title(target_text)
           @db[:links].insert(

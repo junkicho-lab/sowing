@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Sowing::Infrastructure::Settings do
+RSpec.describe Sowing::Core::Settings do
   before { described_class.reset! }
   after { described_class.reset! }
 

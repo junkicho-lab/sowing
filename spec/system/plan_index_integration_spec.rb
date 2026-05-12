@@ -11,8 +11,8 @@ RSpec.describe "Plan IndexRepo 통합 (Phase 13 W27-T03)", type: :request do
     Sowing::Application
   end
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
   let(:plan_repo) { Sowing::Repositories::PlanRepo.new(vault_dir: vault_dir) }

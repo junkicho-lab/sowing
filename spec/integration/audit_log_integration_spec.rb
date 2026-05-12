@@ -10,13 +10,13 @@ RSpec.describe "Persistence audit log 통합 (W9-T01)" do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("audit-integration-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
 
   # Persistence 가 호출하는 AuditLog.instance 를 spec vault 로 격리.
-  let!(:audit_log) { Sowing::Infrastructure::AuditLog.new(vault_dir: vault_dir) }
+  let!(:audit_log) { Sowing::Core::AuditLog.new(vault_dir: vault_dir) }
 
   before do
-    Sowing::Infrastructure::AuditLog.instance = audit_log
+    Sowing::Core::AuditLog.instance = audit_log
     db[:entries_fts].delete
     db[:links].delete
     db[:entry_tags].delete
@@ -25,7 +25,7 @@ RSpec.describe "Persistence audit log 통합 (W9-T01)" do
   end
 
   after do
-    Sowing::Infrastructure::AuditLog.instance = nil # 다음 spec 은 default 로 복귀
+    Sowing::Core::AuditLog.instance = nil # 다음 spec 은 default 로 복귀
     FileUtils.rm_rf(vault_dir) if vault_dir.exist?
   end
 

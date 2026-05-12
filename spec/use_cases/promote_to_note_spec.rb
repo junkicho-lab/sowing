@@ -7,7 +7,7 @@ RSpec.describe Sowing::UseCases::PromoteToNote do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("promote-to-note-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:created_at) { Time.new(2026, 5, 1, 9, 23, 14, "+09:00") }
   let(:promoted_at) { Time.new(2026, 5, 8, 14, 0, 0, "+09:00") }
 

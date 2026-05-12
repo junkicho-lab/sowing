@@ -12,24 +12,24 @@ RSpec.describe "단축키 사용자 정의 (Phase 14 W30 PoC)", type: :request d
 
   before do
     header "Host", "127.0.0.1"
-    Sowing::Infrastructure::Settings.reset!
-    Sowing::Infrastructure::Settings.save(
+    Sowing::Core::Settings.reset!
+    Sowing::Core::Settings.save(
       "onboarding_completed" => true,
       "ia_v2_seen_at" => "2026-05-11T00:00:00+09:00"
     )
   end
 
-  after { Sowing::Infrastructure::Settings.reset! }
+  after { Sowing::Core::Settings.reset! }
 
   describe "Settings DEFAULTS" do
     it "shortcut_quick_memo 기본 'm'" do
-      Sowing::Infrastructure::Settings.reset!
-      expect(Sowing::Infrastructure::Settings.load["shortcut_quick_memo"]).to eq("m")
+      Sowing::Core::Settings.reset!
+      expect(Sowing::Core::Settings.load["shortcut_quick_memo"]).to eq("m")
     end
 
     it "shortcut_quick_search 기본 'k'" do
-      Sowing::Infrastructure::Settings.reset!
-      expect(Sowing::Infrastructure::Settings.load["shortcut_quick_search"]).to eq("k")
+      Sowing::Core::Settings.reset!
+      expect(Sowing::Core::Settings.load["shortcut_quick_search"]).to eq("k")
     end
   end
 
@@ -39,21 +39,21 @@ RSpec.describe "단축키 사용자 정의 (Phase 14 W30 PoC)", type: :request d
         shortcut_quick_memo: "J",
         shortcut_quick_search: "P"
       expect(last_response.status).to eq(302)
-      settings = Sowing::Infrastructure::Settings.load
+      settings = Sowing::Core::Settings.load
       expect(settings["shortcut_quick_memo"]).to eq("j")
       expect(settings["shortcut_quick_search"]).to eq("p")
     end
 
     it "여러 글자 입력 → default 폴백" do
       post "/settings/shortcuts", shortcut_quick_memo: "abc", shortcut_quick_search: ""
-      settings = Sowing::Infrastructure::Settings.load
+      settings = Sowing::Core::Settings.load
       expect(settings["shortcut_quick_memo"]).to eq("m")
       expect(settings["shortcut_quick_search"]).to eq("k")
     end
 
     it "특수문자·숫자·다국어 → default" do
       post "/settings/shortcuts", shortcut_quick_memo: "1", shortcut_quick_search: "ㅁ"
-      settings = Sowing::Infrastructure::Settings.load
+      settings = Sowing::Core::Settings.load
       expect(settings["shortcut_quick_memo"]).to eq("m")
       expect(settings["shortcut_quick_search"]).to eq("k")
     end
@@ -74,7 +74,7 @@ RSpec.describe "단축키 사용자 정의 (Phase 14 W30 PoC)", type: :request d
     end
 
     it "사용자 변경 시 layout 에 반영" do
-      Sowing::Infrastructure::Settings.update(
+      Sowing::Core::Settings.update(
         shortcut_quick_memo: "j",
         shortcut_quick_search: "p"
       )
@@ -84,7 +84,7 @@ RSpec.describe "단축키 사용자 정의 (Phase 14 W30 PoC)", type: :request d
     end
 
     it "Settings 손상 시 default 폴백" do
-      allow(Sowing::Infrastructure::Settings).to receive(:load).and_raise(StandardError)
+      allow(Sowing::Core::Settings).to receive(:load).and_raise(StandardError)
       expect { get "/" }.not_to raise_error
     end
   end
@@ -98,7 +98,7 @@ RSpec.describe "단축키 사용자 정의 (Phase 14 W30 PoC)", type: :request d
     end
 
     it "현재 값이 input 의 value 에 (대문자 표시)" do
-      Sowing::Infrastructure::Settings.update(shortcut_quick_memo: "j")
+      Sowing::Core::Settings.update(shortcut_quick_memo: "j")
       get "/settings"
       expect(last_response.body).to match(/<input[^>]*name="shortcut_quick_memo"[^>]*value="J"/)
     end

@@ -6,7 +6,7 @@ require "fileutils"
 RSpec.describe "메모 생성 라우트", type: :request do
   include Rack::Test::Methods
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
 
   def app
     Sowing::Application
@@ -18,7 +18,7 @@ RSpec.describe "메모 생성 라우트", type: :request do
     db[:tags].delete
     db[:entries].delete
     # 기본 vault_dir 자리를 깨끗이 — 테스트 간 누적 방지
-    vault = Sowing::Infrastructure::Paths.vault_dir
+    vault = Sowing::Core::Paths.vault_dir
     FileUtils.rm_rf(vault.join("00_Inbox"))
   end
 

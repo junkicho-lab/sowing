@@ -2,7 +2,7 @@
   <header class="templates__header">
     <h1><%= h(@template.name) %></h1>
     <p class="templates__hint">
-      파일: <code><%= h(@template.path.relative_path_from(Sowing::Infrastructure::Paths.vault_dir)) %></code>
+      파일: <code><%= h(@template.path.relative_path_from(Sowing::Core::Paths.vault_dir)) %></code>
     </p>
     <p>
       <a href="/templates" class="button button--secondary">← 목록</a>

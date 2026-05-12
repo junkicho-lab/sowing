@@ -20,7 +20,7 @@ module Sowing
         "record" => :records_count
       }.freeze
 
-      def initialize(db: Infrastructure::DB.connection, clock: Time, tz_offset: "+09:00")
+      def initialize(db: Core::DB.connection, clock: Time, tz_offset: "+09:00")
         @db = db
         @clock = clock
         @tz_offset = tz_offset

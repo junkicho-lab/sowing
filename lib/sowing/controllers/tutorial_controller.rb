@@ -18,7 +18,7 @@ module Sowing
 
       helpers do
         def user_settings
-          Infrastructure::Settings
+          Core::Settings
         end
 
         def tutorial_index_repo

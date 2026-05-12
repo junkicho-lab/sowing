@@ -29,7 +29,7 @@ module Sowing
       DEFAULT_WEEKS_BACK = 4
 
       def initialize(db: nil, clock: Time)
-        @db = db || Infrastructure::DB.connection
+        @db = db || Core::DB.connection
         @clock = clock
       end
 
@@ -39,7 +39,7 @@ module Sowing
       #                           gap_ratio, since, weeks_back})
       #         Failure(:empty_roster) 명단 빈 경우
       def call(class_roster: nil, weeks_back: DEFAULT_WEEKS_BACK)
-        roster = (class_roster || Infrastructure::Settings.load["class_roster"] || []).map { |n| n.to_s.strip }.reject(&:empty?)
+        roster = (class_roster || Core::Settings.load["class_roster"] || []).map { |n| n.to_s.strip }.reject(&:empty?)
         return Failure(:empty_roster) if roster.empty?
 
         cutoff = @clock.now - (weeks_back * 7 * 24 * 60 * 60)

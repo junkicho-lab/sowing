@@ -6,8 +6,8 @@ require "fileutils"
 RSpec.describe "검색 화면 (W4-T03)", type: :request do
   include Rack::Test::Methods
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
 
   def app
     Sowing::Application
@@ -152,7 +152,7 @@ RSpec.describe "검색 화면 (W4-T03)", type: :request do
   end
 
   describe "날짜 범위 필터" do
-    let(:db) { Sowing::Infrastructure::DB.connection }
+    let(:db) { Sowing::Core::DB.connection }
 
     before do
       # iso8601 직접 INSERT — POST /memos는 Time.now 사용하므로 날짜 컨트롤이 어려워 raw SQL 사용

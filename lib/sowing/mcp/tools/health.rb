@@ -19,7 +19,7 @@ module Sowing
             vault_dir: vault_repo.vault_dir.to_s,
             entry_counts: mode_counts.transform_keys(&:to_s),
             total_entries: mode_counts.values.sum,
-            audit_log_present: Infrastructure::AuditLog.instance.path.exist?,
+            audit_log_present: Core::AuditLog.instance.path.exist?,
             recent_audit_count: recent_audit_count
           }
 
@@ -27,7 +27,7 @@ module Sowing
         end
 
         def self.recent_audit_count
-          Infrastructure::AuditLog.instance.read_all.size
+          Core::AuditLog.instance.read_all.size
         rescue
           0
         end

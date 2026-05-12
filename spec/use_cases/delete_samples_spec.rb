@@ -7,7 +7,7 @@ RSpec.describe Sowing::UseCases::DeleteSamples do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("delete-samples-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:use_case) { described_class.new(vault_repo: vault_repo, index_repo: index_repo) }
 
   before do

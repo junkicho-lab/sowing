@@ -158,7 +158,7 @@ module Sowing
 
       helpers do
         def synth_root
-          Infrastructure::Paths.vault_dir.join(".sowing/synth")
+          Core::Paths.vault_dir.join(".sowing/synth")
         end
 
         def synth_subdir(type)
@@ -166,7 +166,7 @@ module Sowing
         end
 
         def synth_vault_repo
-          @synth_vault_repo ||= Repositories::VaultRepo.new(vault_dir: Infrastructure::Paths.vault_dir)
+          @synth_vault_repo ||= Repositories::VaultRepo.new(vault_dir: Core::Paths.vault_dir)
         end
 
         def synth_index_repo
@@ -174,7 +174,7 @@ module Sowing
         end
 
         def synth_audit_log
-          Infrastructure::AuditLog.instance
+          Core::AuditLog.instance
         end
 
         def parse_synth_file(path)
@@ -720,7 +720,7 @@ module Sowing
         slug = params["slug"]
         target = synth_target_or_404(type, slug)
 
-        rel = target.relative_path_from(Infrastructure::Paths.vault_dir)
+        rel = target.relative_path_from(Core::Paths.vault_dir)
         synth_vault_repo.delete(rel)
 
         synth_audit_log.append(

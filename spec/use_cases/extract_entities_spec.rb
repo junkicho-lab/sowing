@@ -4,7 +4,7 @@ require "front_matter_parser"
 require "json"
 
 RSpec.describe Sowing::UseCases::ExtractEntities do
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
 
   before do
     db[:entity_mentions].delete
@@ -128,10 +128,10 @@ RSpec.describe Sowing::UseCases::ExtractEntities do
     end
 
     it "audit log actor=agent 로 기록 (Phase 9 with_actor 통합)" do
-      audit = Sowing::Infrastructure::AuditLog.new(
+      audit = Sowing::Core::AuditLog.new(
         vault_dir: Pathname.new(Dir.mktmpdir("extract-audit-spec-"))
       )
-      Sowing::Infrastructure::AuditLog.instance = audit
+      Sowing::Core::AuditLog.instance = audit
       begin
         # ExtractEntities 는 audit 호출 안 하지만 with_actor 블록에서 실행됨
         # 향후 audit_mutation! 호출이 추가되면 actor=agent 기록될 것을 보장.
@@ -141,7 +141,7 @@ RSpec.describe Sowing::UseCases::ExtractEntities do
         # intercepted_backend 만 사용 (실제 actor 캡처 위해).
         intercepted_backend = Class.new(Sowing::Eval::Backends::Base) do
           define_method(:chat) do |system:, user:|
-            captured_actor = Sowing::Infrastructure::AuditLog.current_actor
+            captured_actor = Sowing::Core::AuditLog.current_actor
             JSON.generate({"students" => [], "subjects" => [], "locations" => []})
           end
         end
@@ -149,7 +149,7 @@ RSpec.describe Sowing::UseCases::ExtractEntities do
         intercepted_uc.call(entry_id: "01X", body: "본문")
         expect(captured_actor).to eq("agent")
       ensure
-        Sowing::Infrastructure::AuditLog.instance = nil
+        Sowing::Core::AuditLog.instance = nil
       end
     end
   end

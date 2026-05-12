@@ -36,7 +36,7 @@ module Sowing
         end
 
         def vault_repo
-          @vault_repo ||= Repositories::VaultRepo.new(vault_dir: Infrastructure::Paths.vault_dir)
+          @vault_repo ||= Repositories::VaultRepo.new(vault_dir: Core::Paths.vault_dir)
         end
 
         def index_repo

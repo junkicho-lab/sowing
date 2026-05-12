@@ -19,7 +19,7 @@ module Sowing
         vault_repo: nil,
         index_repo: nil
       )
-        @vault_repo = vault_repo || Repositories::VaultRepo.new(vault_dir: Infrastructure::Paths.vault_dir)
+        @vault_repo = vault_repo || Repositories::VaultRepo.new(vault_dir: Core::Paths.vault_dir)
         @index_repo = index_repo || Repositories::IndexRepo.new
       end
 

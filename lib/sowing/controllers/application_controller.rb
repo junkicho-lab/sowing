@@ -18,7 +18,7 @@ module Sowing
       # 예외 경로: /onboarding/*, /health, 정적 자원(/css, /js).
       before do
         next if request.path_info.start_with?("/onboarding", "/health", "/css", "/js")
-        next if Infrastructure::Settings.onboarding_completed?
+        next if Core::Settings.onboarding_completed?
         redirect "/onboarding/welcome"
       end
 
@@ -69,7 +69,7 @@ module Sowing
           path = request.path_info
           return false if path.start_with?("/onboarding", "/tutorial", "/health")
           return false if request.request_method != "GET"
-          settings = Infrastructure::Settings.load
+          settings = Core::Settings.load
           return false unless settings["onboarding_completed"] == true
           settings["ia_v2_seen_at"].nil?
         end

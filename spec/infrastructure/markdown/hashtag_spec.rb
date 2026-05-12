@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Sowing::Infrastructure::Markdown::Hashtag do
+RSpec.describe Sowing::Core::Markdown::Hashtag do
   describe ".extract" do
     context "표준 인식" do
       it "한국어 태그를 추출한다" do

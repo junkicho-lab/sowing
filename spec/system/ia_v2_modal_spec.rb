@@ -12,14 +12,14 @@ RSpec.describe "동사 nav 안내 모달 (Phase 13 W25-T02)", type: :request do
 
   before do
     header "Host", "127.0.0.1"
-    Sowing::Infrastructure::Settings.reset!
+    Sowing::Core::Settings.reset!
   end
 
-  after { Sowing::Infrastructure::Settings.reset! }
+  after { Sowing::Core::Settings.reset! }
 
   # 온보딩 완료 + ia_v2_seen_at 미설정 상태 시뮬레이션
   def setup_returning_user
-    Sowing::Infrastructure::Settings.save(
+    Sowing::Core::Settings.save(
       "onboarding_completed" => true,
       "ia_v2_seen_at" => nil
     )
@@ -35,7 +35,7 @@ RSpec.describe "동사 nav 안내 모달 (Phase 13 W25-T02)", type: :request do
     end
 
     it "ia_v2_seen_at 설정됨 → 모달 표시 안 함" do
-      Sowing::Infrastructure::Settings.save(
+      Sowing::Core::Settings.save(
         "onboarding_completed" => true,
         "ia_v2_seen_at" => "2026-05-11T12:00:00+09:00"
       )
@@ -44,7 +44,7 @@ RSpec.describe "동사 nav 안내 모달 (Phase 13 W25-T02)", type: :request do
     end
 
     it "온보딩 미완료 → 모달 표시 안 함 (튜토리얼 우선)" do
-      Sowing::Infrastructure::Settings.save(
+      Sowing::Core::Settings.save(
         "onboarding_completed" => false,
         "ia_v2_seen_at" => nil
       )
@@ -54,7 +54,7 @@ RSpec.describe "동사 nav 안내 모달 (Phase 13 W25-T02)", type: :request do
     end
 
     it "/onboarding/* 경로 → 모달 표시 안 함" do
-      Sowing::Infrastructure::Settings.save(
+      Sowing::Core::Settings.save(
         "onboarding_completed" => false,
         "ia_v2_seen_at" => nil
       )
@@ -98,7 +98,7 @@ RSpec.describe "동사 nav 안내 모달 (Phase 13 W25-T02)", type: :request do
       expect(last_response.status).to eq(200)
       expect(last_response.body).to include('"status":"ok"')
 
-      settings = Sowing::Infrastructure::Settings.load
+      settings = Sowing::Core::Settings.load
       expect(settings["ia_v2_seen_at"]).not_to be_nil
       expect(settings["ia_v2_seen_at"]).to match(/\A\d{4}-\d{2}-\d{2}T/)
     end
@@ -125,15 +125,15 @@ RSpec.describe "동사 nav 안내 모달 (Phase 13 W25-T02)", type: :request do
 
   describe "Settings 통합" do
     it "DEFAULTS 에 ia_v2_seen_at: nil 포함" do
-      Sowing::Infrastructure::Settings.reset!
-      settings = Sowing::Infrastructure::Settings.load
+      Sowing::Core::Settings.reset!
+      settings = Sowing::Core::Settings.load
       expect(settings).to have_key("ia_v2_seen_at")
       expect(settings["ia_v2_seen_at"]).to be_nil
     end
 
     it "update 로 ia_v2_seen_at 설정 가능" do
-      Sowing::Infrastructure::Settings.update(ia_v2_seen_at: "2026-05-11T12:00:00+09:00")
-      expect(Sowing::Infrastructure::Settings.load["ia_v2_seen_at"]).to eq("2026-05-11T12:00:00+09:00")
+      Sowing::Core::Settings.update(ia_v2_seen_at: "2026-05-11T12:00:00+09:00")
+      expect(Sowing::Core::Settings.load["ia_v2_seen_at"]).to eq("2026-05-11T12:00:00+09:00")
     end
   end
 end

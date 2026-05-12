@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Sowing
-  module Infrastructure
+  module Core
     module Markdown
       # 마크다운을 파싱한 결과: frontmatter (Hash) + body (String).
       # 불변 (frozen). Domain 객체로 변환하기 전 raw 데이터 컨테이너.

@@ -6,7 +6,7 @@ require "pathname"
 require "time"
 
 module Sowing
-  module Infrastructure
+  module Core
     # 모든 entry mutation 의 구조화 로그 (W9-T01).
     #
     # 형식: JSON Lines (한 줄 = 하나의 mutation 이벤트). `.sowing/audit.log` 에

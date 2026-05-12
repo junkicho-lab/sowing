@@ -3,7 +3,7 @@
 # 30년 시나리오 #4 — IndexRepo#graph_data (위키링크 그래프).
 
 RSpec.describe Sowing::Repositories::IndexRepo, "#graph_data (그래프 시각화)" do
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:repo) { described_class.new }
 
   before do

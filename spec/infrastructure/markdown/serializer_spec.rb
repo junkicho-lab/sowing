@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-RSpec.describe Sowing::Infrastructure::Markdown::Serializer do
+RSpec.describe Sowing::Core::Markdown::Serializer do
   let(:serializer) { described_class.new }
-  let(:parser) { Sowing::Infrastructure::Markdown::Parser.new }
+  let(:parser) { Sowing::Core::Markdown::Parser.new }
 
   let(:ulid) { Sowing::Domain::ValueObjects::Ulid.parse("01KR1FE1QYH4EEP6RAGR9DJ6ZH") }
   let(:tags) { Sowing::Domain::ValueObjects::TagSet.new(["수업", "1학년"]) }

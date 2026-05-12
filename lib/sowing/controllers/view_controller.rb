@@ -28,7 +28,7 @@ module Sowing
         end
 
         def view_vault_repo
-          @view_vault_repo ||= Repositories::VaultRepo.new(vault_dir: Infrastructure::Paths.vault_dir)
+          @view_vault_repo ||= Repositories::VaultRepo.new(vault_dir: Core::Paths.vault_dir)
         end
 
         # entries 의 본문 첫 N 글자 발췌.
@@ -36,7 +36,7 @@ module Sowing
         # 따라서 직접 파일 읽기 + frontmatter 제거 — mode-agnostic.
         # 파일 누락 시 빈 문자열 — graceful (인덱스 정합성 깨진 경우).
         def view_body_excerpt(indexed_entry, limit: 160)
-          full_path = Infrastructure::Paths.vault_dir.join(indexed_entry.path)
+          full_path = Core::Paths.vault_dir.join(indexed_entry.path)
           raw = File.read(full_path, encoding: "UTF-8")
           # frontmatter 제거 + H1 (`# title`) 제거 후 발췌
           body = raw.sub(/\A---\n.*?\n---\n+/m, "").sub(/\A# .+\n+/, "").strip

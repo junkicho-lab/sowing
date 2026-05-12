@@ -9,7 +9,7 @@ RSpec.describe "Sowing::MCP::Tools — analytics sensors (W9-T04)" do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("mcp-analytics-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
 
   before do
     Sowing::MCP.repositories = {vault: vault_repo, index: index_repo}
@@ -175,14 +175,14 @@ RSpec.describe "Sowing::MCP::Tools — analytics sensors (W9-T04)" do
   describe "audit log 통합 — analytics 도구는 read-only" do
     it "StatsSummary / TagCloud / WikiComplete / Recent 호출은 audit 줄 추가 안 함" do
       create_memo("기존")
-      Sowing::Infrastructure::AuditLog.instance.clear!
+      Sowing::Core::AuditLog.instance.clear!
 
       Sowing::MCP::Tools::StatsSummary.call
       Sowing::MCP::Tools::TagCloud.call
       Sowing::MCP::Tools::WikiComplete.call(q: "x")
       Sowing::MCP::Tools::Recent.call
 
-      expect(Sowing::Infrastructure::AuditLog.instance.read_all).to be_empty
+      expect(Sowing::Core::AuditLog.instance.read_all).to be_empty
     end
   end
 end
@@ -191,7 +191,7 @@ RSpec.describe "Sowing::Repositories::IndexRepo#recent_across (W9-T04)" do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("recent-across-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
 
   before do
     db[:entries_fts].delete

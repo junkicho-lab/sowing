@@ -4,7 +4,7 @@ require "json"
 require "fileutils"
 
 module Sowing
-  module Infrastructure
+  module Core
     # 사용자 설정 저장소 — data_dir/settings.json (W7-T01).
     #
     # 단순 key-value JSON. 동시 쓰기는 가정하지 않음 (단일 사용자 데스크톱 앱).

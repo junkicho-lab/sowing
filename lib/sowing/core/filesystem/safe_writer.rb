@@ -5,7 +5,7 @@ require "pathname"
 require "securerandom"
 
 module Sowing
-  module Infrastructure
+  module Core
     module Filesystem
       # 원자적 파일 쓰기 + 한글 파일명 NFC 정규화.
       #

@@ -7,7 +7,7 @@ require "yaml"
 
 RSpec.describe Sowing::UseCases::SynthesizeParentConsultation do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("synth-consultation-spec-")) }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:fixed_now) { Time.new(2026, 7, 31, 18, 0, 0, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }
 
@@ -312,7 +312,7 @@ RSpec.describe Sowing::UseCases::SynthesizeParentConsultation do
     it "audit log actor=agent — LLM chat 동안" do
       observed = nil
       allow(fake_backend).to receive(:chat).and_wrap_original do |orig, **args|
-        observed ||= Sowing::Infrastructure::AuditLog.current_actor
+        observed ||= Sowing::Core::AuditLog.current_actor
         orig.call(**args)
       end
 

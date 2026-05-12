@@ -3,7 +3,7 @@
 require "sequel"
 
 module Sowing
-  module Infrastructure
+  module Core
     module DB
       class << self
         attr_reader :connection

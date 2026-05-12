@@ -7,7 +7,7 @@ RSpec.describe Sowing::Sync::Coordinator do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("coordinator-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
 
   let(:coordinator) do
     described_class.new(
@@ -15,7 +15,7 @@ RSpec.describe Sowing::Sync::Coordinator do
       vault_repo: vault_repo,
       index_repo: index_repo,
       watcher_factory: ->(dir, on_change) {
-        Sowing::Infrastructure::Filesystem::FileWatcher.new(
+        Sowing::Core::Filesystem::FileWatcher.new(
           vault_dir: dir, on_change: on_change, latency: 0.05, force_polling: true
         )
       }
@@ -121,7 +121,7 @@ RSpec.describe Sowing::Sync::Coordinator do
       sleep 0.2 # 폴링 watcher가 baseline 잡을 시간
       sleep 1.1 # mtime 1초 단위 보장
       # CreateNote가 self-write로 등록한 항목 제거 — 이후 변경은 "외부 편집"으로 간주.
-      Sowing::Infrastructure::Filesystem::SelfWriteRegistry.instance.clear
+      Sowing::Core::Filesystem::SelfWriteRegistry.instance.clear
       File.write(abs, abs.read.sub("본문", "외부 변경"))
 
       # 폴링 모드는 변경/추가 구분이 불완전하므로 둘 다 허용 — 핵심은 인덱스 갱신.

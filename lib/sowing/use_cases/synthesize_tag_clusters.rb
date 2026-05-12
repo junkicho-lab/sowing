@@ -41,9 +41,9 @@ module Sowing
         llm_backend: nil,
         clock: Time
       )
-        @db = db || Infrastructure::DB.connection
-        @vault_dir = Pathname.new((vault_dir || Infrastructure::Paths.vault_dir).to_s).expand_path
-        @safe_writer = safe_writer || Infrastructure::Filesystem::SafeWriter.new
+        @db = db || Core::DB.connection
+        @vault_dir = Pathname.new((vault_dir || Core::Paths.vault_dir).to_s).expand_path
+        @safe_writer = safe_writer || Core::Filesystem::SafeWriter.new
         @llm_backend = llm_backend
         @clock = clock
       end
@@ -75,7 +75,7 @@ module Sowing
         cluster_meta = clusters.map { |tids| build_cluster_meta(tids, tag_names, tag_to_entries) }
 
         body = if @llm_backend
-          Infrastructure::AuditLog.with_actor("agent") {
+          Core::AuditLog.with_actor("agent") {
             synthesize_via_llm(cluster_meta)
           }
         else

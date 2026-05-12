@@ -3,7 +3,7 @@
 require "front_matter_parser"
 
 module Sowing
-  module Infrastructure
+  module Core
     module Markdown
       # 마크다운 텍스트 → frontmatter Hash + body String 분리.
       # front_matter_parser gem 래퍼.

@@ -9,7 +9,7 @@ module Sowing
 
       helpers do
         def vault_repo
-          @vault_repo ||= Repositories::VaultRepo.new(vault_dir: Infrastructure::Paths.vault_dir)
+          @vault_repo ||= Repositories::VaultRepo.new(vault_dir: Core::Paths.vault_dir)
         end
 
         def index_repo
@@ -51,7 +51,7 @@ module Sowing
         @month_count = stats_repo.this_month
         @streak = stats_repo.current_streak
         @growth = Domain::ValueObjects::GrowthStage.new(stats_repo.total_all_time)
-        @tutorial_completed = !Infrastructure::Settings.load["tutorial_completed_at"].nil?
+        @tutorial_completed = !Core::Settings.load["tutorial_completed_at"].nil?
         @gap_summary = compute_gap_summary
         @on_this_day = compute_on_this_day  # 30년 시나리오 — 같은 월·일 다년 entries
         @synth_summary = compute_synth_summary  # 16 합성기 검토 대기 카운트
@@ -66,7 +66,7 @@ module Sowing
       # 16 type 모든 디렉토리를 한 번에 스캔 — vault 가 작아 비용 미미.
       # SynthController::SYNTH_TYPES 와 동기화 (controller 가 source of truth).
       def compute_synth_summary
-        synth_root = Infrastructure::Paths.vault_dir.join(".sowing/synth")
+        synth_root = Core::Paths.vault_dir.join(".sowing/synth")
         return nil unless synth_root.exist?
 
         types_meta = Sowing::Controllers::SynthController::SYNTH_TYPES
@@ -108,7 +108,7 @@ module Sowing
       # 학급 명단이 설정돼 있으면 미언급 학생 알림 (W17-T03 GapDetector).
       # 명단 없으면 nil — 카드 표시 안 함.
       def compute_gap_summary
-        roster = Infrastructure::Settings.load["class_roster"]
+        roster = Core::Settings.load["class_roster"]
         return nil if roster.nil? || roster.empty?
         UseCases::DetectStudentGaps.new.call.value_or(nil)
       end
@@ -121,21 +121,21 @@ module Sowing
       # 자동 호출도 audit log 에는 actor=agent 로 표시.
       # 결과는 .sowing/synth/ 검토 대기 — 사용자 수락 클릭 없이는 정식 기록 안 됨 (ADR-013).
       def maybe_auto_generate_mirror
-        return unless Infrastructure::Settings.load["daily_mirror_enabled"] == true
+        return unless Core::Settings.load["daily_mirror_enabled"] == true
         today_str = Time.now.strftime("%Y-%m-%d")
-        mirror_path = Infrastructure::Paths.vault_dir
+        mirror_path = Core::Paths.vault_dir
           .join(".sowing/synth/self-mirror/daily-#{today_str}.md")
         return if mirror_path.exist?
 
         # entries 수 사전 체크 — use case 가 또 검증하지만 불필요한 호출 피함
         today_start = Time.parse("#{today_str}T00:00:00")
         today_end = Time.parse("#{today_str}T23:59:59")
-        count = Infrastructure::DB.connection[:entries]
+        count = Core::DB.connection[:entries]
           .where { (created_at >= today_start.iso8601) & (created_at <= today_end.iso8601) }
           .count
         return if count < UseCases::SynthesizeSelfMirror::MIN_ENTRIES
 
-        Infrastructure::AuditLog.with_actor("agent") do
+        Core::AuditLog.with_actor("agent") do
           UseCases::SynthesizeSelfMirror.new.call(period: :daily, date: today_str)
         end
       rescue
@@ -149,9 +149,9 @@ module Sowing
       #   :prompt   — 파일 없음 + 옵션 켜짐 + 오늘 entries ≥ 3 → '생성하기' 버튼.
       #   nil       — 옵션 꺼짐 또는 entries 부족 — 위젯 안 표시.
       def compute_todays_mirror
-        return nil unless Infrastructure::Settings.load["daily_mirror_enabled"] == true
+        return nil unless Core::Settings.load["daily_mirror_enabled"] == true
         today_str = Time.now.strftime("%Y-%m-%d")
-        mirror_path = Infrastructure::Paths.vault_dir.join(".sowing/synth/self-mirror/daily-#{today_str}.md")
+        mirror_path = Core::Paths.vault_dir.join(".sowing/synth/self-mirror/daily-#{today_str}.md")
 
         if mirror_path.exist?
           fm = FrontMatterParser::Parser.new(:md).call(File.read(mirror_path))&.front_matter
@@ -170,7 +170,7 @@ module Sowing
         # 미생성 — 오늘 entries 가 MIN_ENTRIES(3) 이상이면 생성 prompt
         today_t_start = Time.parse("#{today_str}T00:00:00")
         today_t_end = Time.parse("#{today_str}T23:59:59")
-        count = Infrastructure::DB.connection[:entries]
+        count = Core::DB.connection[:entries]
           .where { (created_at >= today_t_start.iso8601) & (created_at <= today_t_end.iso8601) }
           .count
         return nil if count < 3
@@ -183,7 +183,7 @@ module Sowing
       # 오늘 날짜 (YYYY-MM-DD) 의 daily plan 중 미완료 항목만.
       # 없으면 nil 반환 → 위젯 안 표시.
       def compute_todays_plans
-        plan_repo = Repositories::PlanRepo.new(vault_dir: Infrastructure::Paths.vault_dir)
+        plan_repo = Repositories::PlanRepo.new(vault_dir: Core::Paths.vault_dir)
         today_str = Date.today.strftime("%Y-%m-%d")
         pending = plan_repo
           .list_by_period(:daily)

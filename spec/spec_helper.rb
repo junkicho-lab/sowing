@@ -19,7 +19,7 @@ require "timecop"
 # 마이그레이션 실행
 require "sequel/core"
 Sequel.extension :migration
-Sequel::Migrator.run(Sowing::Infrastructure::DB.connection, "db/migrations")
+Sequel::Migrator.run(Sowing::Core::DB.connection, "db/migrations")
 
 RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
@@ -48,10 +48,10 @@ RSpec.configure do |config|
 
     # W7-T01: 기본적으로 온보딩을 완료 상태로 — 기존 spec이 redirect로 깨지지 않게.
     # 온보딩 자체를 검증하는 spec은 명시적으로 Settings.reset!를 호출.
-    Sowing::Infrastructure::Settings.update(onboarding_completed: true)
+    Sowing::Core::Settings.update(onboarding_completed: true)
 
     # W9-T01: audit log 격리 — 각 spec 시작 시 빈 상태에서 시작.
-    Sowing::Infrastructure::AuditLog.instance.clear!
+    Sowing::Core::AuditLog.instance.clear!
   end
 
   config.after(:each) do

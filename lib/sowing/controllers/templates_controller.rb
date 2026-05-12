@@ -17,7 +17,7 @@ module Sowing
 
       helpers do
         def template_repo
-          @template_repo ||= Repositories::TemplateRepo.new(vault_dir: Infrastructure::Paths.vault_dir)
+          @template_repo ||= Repositories::TemplateRepo.new(vault_dir: Core::Paths.vault_dir)
         end
 
         def template_error_message(failure)

@@ -5,7 +5,7 @@ require "tmpdir"
 
 RSpec.describe Sowing::UseCases::ComputeSynthMetrics do
   let(:tmp_vault) { Pathname.new(Dir.mktmpdir("synth-metrics-spec-")) }
-  let(:audit_log) { Sowing::Infrastructure::AuditLog.new(vault_dir: tmp_vault) }
+  let(:audit_log) { Sowing::Core::AuditLog.new(vault_dir: tmp_vault) }
   let(:fixed_now) { Time.new(2026, 7, 31, 12, 0, 0, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }
 

@@ -30,7 +30,7 @@ module Sowing
         )
 
         def self.call(title:, body:, category:, source:, tags: [], server_context: nil)
-          result = Infrastructure::AuditLog.with_actor("agent") do
+          result = Core::AuditLog.with_actor("agent") do
             UseCases::CreateNote.new(vault_repo: vault_repo, index_repo: index_repo).call(
               title: title, body: body, category: category,
               source: source, tags: Array(tags)

@@ -7,7 +7,7 @@ RSpec.describe Sowing::Sync::ConsistencyCheck do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("consistency-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:coordinator) do
     Sowing::Sync::Coordinator.new(
       vault_dir: vault_dir, vault_repo: vault_repo, index_repo: index_repo

@@ -4,7 +4,7 @@ require "fileutils"
 require "json"
 require "tmpdir"
 
-RSpec.describe Sowing::Infrastructure::AuditLog do
+RSpec.describe Sowing::Core::AuditLog do
   let(:tmpdir) { Pathname.new(Dir.mktmpdir("audit-log-spec-")) }
   let(:fixed_now) { Time.new(2026, 5, 9, 14, 23, 14, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }

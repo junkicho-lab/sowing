@@ -3,7 +3,7 @@
 require "rack/utils"
 
 module Sowing
-  module Infrastructure
+  module Core
     module Markdown
       # 옵시디언 호환 위키링크 [[target]] / [[target|alias]] 처리.
       #

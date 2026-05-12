@@ -3,7 +3,7 @@
 # 통합 검색 (W4-T02): 한국어 비율 ≥ 30%이면 LIKE 폴백, 그 외는 FTS5 trigram.
 
 RSpec.describe Sowing::Repositories::IndexRepo, "통합 검색 (FTS + LIKE 폴백)" do
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:repo) { described_class.new }
   let(:created_at) { Time.new(2026, 5, 8, 9, 0, 0, "+09:00") }
 

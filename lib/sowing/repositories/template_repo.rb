@@ -23,7 +23,7 @@ module Sowing
       def initialize(vault_dir:,
         system_dir: DEFAULT_SYSTEM_DIR,
         clock: Time,
-        safe_writer: Infrastructure::Filesystem::SafeWriter.new)
+        safe_writer: Core::Filesystem::SafeWriter.new)
         @user_dir = Pathname.new(vault_dir.to_s).expand_path.join("templates")
         @system_dir = Pathname.new(system_dir.to_s).expand_path
         @clock = clock

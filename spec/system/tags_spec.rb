@@ -7,8 +7,8 @@ require "json"
 RSpec.describe "태그 시스템 (W3-T05)", type: :request do
   include Rack::Test::Methods
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
 
   def app
     Sowing::Application

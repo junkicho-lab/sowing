@@ -14,7 +14,7 @@ module Sowing
     class SettingsController < ApplicationController
       helpers do
         def user_settings
-          Infrastructure::Settings
+          Core::Settings
         end
 
         def settings_index_repo
@@ -25,8 +25,8 @@ module Sowing
       get "/settings" do
         @page_title = "설정"
         @settings_data = user_settings.load
-        @vault_dir = Infrastructure::Paths.vault_dir
-        @data_dir = Infrastructure::Paths.data_dir
+        @vault_dir = Core::Paths.vault_dir
+        @data_dir = Core::Paths.data_dir
         @samples = settings_index_repo.find_samples
         @flash = session.delete(:flash)
         erb :"settings/index", layout: :"layouts/application"

@@ -2,7 +2,7 @@
 
 require "tmpdir"
 
-RSpec.describe Sowing::Infrastructure::Filesystem::SelfWriteRegistry do
+RSpec.describe Sowing::Core::Filesystem::SelfWriteRegistry do
   subject(:registry) { described_class.new(ttl: 0.5) }
 
   let(:tmpdir) { Pathname.new(Dir.mktmpdir("self-write-registry-spec-")) }

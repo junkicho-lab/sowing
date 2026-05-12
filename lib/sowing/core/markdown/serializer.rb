@@ -3,7 +3,7 @@
 require "yaml"
 
 module Sowing
-  module Infrastructure
+  module Core
     module Markdown
       # 도메인 객체 또는 Hash+body → 옵시디언 호환 마크다운 문자열.
       #

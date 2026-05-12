@@ -2,7 +2,7 @@
 <%# Phase 14 W29 — 다크 모드. theme = auto/light/dark. auto 면 data-theme 없음 →
     CSS @media prefers-color-scheme 가 결정. light/dark 면 명시 (OS 무시). %>
 <% _theme_value = begin
-     Sowing::Infrastructure::Settings.load["theme"] || "auto"
+     Sowing::Core::Settings.load["theme"] || "auto"
    rescue
      "auto"
    end %>
@@ -40,7 +40,7 @@
   <%# Phase 14 W30 — 단축키 사용자 정의. Settings 에서 읽어 window 에 주입.
       JS 컨트롤러가 keydown 리스너에서 참조. %>
   <% _shortcuts = begin
-       s = Sowing::Infrastructure::Settings.load
+       s = Sowing::Core::Settings.load
        {
          "quick_memo" => s["shortcut_quick_memo"] || "m",
          "quick_search" => s["shortcut_quick_search"] || "k"
@@ -167,7 +167,7 @@
     _ia_v2_show = request.request_method == "GET" &&
                   !_ia_v2_path.start_with?("/onboarding", "/tutorial", "/health") &&
                   begin
-                    _s = Sowing::Infrastructure::Settings.load
+                    _s = Sowing::Core::Settings.load
                     _s["onboarding_completed"] == true && _s["ia_v2_seen_at"].nil?
                   rescue
                     false

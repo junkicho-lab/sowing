@@ -2,7 +2,7 @@
 
 require "tmpdir"
 
-RSpec.describe Sowing::Infrastructure::Dotenv do
+RSpec.describe Sowing::Core::Dotenv do
   let(:tmp) { Dir.mktmpdir("sowing-dotenv-") }
   let(:test_keys) { %w[SOWING_DOTENV_TEST_A SOWING_DOTENV_TEST_B SOWING_DOTENV_TEST_QUOTED SOWING_DOTENV_TEST_HASH SOWING_DOTENV_EXPORT SOWING_DOTENV_EMPTY SOWING_DOTENV_OVERRIDE] }
 

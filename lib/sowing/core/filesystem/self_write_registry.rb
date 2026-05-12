@@ -3,7 +3,7 @@
 require "pathname"
 
 module Sowing
-  module Infrastructure
+  module Core
     module Filesystem
       # 자체 쓰기 추적용 TTL 레지스트리.
       #

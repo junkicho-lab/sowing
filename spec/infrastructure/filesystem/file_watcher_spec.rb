@@ -4,13 +4,13 @@ require "fileutils"
 require "tmpdir"
 require "timeout"
 
-RSpec.describe Sowing::Infrastructure::Filesystem::FileWatcher do
+RSpec.describe Sowing::Core::Filesystem::FileWatcher do
   # Listen은 비동기. 테스트는 짧은 latency + 폴링으로 안정화.
   let(:watcher_latency) { 0.05 }
   let(:wait_timeout) { 5.0 }
 
   let(:tmpdir) { Pathname.new(Dir.mktmpdir("file-watcher-spec-")) }
-  let(:registry) { Sowing::Infrastructure::Filesystem::SelfWriteRegistry.new(ttl: 2.0) }
+  let(:registry) { Sowing::Core::Filesystem::SelfWriteRegistry.new(ttl: 2.0) }
   let(:events) { [] }
   let(:events_mutex) { Mutex.new }
 
@@ -102,7 +102,7 @@ RSpec.describe Sowing::Infrastructure::Filesystem::FileWatcher do
     end
 
     it "TTL 만료 후 같은 경로 변경은 다시 통지 (외부 편집으로 간주)" do
-      short_registry = Sowing::Infrastructure::Filesystem::SelfWriteRegistry.new(ttl: 0.1)
+      short_registry = Sowing::Core::Filesystem::SelfWriteRegistry.new(ttl: 0.1)
       short_watcher = described_class.new(
         vault_dir: tmpdir,
         on_change: on_change,

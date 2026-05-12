@@ -9,8 +9,8 @@ require "json"
 RSpec.describe "위키링크 그래프 (#4)", type: :request do
   include Rack::Test::Methods
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
 
   def app
     Sowing::Application
@@ -139,13 +139,13 @@ RSpec.describe "위키링크 그래프 (#4)", type: :request do
     it "GET 만으로 vault·DB 변경 0" do
       seed_record(title: "x", created_at: "2024-01-01T09:00:00+09:00")
       before_count = db[:entries].count
-      audit_count = Sowing::Infrastructure::AuditLog.instance.read_all.size
+      audit_count = Sowing::Core::AuditLog.instance.read_all.size
 
       get "/graph"
       get "/api/graph_data"
 
       expect(db[:entries].count).to eq(before_count)
-      expect(Sowing::Infrastructure::AuditLog.instance.read_all.size).to eq(audit_count)
+      expect(Sowing::Core::AuditLog.instance.read_all.size).to eq(audit_count)
     end
   end
 end

@@ -48,7 +48,7 @@ module Sowing
             return error_response("to=note 일 때 source 는 필수")
           end
 
-          result = Infrastructure::AuditLog.with_actor("agent") do
+          result = Core::AuditLog.with_actor("agent") do
             invoke_use_case(target: target, id: id, title: title,
               category: category, source: source, tags: tags)
           end

@@ -12,33 +12,33 @@ RSpec.describe "다크 모드 (Phase 14 W29 PoC)", type: :request do
 
   before do
     header "Host", "127.0.0.1"
-    Sowing::Infrastructure::Settings.reset!
+    Sowing::Core::Settings.reset!
     # Onboarding 완료 상태 — 일반 라우트 접근 위해
-    Sowing::Infrastructure::Settings.save(
+    Sowing::Core::Settings.save(
       "onboarding_completed" => true,
       "ia_v2_seen_at" => "2026-05-11T00:00:00+09:00"
     )
   end
 
-  after { Sowing::Infrastructure::Settings.reset! }
+  after { Sowing::Core::Settings.reset! }
 
   describe "Settings — theme 옵션" do
     it "DEFAULTS 에 theme: 'auto'" do
-      Sowing::Infrastructure::Settings.reset!
-      expect(Sowing::Infrastructure::Settings.load["theme"]).to eq("auto")
+      Sowing::Core::Settings.reset!
+      expect(Sowing::Core::Settings.load["theme"]).to eq("auto")
     end
 
     it "POST /settings/theme — auto/light/dark allowlist 통과" do
       %w[auto light dark].each do |t|
         post "/settings/theme", theme: t
         expect(last_response.status).to eq(302)
-        expect(Sowing::Infrastructure::Settings.load["theme"]).to eq(t)
+        expect(Sowing::Core::Settings.load["theme"]).to eq(t)
       end
     end
 
     it "POST /settings/theme — 잘못된 값 → auto 폴백 (allowlist 보안)" do
       post "/settings/theme", theme: "evil-injection"
-      expect(Sowing::Infrastructure::Settings.load["theme"]).to eq("auto")
+      expect(Sowing::Core::Settings.load["theme"]).to eq("auto")
     end
 
     it "flash 안내 표시 (테마별)" do
@@ -50,36 +50,36 @@ RSpec.describe "다크 모드 (Phase 14 W29 PoC)", type: :request do
 
   describe "Layout — html data-theme 동적" do
     it "theme=auto → data-theme 속성 없음 (CSS @media 결정)" do
-      Sowing::Infrastructure::Settings.update(theme: "auto")
+      Sowing::Core::Settings.update(theme: "auto")
       get "/"
       expect(last_response.body).to match(/<html lang="ko">/)
       expect(last_response.body).not_to match(/<html[^>]*data-theme/)
     end
 
     it "theme=dark → <html data-theme=\"dark\">" do
-      Sowing::Infrastructure::Settings.update(theme: "dark")
+      Sowing::Core::Settings.update(theme: "dark")
       get "/"
       expect(last_response.body).to include('data-theme="dark"')
     end
 
     it "theme=light → <html data-theme=\"light\">" do
-      Sowing::Infrastructure::Settings.update(theme: "light")
+      Sowing::Core::Settings.update(theme: "light")
       get "/"
       expect(last_response.body).to include('data-theme="light"')
     end
 
     it "color-scheme 메타 — auto → 'light dark', 그 외 → 명시" do
-      Sowing::Infrastructure::Settings.update(theme: "auto")
+      Sowing::Core::Settings.update(theme: "auto")
       get "/"
       expect(last_response.body).to include('content="light dark"')
 
-      Sowing::Infrastructure::Settings.update(theme: "dark")
+      Sowing::Core::Settings.update(theme: "dark")
       get "/"
       expect(last_response.body).to include('content="dark"')
     end
 
     it "Settings 손상 시 auto 폴백 (graceful)" do
-      allow(Sowing::Infrastructure::Settings).to receive(:load).and_raise(StandardError, "boom")
+      allow(Sowing::Core::Settings).to receive(:load).and_raise(StandardError, "boom")
       # 페이지가 raise 안 함 — layout rescue 가 auto 적용
       expect { get "/settings" }.not_to raise_error
     end
@@ -94,7 +94,7 @@ RSpec.describe "다크 모드 (Phase 14 W29 PoC)", type: :request do
     end
 
     it "현재 theme = checked" do
-      Sowing::Infrastructure::Settings.update(theme: "dark")
+      Sowing::Core::Settings.update(theme: "dark")
       get "/settings"
       # value="dark" 라디오에 checked
       expect(last_response.body).to match(/<input[^>]*value="dark"[^>]*checked/)

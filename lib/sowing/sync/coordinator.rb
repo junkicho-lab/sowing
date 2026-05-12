@@ -87,7 +87,7 @@ module Sowing
       end
 
       def default_watcher(vault_dir, on_change)
-        Infrastructure::Filesystem::FileWatcher.new(vault_dir: vault_dir, on_change: on_change)
+        Core::Filesystem::FileWatcher.new(vault_dir: vault_dir, on_change: on_change)
       end
 
       def notify(payload)

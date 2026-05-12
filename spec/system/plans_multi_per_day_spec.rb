@@ -10,8 +10,8 @@ RSpec.describe "같은 날짜 여러 plan + 오전/오후 grouping (Phase 14 W32
     Sowing::Application
   end
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:plans_dir) { vault_dir.join("40_Plans") }
   let(:plan_repo) { Sowing::Repositories::PlanRepo.new(vault_dir: vault_dir) }
 
@@ -19,7 +19,7 @@ RSpec.describe "같은 날짜 여러 plan + 오전/오후 grouping (Phase 14 W32
     header "Host", "127.0.0.1"
     FileUtils.rm_rf(plans_dir) if plans_dir.exist?
     %i[entries_fts links entry_tags tags entries].each { |t| db[t].delete }
-    Sowing::Infrastructure::Settings.save(
+    Sowing::Core::Settings.save(
       "onboarding_completed" => true,
       "ia_v2_seen_at" => "2026-05-11T00:00:00+09:00"
     )
@@ -27,7 +27,7 @@ RSpec.describe "같은 날짜 여러 plan + 오전/오후 grouping (Phase 14 W32
 
   after do
     FileUtils.rm_rf(plans_dir) if plans_dir.exist?
-    Sowing::Infrastructure::Settings.reset!
+    Sowing::Core::Settings.reset!
   end
 
   describe "Path 규칙 — 같은 날짜 unique path" do

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Sowing
-  module Infrastructure
+  module Core
     module Markdown
       # 옵시디언 호환 본문 #태그 추출.
       #

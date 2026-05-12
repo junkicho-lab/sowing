@@ -4,7 +4,7 @@
 # trigram 토크나이저 — 3글자 이상 query만 매칭. 2글자 이하는 W4-T02 LIKE 폴백 영역.
 
 RSpec.describe Sowing::Repositories::IndexRepo, "전문 검색 (FTS5)" do
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:repo) { described_class.new }
   let(:created_at) { Time.new(2026, 5, 8, 9, 0, 0, "+09:00") }
 

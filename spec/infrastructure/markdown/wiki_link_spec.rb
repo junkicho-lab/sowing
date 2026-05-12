@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Sowing::Infrastructure::Markdown::WikiLink do
+RSpec.describe Sowing::Core::Markdown::WikiLink do
   describe ".extract" do
     context "표준 형식" do
       it "[[target]] 단일 추출" do

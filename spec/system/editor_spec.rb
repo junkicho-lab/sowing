@@ -62,8 +62,8 @@ RSpec.describe "CodeMirror 마크다운 에디터 통합 (W2-T06)", type: :reque
   end
 
   describe "필기 편집 폼 (prefill)" do
-    let(:db) { Sowing::Infrastructure::DB.connection }
-    let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+    let(:db) { Sowing::Core::DB.connection }
+    let(:vault_dir) { Sowing::Core::Paths.vault_dir }
 
     before do
       db[:entry_tags].delete
@@ -100,8 +100,8 @@ RSpec.describe "CodeMirror 마크다운 에디터 통합 (W2-T06)", type: :reque
   end
 
   describe "POST 동작 무영향" do
-    let(:db) { Sowing::Infrastructure::DB.connection }
-    let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+    let(:db) { Sowing::Core::DB.connection }
+    let(:vault_dir) { Sowing::Core::Paths.vault_dir }
 
     before do
       db[:entry_tags].delete

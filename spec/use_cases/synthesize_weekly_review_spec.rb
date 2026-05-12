@@ -7,7 +7,7 @@ require "yaml"
 
 RSpec.describe Sowing::UseCases::SynthesizeWeeklyReview do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("synth-weekly-spec-")) }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   # 2026-05-10 일요일 — 2026-W19 (Mon 5/4 ~ Sun 5/10)
   let(:fixed_now) { Time.new(2026, 5, 10, 18, 0, 0, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }
@@ -251,7 +251,7 @@ RSpec.describe Sowing::UseCases::SynthesizeWeeklyReview do
     it "audit log actor=agent — LLM chat 동안" do
       observed = nil
       allow(fake_backend).to receive(:chat).and_wrap_original do |orig, **args|
-        observed ||= Sowing::Infrastructure::AuditLog.current_actor
+        observed ||= Sowing::Core::AuditLog.current_actor
         orig.call(**args)
       end
       use_case.call

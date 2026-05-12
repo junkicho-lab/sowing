@@ -15,14 +15,14 @@ RSpec.describe "Plan 확장 + 대시보드 위젯 (Phase 13 W27-T02)", type: :re
     Sowing::Application
   end
 
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:plans_dir) { vault_dir.join("40_Plans") }
   let(:repo) { Sowing::Repositories::PlanRepo.new(vault_dir: vault_dir) }
 
   before do
     header "Host", "127.0.0.1"
     FileUtils.rm_rf(plans_dir) if plans_dir.exist?
-    db = Sowing::Infrastructure::DB.connection
+    db = Sowing::Core::DB.connection
     %i[entries_fts links entry_tags tags entries].each { |t| db[t].delete }
   end
 

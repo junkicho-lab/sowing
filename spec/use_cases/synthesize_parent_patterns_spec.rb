@@ -7,7 +7,7 @@ require "yaml"
 
 RSpec.describe Sowing::UseCases::SynthesizeParentPatterns do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("synth-parent-patterns-spec-")) }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:fixed_now) { Time.new(2026, 7, 31, 12, 0, 0, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }
 
@@ -19,7 +19,7 @@ RSpec.describe Sowing::UseCases::SynthesizeParentPatterns do
     db[:entry_tags].delete
     db[:tags].delete
     db[:entries].delete
-    Sowing::Infrastructure::Settings.update(class_roster: [])
+    Sowing::Core::Settings.update(class_roster: [])
   end
 
   after { FileUtils.rm_rf(vault_dir) if vault_dir.exist? }
@@ -73,7 +73,7 @@ RSpec.describe Sowing::UseCases::SynthesizeParentPatterns do
       seed_student_with_mentions(name: "민준", entry_ids: [mj1, mj2])
       seed_student_with_mentions(name: "서연", entry_ids: [sy])
 
-      Sowing::Infrastructure::Settings.update(class_roster: %w[민준 서연 지호 수아])
+      Sowing::Core::Settings.update(class_roster: %w[민준 서연 지호 수아])
     end
 
     it "Success — vault/.sowing/synth/parent-patterns/{semester}.md 작성" do
@@ -198,7 +198,7 @@ RSpec.describe Sowing::UseCases::SynthesizeParentPatterns do
     it "backend.chat 1회 + agent actor + LLM 본문 반영" do
       observed = nil
       allow(fake_backend).to receive(:chat).and_wrap_original do |orig, **args|
-        observed ||= Sowing::Infrastructure::AuditLog.current_actor
+        observed ||= Sowing::Core::AuditLog.current_actor
         orig.call(**args)
       end
 

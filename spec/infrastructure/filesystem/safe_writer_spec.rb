@@ -3,7 +3,7 @@
 require "fileutils"
 require "tmpdir"
 
-RSpec.describe Sowing::Infrastructure::Filesystem::SafeWriter do
+RSpec.describe Sowing::Core::Filesystem::SafeWriter do
   let(:tmpdir) { Pathname.new(Dir.mktmpdir("safe-writer-spec-")) }
   let(:writer) { described_class.new }
   let(:target) { tmpdir.join("test.md") }

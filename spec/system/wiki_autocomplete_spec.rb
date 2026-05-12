@@ -66,8 +66,8 @@ RSpec.describe "위키링크 자동완성 통합 (W3-T04)", type: :request do
   end
 
   describe "API 응답이 CodeMirror autocomplete 형식 호환" do
-    let(:db) { Sowing::Infrastructure::DB.connection }
-    let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+    let(:db) { Sowing::Core::DB.connection }
+    let(:vault_dir) { Sowing::Core::Paths.vault_dir }
 
     before do
       require "fileutils"

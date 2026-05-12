@@ -12,7 +12,7 @@ module Sowing
     class StatsRepo
       Daily = Data.define(:date, :memos_count, :notes_count, :records_count, :total_count)
 
-      def initialize(db: Infrastructure::DB.connection, clock: Time, tz_offset: "+09:00")
+      def initialize(db: Core::DB.connection, clock: Time, tz_offset: "+09:00")
         @db = db
         @clock = clock
         @tz_offset = tz_offset

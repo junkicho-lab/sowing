@@ -7,10 +7,10 @@ require "json"
 RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
   include Rack::Test::Methods
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:synth_root) { vault_dir.join(".sowing/synth") }
-  let(:audit_log) { Sowing::Infrastructure::AuditLog.instance }
+  let(:audit_log) { Sowing::Core::AuditLog.instance }
 
   def app
     Sowing::Application

@@ -4,7 +4,7 @@ require "listen"
 require "pathname"
 
 module Sowing
-  module Infrastructure
+  module Core
     module Filesystem
       # 옵시디언·외부 에디터의 볼트 변경 감지 watcher (W5-T01).
       #

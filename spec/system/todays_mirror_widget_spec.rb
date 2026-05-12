@@ -10,8 +10,8 @@ RSpec.describe "오늘의 자기 거울 위젯 (Phase 13 W28-T02)", type: :reque
     Sowing::Application
   end
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
   let(:today_str) { Time.now.strftime("%Y-%m-%d") }
@@ -25,13 +25,13 @@ RSpec.describe "오늘의 자기 거울 위젯 (Phase 13 W28-T02)", type: :reque
     db[:tags].delete
     db[:entries].delete
     %w[00_Inbox 20_Notes 30_Records .sowing/synth].each { |d| FileUtils.rm_rf(vault_dir.join(d)) }
-    Sowing::Infrastructure::Settings.reset!
+    Sowing::Core::Settings.reset!
   end
 
-  after { Sowing::Infrastructure::Settings.reset! }
+  after { Sowing::Core::Settings.reset! }
 
   def setup_user
-    Sowing::Infrastructure::Settings.save(
+    Sowing::Core::Settings.save(
       "onboarding_completed" => true,
       "ia_v2_seen_at" => "2026-05-11T00:00:00+09:00",
       "daily_mirror_enabled" => true
@@ -47,7 +47,7 @@ RSpec.describe "오늘의 자기 거울 위젯 (Phase 13 W28-T02)", type: :reque
 
   describe "위젯 표시 조건" do
     it "옵션 꺼짐 → 위젯 안 표시" do
-      Sowing::Infrastructure::Settings.save(
+      Sowing::Core::Settings.save(
         "onboarding_completed" => true,
         "ia_v2_seen_at" => "2026-05-11T00:00:00+09:00",
         "daily_mirror_enabled" => false
@@ -123,7 +123,7 @@ RSpec.describe "오늘의 자기 거울 위젯 (Phase 13 W28-T02)", type: :reque
 
   describe "POST /settings/daily_mirror — 토글" do
     before do
-      Sowing::Infrastructure::Settings.save(
+      Sowing::Core::Settings.save(
         "onboarding_completed" => true,
         "ia_v2_seen_at" => "2026-05-11T00:00:00+09:00"
       )
@@ -132,13 +132,13 @@ RSpec.describe "오늘의 자기 거울 위젯 (Phase 13 W28-T02)", type: :reque
     it "체크박스 ON → daily_mirror_enabled = true" do
       post "/settings/daily_mirror", daily_mirror_enabled: "1"
       expect(last_response.status).to eq(302)
-      expect(Sowing::Infrastructure::Settings.load["daily_mirror_enabled"]).to be true
+      expect(Sowing::Core::Settings.load["daily_mirror_enabled"]).to be true
     end
 
     it "체크박스 OFF → daily_mirror_enabled = false" do
-      Sowing::Infrastructure::Settings.update(daily_mirror_enabled: true)
+      Sowing::Core::Settings.update(daily_mirror_enabled: true)
       post "/settings/daily_mirror" # 체크박스 안 보냄
-      expect(Sowing::Infrastructure::Settings.load["daily_mirror_enabled"]).to be false
+      expect(Sowing::Core::Settings.load["daily_mirror_enabled"]).to be false
     end
 
     it "flash 안내 표시" do
@@ -150,7 +150,7 @@ RSpec.describe "오늘의 자기 거울 위젯 (Phase 13 W28-T02)", type: :reque
 
   describe "Settings UI" do
     it "설정 페이지에 자기 거울 섹션 + 체크박스 표시" do
-      Sowing::Infrastructure::Settings.save(
+      Sowing::Core::Settings.save(
         "onboarding_completed" => true,
         "ia_v2_seen_at" => "2026-05-11T00:00:00+09:00"
       )
@@ -162,7 +162,7 @@ RSpec.describe "오늘의 자기 거울 위젯 (Phase 13 W28-T02)", type: :reque
     end
 
     it "옵션 켜짐 시 체크박스 checked" do
-      Sowing::Infrastructure::Settings.save(
+      Sowing::Core::Settings.save(
         "onboarding_completed" => true,
         "ia_v2_seen_at" => "2026-05-11T00:00:00+09:00",
         "daily_mirror_enabled" => true

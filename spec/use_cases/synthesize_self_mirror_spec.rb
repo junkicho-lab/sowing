@@ -2,8 +2,8 @@
 
 # Phase 13 W28-T01 — 17번째 합성기: 자기 거울 (5축).
 RSpec.describe Sowing::UseCases::SynthesizeSelfMirror do
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
   let(:fixed_clock) {

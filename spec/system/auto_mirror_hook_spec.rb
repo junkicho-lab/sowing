@@ -10,13 +10,13 @@ RSpec.describe "자동 self-mirror hook (Phase 13 W28-T03)", type: :request do
     Sowing::Application
   end
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
   let(:today_str) { Time.now.strftime("%Y-%m-%d") }
   let(:mirror_path) { vault_dir.join(".sowing/synth/self-mirror/daily-#{today_str}.md") }
-  let(:audit_log) { Sowing::Infrastructure::AuditLog.instance }
+  let(:audit_log) { Sowing::Core::AuditLog.instance }
 
   before do
     header "Host", "127.0.0.1"
@@ -26,14 +26,14 @@ RSpec.describe "자동 self-mirror hook (Phase 13 W28-T03)", type: :request do
     db[:tags].delete
     db[:entries].delete
     %w[00_Inbox 20_Notes 30_Records .sowing/synth].each { |d| FileUtils.rm_rf(vault_dir.join(d)) }
-    Sowing::Infrastructure::Settings.reset!
+    Sowing::Core::Settings.reset!
     audit_log.clear!
   end
 
-  after { Sowing::Infrastructure::Settings.reset! }
+  after { Sowing::Core::Settings.reset! }
 
   def setup_user(daily_mirror: true)
-    Sowing::Infrastructure::Settings.save(
+    Sowing::Core::Settings.save(
       "onboarding_completed" => true,
       "ia_v2_seen_at" => "2026-05-11T00:00:00+09:00",
       "daily_mirror_enabled" => daily_mirror
@@ -125,7 +125,7 @@ RSpec.describe "자동 self-mirror hook (Phase 13 W28-T03)", type: :request do
       seed_today(count: 4)
 
       # Settings 일시 손상
-      allow(Sowing::Infrastructure::Settings).to receive(:load).and_raise(StandardError)
+      allow(Sowing::Core::Settings).to receive(:load).and_raise(StandardError)
       # 첫 호출(maybe_auto_generate_mirror)에서 raise — rescue 로 흡수 후 진행
       # 그러나 같은 stub 이 이후 helper 들에도 적용되면 다른 에러
       # 본 spec 은 rescue 가 maybe_auto_generate_mirror 안에서 동작하는지만 검증

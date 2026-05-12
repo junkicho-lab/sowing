@@ -13,13 +13,13 @@ RSpec.describe "모바일 웹 UX 개선 (Phase 14 W31 PoC)", type: :request do
 
   before do
     header "Host", "127.0.0.1"
-    Sowing::Infrastructure::Settings.save(
+    Sowing::Core::Settings.save(
       "onboarding_completed" => true,
       "ia_v2_seen_at" => "2026-05-11T00:00:00+09:00"
     )
   end
 
-  after { Sowing::Infrastructure::Settings.reset! }
+  after { Sowing::Core::Settings.reset! }
 
   describe "HTML — 햄버거 markup" do
     it "checkbox + label 패턴 노출 (JS 0)" do

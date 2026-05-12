@@ -15,7 +15,7 @@ module Sowing
       helpers do
         # Sinatra의 `settings` DSL과 이름 충돌 회피 — user_settings로 명명.
         def user_settings
-          Infrastructure::Settings
+          Core::Settings
         end
 
         def step_index(step)
@@ -38,7 +38,7 @@ module Sowing
         @page_title = "볼트 위치 확인"
         @step = "vault"
         @step_total = STEPS.size - 1
-        @vault_dir = Infrastructure::Paths.vault_dir.to_s
+        @vault_dir = Core::Paths.vault_dir.to_s
         erb :"onboarding/vault", layout: :"layouts/onboarding"
       end
 

@@ -4,7 +4,7 @@
 # category_year_matrix). 폴더 구조 무관 시간 무관 탐색.
 
 RSpec.describe Sowing::Repositories::IndexRepo, "cross-year (30년 시나리오)" do
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:repo) { described_class.new }
 
   before do
@@ -164,7 +164,7 @@ RSpec.describe Sowing::Repositories::IndexRepo, "cross-year (30년 시나리오)
 
     it "카테고리 nil/빈 entry 제외" do
       # category 가 nil 인 entry 시드 — 매트릭스에서 제외
-      Sowing::Infrastructure::DB.connection[:entries].insert(
+      Sowing::Core::DB.connection[:entries].insert(
         id: "01NULL0000000000000000A1", mode: "record", path: "30_Records/2024/null.md",
         category: nil, title: "null cat",
         created_at: "2024-08-01T09:00:00+09:00", updated_at: "2024-08-01T09:00:00+09:00",

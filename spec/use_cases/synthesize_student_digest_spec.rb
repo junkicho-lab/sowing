@@ -8,7 +8,7 @@ require "yaml"
 
 RSpec.describe Sowing::UseCases::SynthesizeStudentDigest do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("synth-digest-spec-")) }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:fixed_now) { Time.new(2026, 5, 10, 14, 0, 0, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }
 
@@ -182,7 +182,7 @@ RSpec.describe Sowing::UseCases::SynthesizeStudentDigest do
       captured_actor = nil
       capturing_backend = Class.new(Sowing::Eval::Backends::Base) do
         define_method(:chat) do |system:, user:|
-          captured_actor = Sowing::Infrastructure::AuditLog.current_actor
+          captured_actor = Sowing::Core::AuditLog.current_actor
           "## 변화 요약\n테스트 응답"
         end
       end

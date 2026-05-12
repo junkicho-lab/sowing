@@ -3,7 +3,7 @@
 # 위키링크 그래프 인덱스 (W3-T02). links 테이블 + IndexRepo 자동 동기화.
 
 RSpec.describe Sowing::Repositories::IndexRepo, "위키링크 그래프" do
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:repo) { described_class.new }
   let(:created_at) { Time.new(2026, 5, 8, 9, 0, 0, "+09:00") }
 

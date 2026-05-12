@@ -7,7 +7,7 @@ RSpec.describe Sowing::UseCases::UpdateNote do
   let(:vault_dir) { Pathname.new(Dir.mktmpdir("update-note-spec-")) }
   let(:vault_repo) { Sowing::Repositories::VaultRepo.new(vault_dir: vault_dir) }
   let(:index_repo) { Sowing::Repositories::IndexRepo.new }
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:created_at) { Time.new(2026, 5, 1, 9, 0, 0, "+09:00") }
   let(:updated_at) { Time.new(2026, 5, 8, 14, 30, 0, "+09:00") }
   let(:clock) { class_double(Time, now: updated_at) }

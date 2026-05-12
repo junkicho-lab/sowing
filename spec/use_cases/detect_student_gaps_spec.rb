@@ -3,7 +3,7 @@
 require "time"
 
 RSpec.describe Sowing::UseCases::DetectStudentGaps do
-  let(:db) { Sowing::Infrastructure::DB.connection }
+  let(:db) { Sowing::Core::DB.connection }
   let(:fixed_now) { Time.new(2026, 5, 10, 12, 0, 0, "+09:00") }
   let(:clock) { class_double(Time, now: fixed_now) }
   subject(:use_case) { described_class.new(db: db, clock: clock) }
@@ -68,7 +68,7 @@ RSpec.describe Sowing::UseCases::DetectStudentGaps do
     end
 
     it "Settings.class_roster 자동 로드 (인자 없을 때)" do
-      Sowing::Infrastructure::Settings.update(class_roster: %w[A B C])
+      Sowing::Core::Settings.update(class_roster: %w[A B C])
       seed_entity(name: "A", last_seen_at: "2026-05-09T10:00:00+09:00")
 
       data = use_case.call.value!
@@ -76,7 +76,7 @@ RSpec.describe Sowing::UseCases::DetectStudentGaps do
       expect(data[:mentioned]).to contain_exactly("A")
       expect(data[:unmentioned]).to contain_exactly("B", "C")
     ensure
-      Sowing::Infrastructure::Settings.update(class_roster: [])
+      Sowing::Core::Settings.update(class_roster: [])
     end
 
     it "빈 명단 → Failure(:empty_roster)" do
@@ -86,7 +86,7 @@ RSpec.describe Sowing::UseCases::DetectStudentGaps do
     end
 
     it "Settings 도 명단 도 없으면 Failure(:empty_roster)" do
-      Sowing::Infrastructure::Settings.update(class_roster: [])
+      Sowing::Core::Settings.update(class_roster: [])
       expect(use_case.call.failure).to eq(:empty_roster)
     end
 

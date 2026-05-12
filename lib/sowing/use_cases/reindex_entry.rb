@@ -72,7 +72,7 @@ module Sowing
         existing = @index_repo.find_by_path(rel_path)
         return Success(:not_indexed) unless existing
         @index_repo.delete(existing.id)
-        Infrastructure::AuditLog.instance.append(
+        Core::AuditLog.instance.append(
           action: :delete,
           entry_id: existing.id,
           mode: existing.mode,

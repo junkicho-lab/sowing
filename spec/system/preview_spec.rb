@@ -6,8 +6,8 @@ require "fileutils"
 RSpec.describe "마크다운 라이브 프리뷰 (W2-T07)", type: :request do
   include Rack::Test::Methods
 
-  let(:db) { Sowing::Infrastructure::DB.connection }
-  let(:vault_dir) { Sowing::Infrastructure::Paths.vault_dir }
+  let(:db) { Sowing::Core::DB.connection }
+  let(:vault_dir) { Sowing::Core::Paths.vault_dir }
 
   def app
     Sowing::Application

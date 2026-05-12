@@ -11,7 +11,7 @@ RSpec.describe Sowing do
     expect(Sowing.env).to eq("test")
   end
 
-  describe Sowing::Infrastructure::Paths do
+  describe Sowing::Core::Paths do
     it "테스트 환경의 vault_dir 가 임시 디렉토리이다" do
       expect(described_class.vault_dir.to_s).to include("sowing-test-")
     end
