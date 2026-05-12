@@ -9,6 +9,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 (다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
 
+## [0.2.0] - 2026-05-12 — Phase R 모듈형 재구조화 (Bounded Context 4 layer)
+
+비전 D ("쓰기·정리·통찰·출력") 4 단계 와 1:1 대응하는 4 Bounded Context 모듈형 구조로
+전면 재구조화. 11 commits / 5 Stage (W33-W40) / 1912 spec / 0 failure / 0 arch 위반.
+
+### 🏗️ 새 4 Bounded Context 아키텍처 (ADR-019)
+
+```
+core ──→ capture ──→ knowledge ──→ insight ──→ output
+            (D.1)       (D.2)        (D.3)       (D.4)
+```
+
+각 BC 는 Façade (외부 API) + Domain (불변 객체) + Repo (영속화) 3 계층.
+`bin/sowing-arch-check --strict` 가 모든 commit 에서 의존 그래프 검증.
+
+### Stage 1 (W33) — Bounded Context 골격
+- `lib/sowing/{capture,knowledge,insight,output}.rb` Façade entry 파일
+- `bin/sowing-arch-check` 의존 그래프 검증 executable
+- `lib/sowing/infrastructure/` → `lib/sowing/core/` rename (13 파일, namespace 갱신)
+
+### Stage 2 (W34) — Capture Bounded Context
+- `Sowing::Capture::Item` 도메인 (옛 Memo 의 후신 + subject 4축, ADR-016)
+- `Capture::ItemRepo` 영속화 어댑터
+- `Sowing::Capture` Façade — `create_item / find / recent`
+- Strangler Fig — `POST /memos` → `Capture.create_item` 위임 (`UseCases::CreateMemo` 미경유)
+- **Migration 008** — entries.subject TEXT + CHECK ENUM (person/subject/document/identity)
+
+### Stage 3 (W35-36) — Knowledge Bounded Context
+- `Sowing::Knowledge::Record` (Note + Record 흡수 superset, ADR-015)
+  - source (Note 흡수) + category (자유 텍스트) + subject (4축) + promoted_from
+- `Sowing::Knowledge::Plan` (period 5종 + done 토글, 옛 Domain::Plan 의 후신)
+- `Knowledge::RecordRepo` + `Knowledge::PlanRepo` 영속화
+- `Sowing::Knowledge` Façade — `create_record / create_plan / find / recent_records / recent_plans`
+- **Migration 009** — entries.archived_at + archive_reason (ADR-017 Archive 메타)
+- `Knowledge.archive(id, reason:)` / `unarchive` / `archived` — 일상 회상 자동 제외
+- 부수 회귀 수정: `IndexRepo.validate_mode!` 에 `:plan` 누락 분 (migration 007 잔여)
+
+### Stage 4a (W37) — Insight Bounded Context
+- `Sowing::Insight::Synthesis` 통합 도메인 (18 type, status :pending 단일)
+- `Insight::SynthesisRepo` — `.sowing/synth/{type}/{slug}.md` 파일 영속화
+- `Sowing::Insight` Façade — `generate / pending / find / accept / reject`
+- `USE_CASE_DISPATCH` (18 type → 14 옛 `UseCases::Synthesize*` 매핑) — Strangler Fig
+- `accept` cross-BC: `Knowledge.create_record` 호출 (insight → knowledge 의존)
+
+### Stage 4b (W38-39) — Output Bounded Context (Markdown MVP)
+- `Sowing::Output::Template` ERB 단위 (stdlib only, 외부 gem 0)
+- `Output::TemplateRegistry` — user override `>` system default (게이트 #4 a)
+- 5 default ERB templates (`templates/exports/`):
+  - student_record (생기부) · consultation (상담부) · meeting_minutes (회의록)
+  - project_proposal (사업계획서) · budget_request (예산요구서)
+- `Sowing::Output.generate(type:, format:, write_to:, **locals)` Façade
+- PDF/DOCX 는 R4b-followup 으로 분리 (Prawn 한글 폰트 + caracal 별도 작업)
+
+### Stage 5 (W40) — Note 폐지 마이그레이션 + 본 릴리스
+- **Migration 010** — entries.mode='note' → 'record' 데이터 변환 (ADR-015)
+  - path 자동 재작성: `20_Notes/{cat}/x.md` → `30_Records/{YYYY}/{cat}/x.md`
+  - 멱등 — note 행 0 이면 no-op, 안전 재실행
+- **`rake vault:migrate_notes_to_records`** — 실제 파일 시스템 이동 task
+- 옛 `Domain::Note` / `UseCases::CreateNote` / `NotesController` 은 deprecated
+  (Phase 16 에서 코드 삭제 예정 — 본 릴리스에서는 호환성 유지)
+
+### ADR 추가 (5건)
+- ADR-015 Note 폐지 (Knowledge::Record 가 superset)
+- ADR-016 Subject 4축 (person / subject / document / identity)
+- ADR-017 Archive 메타 (영구 삭제 0, 일상 회상 제외)
+- ADR-018 Template-based Export 5종
+- ADR-019 4 Bounded Context 의존 그래프
+
+### Spec 추가 / 갱신
+- 1674 → 1912 examples (+238)
+- `spec/refactoring/stage_{1,2,3,4a,4b,5}_*_spec.rb` — Phase 별 통합 검증
+- `spec/{capture,knowledge,insight,output}/` — BC 단위 도메인 spec
+
+### 알려진 한계 (Phase 16 follow-up)
+- PDF / DOCX 출력 — Prawn 한글 + caracal 별도 task
+- `Domain::Note` 클래스 실제 삭제 — 호환성 유지 위해 본 릴리스에서는 보존
+- `Migration 011` (mode CHECK 에서 'note' 제거) — 코드 삭제와 동기화 후 진행
+- `UseCases::CreateMemo` 잔여 사용처 1건 (`MCP::Tools::CreateMemo`) — 별도 strangulation
+
 ## [0.1.8] - 2026-05-11 — Plan: 같은 날짜 여러 개 + 오전/오후 grouping (W32)
 
 사용자 피드백 반영. v0.1.7 의 "1 파일 1 plan overwrite" 모델을 폐기하고

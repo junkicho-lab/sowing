@@ -63,6 +63,55 @@ namespace :vault do
     puts "✅ 재인덱싱 완료 — unchanged #{summary.unchanged} / reindexed #{summary.reindexed} / added #{summary.added} / adopted #{summary.adopted} / removed #{summary.removed} / errors #{summary.errors.size}"
   end
 
+  desc "Phase R Stage 5 R5-T02 — 20_Notes/ 파일을 30_Records/{YYYY}/ 로 이동 (ADR-015)"
+  task :migrate_notes_to_records do
+    require "fileutils"
+    require "front_matter_parser"
+    Sowing.boot!
+    vault = Pathname.new(Sowing::Core::Paths.vault_dir.to_s)
+    notes_dir = vault.join("20_Notes")
+
+    unless notes_dir.exist?
+      puts "ℹ  #{notes_dir} 없음 — Note 가 없거나 이미 이동됨. 종료."
+      next
+    end
+
+    moved = 0
+    skipped = 0
+    Pathname.glob(notes_dir.join("**/*.md")).each do |old_path|
+      # frontmatter 의 created_at 으로 YYYY 추출 → 30_Records/{YYYY}/{category}/{file}.md
+      raw = old_path.read(encoding: "UTF-8")
+      parsed = FrontMatterParser::Parser.new(:md).call(raw)
+      fm = parsed.front_matter
+      year = (fm["created_at"] || "").to_s[0, 4]
+      next if year.empty?
+
+      # 옛 경로: 20_Notes/{category}/{file}.md → category 추출
+      rel = old_path.relative_path_from(notes_dir)
+      category = rel.dirname.to_s # 첫 디렉토리 (예: "lessons")
+      filename = rel.basename.to_s
+
+      new_path = vault.join("30_Records", year, category, filename)
+      if new_path.exist?
+        warn "⚠ 충돌 — #{new_path} 이미 존재. 스킵: #{old_path}"
+        skipped += 1
+        next
+      end
+
+      FileUtils.mkdir_p(new_path.dirname)
+      FileUtils.mv(old_path.to_s, new_path.to_s)
+      moved += 1
+    end
+
+    # 빈 카테고리 디렉토리 정리
+    Pathname.glob(notes_dir.join("**/")).sort.reverse_each do |d|
+      d.rmdir if d.directory? && d.children.empty?
+    end
+
+    puts "✅ Note → Record 파일 이동 완료 — 이동 #{moved}건 / 스킵 #{skipped}건"
+    puts "ℹ  DB 의 path 컬럼은 migration 010 (rake db:migrate) 에서 자동 갱신됨."
+  end
+
   desc "샘플 콘텐츠 12종 시드 (templates/samples/ → vault). 중복은 자동 스킵."
   task :seed do
     Sowing.boot!
