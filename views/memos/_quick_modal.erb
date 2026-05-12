@@ -87,6 +87,22 @@
       </div>
     </div>
 
+    <%# Phase 16 P16-T02 — Subject 4축 (ADR-016). 선택은 옵션.
+        person/subject/document/identity — 비전 D 의 "인물·교과·문서·정체성" 4 분류.
+        선택 시 entries.subject 컬럼에 ENUM 저장 → 검색·합성기 활용 가능. %>
+    <div class="quick-modal__subject" aria-label="4축 분류 (선택)">
+      <label class="quick-modal__subject-label">
+        <span class="quick-modal__subject-label-text">4축 분류:</span>
+        <select name="subject" class="quick-modal__subject-select">
+          <option value="">(없음)</option>
+          <option value="person">👤 인물 (학생·동료·학부모)</option>
+          <option value="subject">📚 교과 (수업·과목·단원)</option>
+          <option value="document">📄 문서 (계획서·보고서·자료)</option>
+          <option value="identity">🪞 정체성 (자기 성찰·교사 성장)</option>
+        </select>
+      </label>
+    </div>
+
     <textarea name="body"
               class="quick-modal__textarea"
               data-quick-memo-target="textarea"

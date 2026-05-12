@@ -1486,6 +1486,114 @@ pre code {
   font-size: 0.92em;
 }
 
+/* Phase 16 P16-T03 — Archive UI (ADR-017) */
+.note-show__archive-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.note-show__archive-reason {
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.9em;
+  min-width: 160px;
+}
+
+.archive-page__header {
+  margin-bottom: var(--space-3);
+}
+.archive-page__title {
+  color: var(--color-primary);
+}
+.archive-page__lead {
+  color: var(--color-text-muted);
+  max-width: 640px;
+}
+.archive-page__flash {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: var(--space-2);
+}
+.archive-page__empty {
+  text-align: center;
+  padding: var(--space-5) var(--space-3);
+  color: var(--color-text-muted);
+}
+.archive-page__empty-hint {
+  font-size: 0.92em;
+  max-width: 480px;
+  margin: var(--space-2) auto 0;
+}
+.archive-page__count {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.archive-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.archive-list__item {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface, #fafafa);
+}
+.archive-list__header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-bottom: 8px;
+}
+.archive-list__mode {
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+}
+.archive-list__title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.1em;
+}
+.archive-list__title a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.archive-list__title a:hover {
+  text-decoration: underline;
+}
+.archive-list__time {
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+}
+.archive-list__reason,
+.archive-list__meta {
+  margin: 4px 0;
+  font-size: 0.92em;
+}
+.archive-list__meta {
+  color: var(--color-text-muted);
+}
+.archive-list__actions {
+  margin-top: 8px;
+}
+.archive-list__unarchive {
+  font-size: 0.9em;
+  padding: 4px 12px;
+}
+
 /* Phase 16 P16-T01 — 내보내기 dropdown (details/summary native) */
 .note-show__export {
   position: relative;
@@ -1768,6 +1876,31 @@ pre code {
   flex-wrap: wrap;
   gap: 0.4em;
   padding: 0 var(--space-3) var(--space-2);
+}
+
+/* Phase 16 P16-T02 — Subject 4축 select (compact, optional) */
+.quick-modal__subject {
+  padding: 0 var(--space-3) var(--space-2);
+}
+.quick-modal__subject-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  font-size: 0.9em;
+}
+.quick-modal__subject-label-text {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.quick-modal__subject-select {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.95em;
+  font-family: inherit;
 }
 
 .quick-modal__chip {

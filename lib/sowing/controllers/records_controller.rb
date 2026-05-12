@@ -167,6 +167,38 @@ module Sowing
         erb :"records/show", layout: :"layouts/application"
       end
 
+      # Phase 16 P16-T03 — Archive UI (ADR-017). 영구 삭제 0 — 일상 회상 자동 제외만.
+      post "/records/:id/archive" do
+        record = find_record(params["id"])
+        halt_with_404(ERROR_MESSAGES[:not_found]) if record.nil?
+
+        reason = params["reason"].to_s.strip
+        reason = "졸업·이관" if reason.empty? # 기본 사유
+
+        if Sowing::Knowledge.archive(record.id, reason: reason)
+          session[:flash] = "기록을 보관함으로 이관했습니다 (사유: #{reason})"
+          redirect "/records"
+        else
+          halt 422, "보관 처리 실패"
+        end
+      end
+
+      post "/records/:id/unarchive" do
+        record_id = params["id"]
+        if Sowing::Knowledge.unarchive(record_id)
+          session[:flash] = "기록을 다시 일상 회상에 노출시켰습니다"
+        end
+        redirect "/archive"
+      end
+
+      # /archive — 보관된 entries 목록 (memo/record/plan 통합)
+      get "/archive" do
+        @page_title = "보관함 (Archive)"
+        @archived = Sowing::Knowledge.archived(limit: 100)
+        @flash = session.delete(:flash)
+        erb :"archive/index", layout: :"layouts/application"
+      end
+
       # Phase 16 P16-T01 — 기존 기록을 마크다운·PDF·DOCX 로 내보내기 (R4b-followup 활용).
       # 형식: GET /records/:id/export?format=markdown|pdf|docx
       # 응답: Content-Disposition: attachment; filename*=UTF-8''<encoded>

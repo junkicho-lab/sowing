@@ -95,17 +95,24 @@ module Sowing
       # UseCases::CreateMemo → Sowing::Capture.create_item Façade 로 위임.
       # Item 은 Memo 와 duck-type 호환 (id/body/created_at) — 템플릿 무수정.
       # CreateMemo Use Case 자체는 MCP::Tools::CreateMemo 가 아직 사용 (별도 strangulation).
+      #
+      # Phase 16 P16-T02 — subject 4축 (ADR-016) 옵셔널 수신.
+      # quick_modal 의 select 가 "" 또는 person/subject/document/identity 전달.
       post "/memos" do
         body = params["body"].to_s
+        subject_param = params["subject"].to_s
+        subject = subject_param.empty? ? nil : subject_param.to_sym
+
         begin
-          item = Sowing::Capture.create_item(body: body)
+          item = Sowing::Capture.create_item(body: body, subject: subject)
           content_type TURBO_STREAM_TYPE
           erb :"memos/created.turbo_stream", layout: false, locals: {memo: item}
-        rescue ArgumentError
-          # Façade 가 빈 body 거부 → 옛 Failure(:empty_body) 와 동일 UX
+        rescue ArgumentError => e
+          # 빈 body → :empty_body, 잘못된 subject → :invalid_subject
           status 422
           content_type TURBO_STREAM_TYPE
-          erb :"memos/error.turbo_stream", layout: false, locals: {failure: :empty_body}
+          failure = e.message.include?("subject") ? :invalid_subject : :empty_body
+          erb :"memos/error.turbo_stream", layout: false, locals: {failure: failure}
         end
       end
 

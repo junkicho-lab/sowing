@@ -33,6 +33,14 @@
     <a href="/records" class="button button--secondary">← 목록으로</a>
     <a href="/records/<%= h(@record.id) %>/edit" class="button button--primary">편집</a>
 
+    <%# Phase 16 P16-T03 — Archive 버튼 (ADR-017). 영구 삭제 0 — 일상 회상에서만 제외. %>
+    <form action="/records/<%= h(@record.id) %>/archive" method="post" class="note-show__archive-form"
+          onsubmit="return confirm('이 기록을 보관함으로 이관할까요?\\n(영구 삭제 0 — 보관함 페이지에서 다시 복원 가능)');">
+      <input type="text" name="reason" placeholder="보관 사유 (선택, 예: 졸업)"
+             class="note-show__archive-reason">
+      <button type="submit" class="button button--secondary" title="일상 회상에서 자동 제외 — 영구 삭제 0">📦 보관</button>
+    </form>
+
     <details class="note-show__export">
       <summary class="button button--secondary">📥 내보내기</summary>
       <div class="note-show__export-options" role="menu" aria-label="내보내기 형식">
