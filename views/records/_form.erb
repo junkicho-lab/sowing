@@ -17,22 +17,28 @@
            autocomplete="off">
   </div>
 
-  <div class="field">
-    <label for="record_category">카테고리 <span class="required">*</span></label>
-    <input type="text"
-           id="record_category"
-           name="category"
-           value="<%= h(form[:category]) %>"
-           list="record_categories_datalist"
-           placeholder="예: 학급운영, 수업철학, 연구"
-           required
-           autocomplete="off">
-    <datalist id="record_categories_datalist">
-      <% (categories || []).each do |c| %>
-        <option value="<%= h(c) %>">
+  <fieldset class="field record-form__category-group">
+    <legend>카테고리 <span class="required">*</span></legend>
+    <%# 2026-05-12 — 자유 텍스트 폐기, 4축 (ADR-016) 한국어 라벨 ENUM 로 제한.
+        기존 자유 텍스트 카테고리 entries 는 그대로 유지되나 새 entry 는 4축만. %>
+    <div class="record-form__category-options">
+      <% [[:person, "👤", "인물"], [:subject, "📚", "교과"],
+          [:document, "📄", "문서"], [:identity, "🪞", "정체성"]].each do |key, icon, label| %>
+        <label class="record-form__category-option">
+          <input type="radio" name="category" value="<%= h(label) %>"
+                 <%= form[:category] == label ? "checked" : "" %> required>
+          <span><%= icon %> <%= h(label) %></span>
+        </label>
       <% end %>
-    </datalist>
-  </div>
+    </div>
+    <% existing = form[:category] %>
+    <% if existing && !%w[인물 교과 문서 정체성].include?(existing) %>
+      <p class="record-form__category-hint">
+        ⚠ 기존 카테고리 "<%= h(existing) %>" 는 4축 분류 외 값입니다.
+        저장 시 4축 중 하나를 선택해주세요 (자유 텍스트 카테고리 폐기, 2026-05-12).
+      </p>
+    <% end %>
+  </fieldset>
 
   <div class="field">
     <label for="record_body">본문 <span class="required">*</span></label>

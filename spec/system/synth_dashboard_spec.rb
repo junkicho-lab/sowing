@@ -164,29 +164,31 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
   end
 
   describe "POST /synth/:type/:slug/accept — type별 category 매핑" do
-    it "reflections 수락 → category=학기회고" do
+    # 2026-05-12 — 4축 카테고리 ENUM (ADR-016) 로 일원화. 매핑은
+    # lib/sowing/controllers/synth_controller.rb 의 SYNTH_TYPES.
+    it "reflections 수락 → category=문서 (회고는 4축 중 문서)" do
       seed_synth("reflections", "2026-1", "synth_target" => "semester:2026-1")
       post "/synth/reflections/2026-1/accept"
       expect(last_response).to be_redirect
 
       year = Time.now.year
-      record_dir = vault_dir.join("30_Records", year.to_s, "학기회고")
+      record_dir = vault_dir.join("30_Records", year.to_s, "문서")
       expect(record_dir).to exist
       content = File.read(Dir.glob(record_dir.join("*.md")).first)
-      expect(content).to include("category: 학기회고")
+      expect(content).to include("category: 문서")
     end
 
-    it "patterns 수락 → category=수업기록" do
+    it "patterns 수락 → category=교과 (수업 패턴은 4축 중 교과)" do
       seed_synth("patterns", "lessons", "synth_target" => "patterns:lessons")
       post "/synth/patterns/lessons/accept"
       expect(last_response).to be_redirect
 
       year = Time.now.year
-      record_dir = vault_dir.join("30_Records", year.to_s, "수업기록")
+      record_dir = vault_dir.join("30_Records", year.to_s, "교과")
       expect(record_dir).to exist
     end
 
-    it "contradictions 수락 → category=학생기록 + audit :create + :synth_accept" do
+    it "contradictions 수락 → category=인물 + audit :create + :synth_accept" do
       seed_synth("contradictions", "observations", "synth_target" => "contradictions:observations")
       expect {
         post "/synth/contradictions/observations/accept"
@@ -353,13 +355,13 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
   end
 
   describe "consultations type 통합 — accept/reject" do
-    it "수락 → category=상담 (학생기록과 별도)" do
+    it "수락 → category=인물 (학생기록과 별도)" do
       seed_synth("consultations", "민준", "synth_target" => "consultation:민준")
       post "/synth/consultations/#{esc("민준")}/accept"
       expect(last_response).to be_redirect
 
       year = Time.now.year
-      record_dir = vault_dir.join("30_Records", year.to_s, "상담")
+      record_dir = vault_dir.join("30_Records", year.to_s, "인물")
       expect(record_dir).to exist
     end
 
@@ -386,12 +388,12 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
       expect(last_response.body).to include("/synth/assessments/__SLUG__/generate")
     end
 
-    it "수락 → category=평가기록" do
+    it "수락 → category=교과" do
       seed_synth("assessments", "민준", "synth_target" => "assessment:민준")
       post "/synth/assessments/#{esc("민준")}/accept"
       expect(last_response).to be_redirect
       year = Time.now.year
-      expect(vault_dir.join("30_Records", year.to_s, "평가기록")).to exist
+      expect(vault_dir.join("30_Records", year.to_s, "교과")).to exist
     end
 
     it "거절 → audit entry_id=synth:assessment:민준" do
@@ -439,13 +441,13 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
       expect(last_response.body).to include("/synth/trainings/__SLUG__/generate")
     end
 
-    it "수락 → category=연수기록" do
+    it "수락 → category=문서" do
       seed_synth("trainings", "01TRACCEPT00000000000000",
         "synth_target" => "training:01TRACCEPT00000000000000")
       post "/synth/trainings/01TRACCEPT00000000000000/accept"
       expect(last_response).to be_redirect
       year = Time.now.year
-      expect(vault_dir.join("30_Records", year.to_s, "연수기록")).to exist
+      expect(vault_dir.join("30_Records", year.to_s, "문서")).to exist
     end
 
     it "POST /synth/trainings/:slug/generate — 연수 노트 entry 존재 시" do
@@ -506,12 +508,12 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
       expect(last_response.body).to include('name="week_label"')
     end
 
-    it "수락 → category=주간회고" do
+    it "수락 → category=문서" do
       seed_synth("weekly", "2026-W19", "synth_target" => "week:2026-W19")
       post "/synth/weekly/2026-W19/accept"
       expect(last_response).to be_redirect
       year = Time.now.year
-      expect(vault_dir.join("30_Records", year.to_s, "주간회고")).to exist
+      expect(vault_dir.join("30_Records", year.to_s, "문서")).to exist
     end
 
     it "POST /synth/weekly/generate — 입력 entries 충분 시 생성 + audit" do
@@ -547,12 +549,12 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
       expect(last_response.body).to include("/synth/orphans/observations/generate")
     end
 
-    it "수락 → category=메모회고" do
+    it "수락 → category=문서" do
       seed_synth("orphans", "observations", "synth_target" => "orphans:observations")
       post "/synth/orphans/observations/accept"
       expect(last_response).to be_redirect
       year = Time.now.year
-      expect(vault_dir.join("30_Records", year.to_s, "메모회고")).to exist
+      expect(vault_dir.join("30_Records", year.to_s, "문서")).to exist
     end
 
     it "POST /synth/orphans/observations/generate — entries 0건 → 실패 flash" do
@@ -587,12 +589,12 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
       expect(last_response.body).to include("/synth/lesson-series/__SLUG__/generate")
     end
 
-    it "수락 → category=수업기록" do
+    it "수락 → category=교과" do
       seed_synth("lesson-series", "분수", "synth_target" => "series:분수")
       post "/synth/lesson-series/#{esc("분수")}/accept"
       expect(last_response).to be_redirect
       year = Time.now.year
-      expect(vault_dir.join("30_Records", year.to_s, "수업기록")).to exist
+      expect(vault_dir.join("30_Records", year.to_s, "교과")).to exist
     end
 
     it "POST generate — 키워드 매칭 entries 2건+ 시 생성" do
@@ -629,12 +631,12 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
       expect(last_response.body).to include("/synth/tag-clusters/topics/generate")
     end
 
-    it "수락 → category=주제정리" do
+    it "수락 → category=문서" do
       seed_synth("tag-clusters", "topics", "synth_target" => "clusters:topics")
       post "/synth/tag-clusters/topics/accept"
       expect(last_response).to be_redirect
       year = Time.now.year
-      expect(vault_dir.join("30_Records", year.to_s, "주제정리")).to exist
+      expect(vault_dir.join("30_Records", year.to_s, "문서")).to exist
     end
 
     it "POST generate — 빈 DB → 실패 flash" do
@@ -651,12 +653,12 @@ RSpec.describe "통합 /synth 대시보드 (W21-T04)", type: :request do
       expect(last_response.body).to include('action="/synth/seasonal/current/generate"')
     end
 
-    it "수락 → category=계절회고" do
+    it "수락 → category=교과" do
       seed_synth("seasonal", "05", "synth_target" => "season:05")
       post "/synth/seasonal/05/accept"
       expect(last_response).to be_redirect
       year = Time.now.year
-      expect(vault_dir.join("30_Records", year.to_s, "계절회고")).to exist
+      expect(vault_dir.join("30_Records", year.to_s, "교과")).to exist
     end
 
     it "POST /synth/seasonal/05/generate — 5월 entries 충분 시 생성" do

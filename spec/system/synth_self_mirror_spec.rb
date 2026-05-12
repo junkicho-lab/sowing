@@ -35,7 +35,7 @@ RSpec.describe "자기 거울 (5축) UI (Phase 13 W28-T01)", type: :request do
       expect(meta[:subdir]).to eq("self-mirror")
       expect(meta[:label]).to include("자기 거울")
       expect(meta[:icon]).to eq("🌅")
-      expect(meta[:accept_category]).to eq("회고")
+      expect(meta[:accept_category]).to eq("정체성")
     end
 
     it "전체 17 type" do

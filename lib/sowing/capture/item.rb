@@ -24,6 +24,19 @@ module Sowing
       # 자유 카테고리 (category 필드) 와 공존하지만, 4축은 ENUM 으로 일관 보장.
       SUBJECTS = %i[person subject document identity].freeze
 
+      # 4축 ENUM → 한국어 표시 라벨 (2026-05-12 추가).
+      # UI 칩 라벨·자동 태그·영구 기록 카테고리에 일관 사용.
+      SUBJECT_LABELS = {
+        person: "인물",
+        subject: "교과",
+        document: "문서",
+        identity: "정체성"
+      }.freeze
+
+      # 카테고리 자유 텍스트 허용에서 4축 한국어 라벨로 제한 (2026-05-12).
+      # Knowledge::Record 의 category 도 본 ENUM 만 사용.
+      CATEGORY_LABELS = SUBJECT_LABELS.values.freeze
+
       attr_reader :id, :body, :tags, :title, :template, :subject,
         :created_at, :updated_at
 

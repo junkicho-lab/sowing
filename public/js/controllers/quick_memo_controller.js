@@ -9,37 +9,37 @@ import { Controller } from "@hotwired/stimulus"
 // 2026-05-12 — 4축 분류 chip (ADR-016):
 //   ⚡ 일반 / 👤 인물 / 📚 교과 / 📄 문서 / 🪞 정체성
 //   chip 선택 시 hidden subject input 갱신 → POST /memos 가 subject ENUM 저장.
-//   (이전 5 subtype slot 시스템 — book/lecture/emotion/student — 폐기.)
+//   서버가 body 에 #4축명 태그 자동 부착 (lib/sowing/controllers/memos_controller.rb).
+
+// 4축 ENUM (ADR-016). "" 는 분류 없음 (일반).
+// Stimulus 가 static 필드를 특수 처리할 수 있어 모듈 상수로 분리 (안전한 패턴).
+const VALID_SUBJECTS = ["", "person", "subject", "document", "identity"]
+
+// 옛 subtype 명 → 새 4축 매핑 (북마크 호환: /write/book 등이 보낸 ?write=).
+const LEGACY_SUBTYPE_MAP = {
+  general: "",
+  book: "document",
+  lecture: "subject",
+  emotion: "identity",
+  student: "person"
+}
+
 export default class extends Controller {
   static targets = ["dialog", "textarea", "form", "error", "chip", "subjectInput",
                     "voice", "voiceBtn", "voiceLabel"]
-
-  // 4축 ENUM (ADR-016). "" 는 분류 없음 (일반).
-  static VALID_SUBJECTS = ["", "person", "subject", "document", "identity"]
-
-  // 옛 subtype 명 → 새 4축 매핑 (북마크 호환: /write/book 등이 보낸 ?write=).
-  static LEGACY_SUBTYPE_MAP = {
-    general: "",
-    book: "document",
-    lecture: "subject",
-    emotion: "identity",
-    student: "person"
-  }
 
   connect() {
     this._onGlobalKeydown = this._onGlobalKeydown.bind(this)
     document.addEventListener("keydown", this._onGlobalKeydown)
 
-    // W26-T02 — 음성 입력 (Web Speech API). 지원 시만 UI 표시.
     this._initVoiceRecognition()
 
     // /write/{type} 진입 시 ?write= query param 으로 모달 자동 열기 + chip prefill
     const params = new URLSearchParams(window.location.search)
     const writeType = params.get("write")
     if (writeType) {
-      // 옛 subtype 명을 새 4축으로 매핑 (북마크 호환)
-      const subject = this.constructor.LEGACY_SUBTYPE_MAP[writeType] ?? writeType
-      if (this.constructor.VALID_SUBJECTS.includes(subject)) {
+      const subject = LEGACY_SUBTYPE_MAP[writeType] ?? writeType
+      if (VALID_SUBJECTS.includes(subject)) {
         requestAnimationFrame(() => {
           this._activateSubject(subject)
           this.open()
@@ -58,9 +58,7 @@ export default class extends Controller {
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!Recognition) return
 
-    if (this.hasVoiceTarget) {
-      this.voiceTarget.hidden = false
-    }
+    if (this.hasVoiceTarget) this.voiceTarget.hidden = false
 
     this._recognition = new Recognition()
     this._recognition.lang = "ko-KR"
@@ -94,18 +92,12 @@ export default class extends Controller {
       this._setVoiceState(false)
     })
 
-    this._recognition.addEventListener("end", () => {
-      this._setVoiceState(false)
-    })
+    this._recognition.addEventListener("end", () => this._setVoiceState(false))
   }
 
   toggleVoice() {
     if (!this._recognition) return
-    if (this._voiceActive) {
-      this._stopVoice()
-    } else {
-      this._startVoice()
-    }
+    this._voiceActive ? this._stopVoice() : this._startVoice()
   }
 
   _startVoice() {
@@ -140,9 +132,7 @@ export default class extends Controller {
   }
 
   _showError(msg) {
-    if (this.hasErrorTarget) {
-      this.errorTarget.textContent = msg
-    }
+    if (this.hasErrorTarget) this.errorTarget.textContent = msg
   }
 
   _onGlobalKeydown(event) {
@@ -175,7 +165,7 @@ export default class extends Controller {
   }
 
   _activateSubject(subject) {
-    if (!this.constructor.VALID_SUBJECTS.includes(subject)) return
+    if (!VALID_SUBJECTS.includes(subject)) return
 
     this.chipTargets.forEach(chip => {
       const isActive = (chip.dataset.subject ?? "") === subject
@@ -207,8 +197,6 @@ export default class extends Controller {
   }
 
   _clearError() {
-    if (this.hasErrorTarget) {
-      this.errorTarget.textContent = ""
-    }
+    if (this.hasErrorTarget) this.errorTarget.textContent = ""
   }
 }

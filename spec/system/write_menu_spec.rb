@@ -100,9 +100,11 @@ RSpec.describe "글쓰기 메뉴 (Phase 16 nav cleanup)", type: :request do
       expect(body).to match(/name="body"[^>]+required/)
     end
 
-    it "카테고리 datalist 자동완성 노출" do
-      expect(body).to include('list="quick_record_category_list"')
-      expect(body).to include('<datalist id="quick_record_category_list">')
+    it "4축 radio button 카테고리 (2026-05-12 — datalist 폐기)" do
+      %w[인물 교과 문서 정체성].each do |label|
+        expect(body).to include(%(value="#{label}"))
+      end
+      expect(body).not_to include('id="quick_record_category_list"')
     end
   end
 
@@ -121,7 +123,7 @@ RSpec.describe "글쓰기 메뉴 (Phase 16 nav cleanup)", type: :request do
       post "/records",
         "title" => "1학기 1단원 정리",
         "body" => "내용",
-        "category" => "수업기록"
+        "category" => "교과"
       expect(last_response.status).to be_between(302, 303)
       expect(last_response.location).to match(%r{/records/\w+})
     end

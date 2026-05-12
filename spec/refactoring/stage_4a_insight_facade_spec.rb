@@ -110,17 +110,18 @@ RSpec.describe "Sowing::Insight Façade (Stage 4a)" do
       expect(record).to be_a(Sowing::Knowledge::Record)
       expect(record.title).to eq("학생 관찰: 김철수")
       expect(record.body).to include("적극적이었다")
-      expect(record.category).to eq("학생기록") # ACCEPT_CATEGORY[students]
+      # 2026-05-12 — ACCEPT_CATEGORY 가 4축 한국어 라벨로 일원화.
+      expect(record.category).to eq("인물") # students → 인물
       expect(synth_file).not_to exist
     end
 
-    it "self-mirror 도 교사성장 category 로 수락" do
+    it "self-mirror 도 4축 (정체성) category 로 수락" do
       write_synth(type: :"self-mirror", target: "self-mirror:daily-2026-05-12",
         title: "오늘의 거울", body: "본문",
         extras: {synth_period: "daily", synth_period_date: "2026-05-12"})
 
       record = Sowing::Insight.accept("self-mirror:daily-2026-05-12")
-      expect(record.category).to eq("교사성장")
+      expect(record.category).to eq("정체성")
     end
 
     it "없는 id 는 ArgumentError" do

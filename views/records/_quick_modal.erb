@@ -19,23 +19,19 @@
                placeholder="예: 1학기 1단원 정리">
       </label>
 
-      <label class="quick-record-form__field">
-        <span class="quick-record-form__label">카테고리 <em class="quick-record-form__required">*</em></span>
-        <input type="text" name="category" required autocomplete="off"
-               list="quick_record_category_list"
-               placeholder="예: 수업기록 / 학생기록 / 학교운영 / 교사성장">
-        <%# datalist 는 layout 진입 시점에 채울 수도 있으나, 빈 상태에서도 자유 입력 가능. %>
-        <datalist id="quick_record_category_list">
-          <option value="수업기록">
-          <option value="학생기록">
-          <option value="학교운영">
-          <option value="교사성장">
-          <option value="상담">
-          <option value="평가기록">
-          <option value="학기회고">
-          <option value="연수기록">
-        </datalist>
-      </label>
+      <fieldset class="quick-record-form__field quick-record-form__category-group">
+        <legend class="quick-record-form__label">카테고리 <em class="quick-record-form__required">*</em></legend>
+        <%# 2026-05-12 — 자유 텍스트 폐기, 4축 (ADR-016) 한국어 라벨 ENUM 로 제한. %>
+        <div class="quick-record-form__category-options">
+          <% [[:person, "👤", "인물"], [:subject, "📚", "교과"],
+              [:document, "📄", "문서"], [:identity, "🪞", "정체성"]].each do |key, icon, label| %>
+            <label class="quick-record-form__category-option">
+              <input type="radio" name="category" value="<%= h(label) %>" required>
+              <span><%= icon %> <%= h(label) %></span>
+            </label>
+          <% end %>
+        </div>
+      </fieldset>
 
       <label class="quick-record-form__field">
         <span class="quick-record-form__label">본문 <em class="quick-record-form__required">*</em></span>

@@ -34,112 +34,112 @@ module Sowing
           subdir: "students",
           label: "학생 디제스트",
           icon: "👤",
-          accept_category: "학생기록",
+          accept_category: "인물",
           target_prefix: "student:"
         },
         "reflections" => {
           subdir: "reflections",
           label: "학기 회고",
           icon: "📅",
-          accept_category: "학기회고",
+          accept_category: "문서",
           target_prefix: "semester:"
         },
         "patterns" => {
           subdir: "patterns",
           label: "수업 패턴 후보",
           icon: "🧩",
-          accept_category: "수업기록",
+          accept_category: "교과",
           target_prefix: "patterns:"
         },
         "contradictions" => {
           subdir: "contradictions",
           label: "학생 묘사 변화",
           icon: "🔄",
-          accept_category: "학생기록",
+          accept_category: "인물",
           target_prefix: "contradictions:"
         },
         "consultations" => {
           subdir: "consultations",
           label: "학부모 상담 준비",
           icon: "🤝",
-          accept_category: "상담",
+          accept_category: "인물",
           target_prefix: "consultation:"
         },
         "assessments" => {
           subdir: "assessments",
           label: "평가 추이",
           icon: "📊",
-          accept_category: "평가기록",
+          accept_category: "교과",
           target_prefix: "assessment:"
         },
         "trainings" => {
           subdir: "trainings",
           label: "연수 적용 추적",
           icon: "🎓",
-          accept_category: "연수기록",
+          accept_category: "문서",
           target_prefix: "training:"
         },
         "weekly" => {
           subdir: "weekly",
           label: "주간 회고",
           icon: "📆",
-          accept_category: "주간회고",
+          accept_category: "문서",
           target_prefix: "week:"
         },
         "orphans" => {
           subdir: "orphans",
           label: "고립 entries 관찰",
           icon: "🌊",
-          accept_category: "메모회고",
+          accept_category: "문서",
           target_prefix: "orphans:"
         },
         "lesson-series" => {
           subdir: "lesson-series",
           label: "수업 시리즈",
           icon: "🎒",
-          accept_category: "수업기록",
+          accept_category: "교과",
           target_prefix: "series:"
         },
         "tag-clusters" => {
           subdir: "tag-clusters",
           label: "태그 클러스터",
           icon: "🏷️",
-          accept_category: "주제정리",
+          accept_category: "문서",
           target_prefix: "clusters:"
         },
         "seasonal" => {
           subdir: "seasonal",
           label: "계절성 패턴",
           icon: "🍂",
-          accept_category: "계절회고",
+          accept_category: "교과",
           target_prefix: "season:"
         },
         "parent-patterns" => {
           subdir: "parent-patterns",
           label: "학부모 상담 패턴 (학급)",
           icon: "👨‍👩‍👧",
-          accept_category: "상담회고",
+          accept_category: "인물",
           target_prefix: "parent-patterns:"
         },
         "self-patterns" => {
           subdir: "self-patterns",
           label: "자기 회고 패턴",
           icon: "🪞",
-          accept_category: "자기회고",
+          accept_category: "정체성",
           target_prefix: "self-patterns:"
         },
         "learning-progress" => {
           subdir: "learning-progress",
           label: "학습 진척 추이",
           icon: "📈",
-          accept_category: "학습기록",
+          accept_category: "인물",
           target_prefix: "learning-progress:"
         },
         "event-causality" => {
           subdir: "event-causality",
           label: "사건 인과 추론",
           icon: "🎯",
-          accept_category: "분석회고",
+          accept_category: "정체성",
           target_prefix: "event-causality:"
         },
         # Phase 13 W28-T01 — 17번째 합성기. SelfPatterns(#10) 의 짧은 기간 변형:
@@ -149,7 +149,7 @@ module Sowing
           subdir: "self-mirror",
           label: "자기 거울 (5축)",
           icon: "🌅",
-          accept_category: "회고",
+          accept_category: "정체성",
           target_prefix: "self-mirror:"
         }
       }.freeze

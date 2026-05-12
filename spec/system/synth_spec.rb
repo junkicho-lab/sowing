@@ -106,15 +106,15 @@ RSpec.describe "합성 결과 검토 UI (W17-T04)", type: :request do
       # synth 원본 제거됨 (새 record 가 보존된 형태)
       expect(synth_dir.join("민준.md")).not_to exist
 
-      # 새 record 가 30_Records/{YYYY}/학생기록/ 에 생김
+      # 새 record 가 30_Records/{YYYY}/인물/ 에 생김
       year = Time.now.year
-      record_dir = vault_dir.join("30_Records", year.to_s, "학생기록")
+      record_dir = vault_dir.join("30_Records", year.to_s, "인물")
       expect(record_dir).to exist
       record_files = Dir.glob(record_dir.join("*.md"))
       expect(record_files.size).to eq(1)
       content = File.read(record_files.first)
       expect(content).to include("발표를 잘 했다") # 본문
-      expect(content).to include("category: 학생기록")
+      expect(content).to include("category: 인물")
 
       # audit: persist! 의 :create + 컨트롤러의 :synth_accept
       audit_lines = audit_log.read_all

@@ -54,16 +54,20 @@ RSpec.describe "기록 라우트", type: :request do
   describe "GET /records/new" do
     before { get "/records/new" }
 
-    it "폼에 5개 필드 (title, category, body, promoted_from, tags)" do
+    it "폼에 4 필드 (title, body, promoted_from, tags) + 4축 카테고리 radio" do
       expect(last_response).to be_ok
-      %w[record_title record_category record_body record_promoted_from record_tags].each do |id|
+      %w[record_title record_body record_promoted_from record_tags].each do |id|
         expect(last_response.body).to include(%(id="#{id}"))
+      end
+      # 카테고리는 radio (2026-05-12 — 자유 텍스트 폐기)
+      %w[인물 교과 문서 정체성].each do |label|
+        expect(last_response.body).to match(%r{<input type="radio" name="category" value="#{label}"})
       end
     end
 
-    it "category는 자유 텍스트 input + datalist" do
-      expect(last_response.body).to include('list="record_categories_datalist"')
-      expect(last_response.body).to include("<datalist")
+    it "category는 4축 radio button — 자유 텍스트 input·datalist 없음 (2026-05-12)" do
+      expect(last_response.body).not_to include('list="record_categories_datalist"')
+      expect(last_response.body).not_to include('id="record_category"')
     end
   end
 
@@ -146,7 +150,8 @@ RSpec.describe "기록 라우트", type: :request do
       get "/records/#{id}/edit"
       expect(last_response).to be_ok
       expect(last_response.body).to include('value="5월 학급운영 회고"')
-      expect(last_response.body).to include('value="학급운영"')
+      # 옛 자유 텍스트 카테고리 "학급운영" 은 4축 radio 에 없으므로 hint 노출
+      expect(last_response.body).to include("기존 카테고리 \"학급운영\"")
       expect(last_response.body).to include('name="_method" value="patch"')
     end
 
@@ -200,10 +205,13 @@ RSpec.describe "기록 라우트", type: :request do
       expect(last_response.body).to include(">수업철학<")
     end
 
-    it "new 폼의 datalist에 사용된 카테고리가 채워진다" do
+    it "new 폼 — 4축 radio 만 노출 (2026-05-12 — datalist 폐기)" do
       get "/records/new"
-      expect(last_response.body).to include('<option value="학급운영">')
-      expect(last_response.body).to include('<option value="수업철학">')
+      expect(last_response.body).not_to include('<option value="학급운영">')
+      expect(last_response.body).not_to include('<option value="수업철학">')
+      %w[인물 교과 문서 정체성].each do |label|
+        expect(last_response.body).to include(%(value="#{label}"))
+      end
     end
   end
 

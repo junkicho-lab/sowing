@@ -1877,6 +1877,63 @@ pre code {
 }
 .quick-modal__error:empty { display: none; }
 
+/* 2026-05-12 — 4축 카테고리 라디오 그룹 (Record 폼 + 빠른 기록 모달 공용) */
+.record-form__category-group,
+.quick-record-form__category-group {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: var(--space-2);
+}
+.record-form__category-group legend,
+.quick-record-form__category-group legend {
+  padding: 0 8px;
+  font-size: 0.92em;
+  color: var(--color-text-muted);
+}
+.record-form__category-options,
+.quick-record-form__category-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.record-form__category-option,
+.quick-record-form__category-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--color-bg);
+  transition: all 0.12s;
+}
+.record-form__category-option:hover,
+.quick-record-form__category-option:hover {
+  border-color: var(--color-primary);
+}
+.record-form__category-option input[type="radio"]:checked + span,
+.quick-record-form__category-option input[type="radio"]:checked + span {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+.record-form__category-option:has(input:checked),
+.quick-record-form__category-option:has(input:checked) {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: var(--color-primary);
+}
+.record-form__category-hint {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fef3c7;
+  border-radius: 4px;
+  font-size: 0.88em;
+  color: #92400e;
+}
+@media (prefers-color-scheme: dark) {
+  .record-form__category-hint { background: #78350f; color: #fef3c7; }
+}
+
 /* Phase 16+ — 빠른 기록 모달 (Record 작성) */
 .quick-modal--record {
   max-width: 600px;

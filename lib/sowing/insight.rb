@@ -47,26 +47,31 @@ module Sowing
       "self-mirror" => :SynthesizeSelfMirror
     }.freeze
 
-    # type → 수락 시 Knowledge::Record 의 category 매핑 (옛 SynthController.SYNTH_TYPES).
+    # type → 수락 시 Knowledge::Record 의 category 매핑 (4축, ADR-016).
+    # 2026-05-12 — 자유 텍스트 폐기, 18 synth type 을 4축 한국어 라벨로 일관 매핑.
+    #   인물: 학생·관계·상담·학부모 관련 합성기
+    #   교과: 수업·평가·단원 관련 합성기
+    #   문서: 회고·정리·기록 관련 합성기
+    #   정체성: 자기 성찰·교사 성장 관련 합성기
     ACCEPT_CATEGORY = {
-      "students" => "학생기록",
-      "lessons" => "수업기록",
-      "reflections" => "학기회고",
-      "patterns" => "수업기록",
-      "contradictions" => "학생기록",
-      "consultations" => "상담",
-      "assessments" => "평가기록",
-      "trainings" => "연수기록",
-      "weekly" => "주간회고",
-      "orphans" => "메모정리",
-      "lesson-series" => "수업기록",
-      "tag-clusters" => "메모정리",
-      "seasonal" => "학교운영",
-      "parent-patterns" => "상담",
-      "self-patterns" => "교사성장",
-      "learning-progress" => "학생기록",
-      "event-causality" => "교사성장",
-      "self-mirror" => "교사성장"
+      "students" => "인물",
+      "contradictions" => "인물",
+      "consultations" => "인물",
+      "parent-patterns" => "인물",
+      "learning-progress" => "인물",
+      "lessons" => "교과",
+      "patterns" => "교과",
+      "assessments" => "교과",
+      "lesson-series" => "교과",
+      "seasonal" => "교과",
+      "reflections" => "문서",
+      "weekly" => "문서",
+      "orphans" => "문서",
+      "tag-clusters" => "문서",
+      "trainings" => "문서",
+      "self-patterns" => "정체성",
+      "event-causality" => "정체성",
+      "self-mirror" => "정체성"
     }.freeze
 
     # 합성 use case 가 Failure 를 반환할 때 raise.

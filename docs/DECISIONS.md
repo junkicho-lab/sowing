@@ -591,7 +591,7 @@ v0.2.0 부터 3 명사 mode (`Capture::Item` + `Knowledge::Record` +
 
 ## ADR-016: Subject 4축 제약 분류 도입
 
-**상태**: Accepted (2026-05-12)
+**상태**: Accepted (2026-05-12) — **갱신 (2026-05-12 후속)**: 자유 카테고리 폐기.
 
 **컨텍스트**
 
@@ -605,8 +605,22 @@ v0.1.8 은 자유 카테고리만 (사용자 정의 문자열, 예: 'lessons'·'
 모든 entry (Memo·Record·Plan·Synth) 에 `subject` 메타데이터 추가.
 4 enum 값 (`person · subject · document · identity`) 으로 제약.
 
-자유 카테고리 (소분류) 는 그대로 유지 — `subject` 는 상위 4축, `category`
-는 하위 자유 분류. 두 축 공존.
+**갱신 (2026-05-12 후속)**:
+원래 `subject` (4축) 와 `category` (자유 텍스트) 의 2 축 모델이었으나,
+사용자 요청으로 `category` 도 4축 한국어 라벨 (`인물 · 교과 · 문서 · 정체성`)
+**ENUM** 으로 제한. 자유 텍스트 카테고리 폐기 — 모든 분류가 4축으로 일원화.
+
+ENUM ↔ 한국어 라벨 매핑 (`Sowing::Capture::Item::SUBJECT_LABELS`):
+- `person` ↔ 인물 (학생·동료·학부모)
+- `subject` ↔ 교과 (수업·과목·단원)
+- `document` ↔ 문서 (계획서·보고서·자료)
+- `identity` ↔ 정체성 (자기 성찰·교사 성장)
+
+UI 동작 (2026-05-12 갱신):
+- 빠른 메모 모달: 5 chip (⚡일반 + 4축) — subject ENUM hidden input.
+  chip 선택 시 서버가 body 끝에 `#인물`/`#교과`/`#문서`/`#정체성` 자동 태그.
+- 빠른 기록 모달 + /records/new: 4 radio button — category Korean ENUM.
+- Insight `ACCEPT_CATEGORY` (18 type → 4축 매핑): 자유 텍스트 폐기.
 
 **근거**
 

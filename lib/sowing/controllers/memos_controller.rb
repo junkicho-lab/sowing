@@ -97,18 +97,30 @@ module Sowing
       # CreateMemo Use Case 자체는 MCP::Tools::CreateMemo 가 아직 사용 (별도 strangulation).
       #
       # Phase 16 P16-T02 — subject 4축 (ADR-016) 옵셔널 수신.
-      # quick_modal 의 select 가 "" 또는 person/subject/document/identity 전달.
+      # quick_modal 의 chip 이 hidden subject input 으로 person/subject/document/identity 전달.
+      #
+      # 2026-05-12 — chip 선택 시 body 끝에 #4축한국어라벨 자동 부착.
+      # 예: subject=person → body 끝에 "\n\n#인물" 추가. 검색·시각 인지 보조.
       post "/memos" do
-        body = params["body"].to_s
+        raw_body = params["body"].to_s
         subject_param = params["subject"].to_s
         subject = subject_param.empty? ? nil : subject_param.to_sym
+
+        # 4축 한국어 라벨 자동 태그 (사용자 입력 body 변경 — 의도된 mutation).
+        body = if subject && Sowing::Capture::Item::SUBJECT_LABELS.key?(subject)
+          label = Sowing::Capture::Item::SUBJECT_LABELS[subject]
+          tag = "##{label}"
+          # 이미 같은 태그가 있으면 중복 부착 회피 (재제출·voice 등에서 빈번).
+          raw_body.include?(tag) ? raw_body : "#{raw_body.rstrip}\n\n#{tag}"
+        else
+          raw_body
+        end
 
         begin
           item = Sowing::Capture.create_item(body: body, subject: subject)
           content_type TURBO_STREAM_TYPE
           erb :"memos/created.turbo_stream", layout: false, locals: {memo: item}
         rescue ArgumentError => e
-          # 빈 body → :empty_body, 잘못된 subject → :invalid_subject
           status 422
           content_type TURBO_STREAM_TYPE
           failure = e.message.include?("subject") ? :invalid_subject : :empty_body
