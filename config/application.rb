@@ -17,6 +17,10 @@ JSON::Validator.use_multi_json = false
 
 # Sowing 모듈 진입점
 module Sowing
+  # 코드가 기대하는 최신 마이그레이션 번호. 새 마이그레이션 추가 시 함께 갱신.
+  # boot_db! 가 production DB 의 schema_info.version 과 비교 → 미달이면 STDERR 경고.
+  EXPECTED_DB_VERSION = 10
+
   class << self
     attr_accessor :loader, :env, :logger, :sync_coordinator
 
@@ -83,6 +87,31 @@ module Sowing
     def boot_db!
       boot_paths!
       Sowing::Core::DB.connect!
+      verify_db_version!
+    end
+
+    # DB schema_info.version 이 EXPECTED_DB_VERSION 보다 낮으면 명시적 경고.
+    # raise 까지는 하지 않음 — 부팅 자체는 통과시키되 사용자가 알아채도록.
+    # 테스트 환경은 spec_helper.rb 가 매번 migrate 하므로 스킵.
+    def verify_db_version!
+      return if @env == "test"
+
+      db = Sowing::Core::DB.connection
+      return unless db.tables.include?(:schema_info)
+
+      current = db[:schema_info].get(:version).to_i
+      return if current >= EXPECTED_DB_VERSION
+
+      msg = <<~MSG
+        ⚠  DB 마이그레이션 누락 — 현재 schema #{current}, 코드 기대 #{EXPECTED_DB_VERSION}.
+            새 컬럼·테이블 조회 시 "no such column" 오류 발생 가능.
+            복구: bundle exec rake db:migrate
+      MSG
+      warn msg
+      Sowing.logger&.warn(msg) if Sowing.respond_to?(:logger)
+    rescue Sequel::DatabaseError => e
+      # 부팅 차단 회피 — 진단만.
+      warn "⚠  DB 버전 확인 실패: #{e.message}"
     end
 
     def root

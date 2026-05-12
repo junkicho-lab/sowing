@@ -42,15 +42,15 @@ end
 
 # 2. 경로
 puts "\n[경로]"
-puts "  데이터 디렉토리: #{Sowing::Infrastructure::Paths.data_dir}"
-puts "  볼트:           #{Sowing::Infrastructure::Paths.vault_dir}"
-puts "  DB:             #{Sowing::Infrastructure::Paths.db_path}"
+puts "  데이터 디렉토리: #{Sowing::Core::Paths.data_dir}"
+puts "  볼트:           #{Sowing::Core::Paths.vault_dir}"
+puts "  DB:             #{Sowing::Core::Paths.db_path}"
 
 # 3. 디렉토리 존재 + 쓰기 권한 + 디스크 여유
 puts "\n[디렉토리 상태]"
 [
-  ["데이터", Sowing::Infrastructure::Paths.data_dir.to_s],
-  ["볼트", Sowing::Infrastructure::Paths.vault_dir.to_s]
+  ["데이터", Sowing::Core::Paths.data_dir.to_s],
+  ["볼트", Sowing::Core::Paths.vault_dir.to_s]
 ].each do |label, path|
   if File.directory?(path)
     if File.writable?(path)
@@ -82,15 +82,61 @@ end
 # 4. DB 연결 + 인덱스 통계
 puts "\n[DB / 인덱스]"
 begin
-  db = Sowing::Infrastructure::DB.connection
+  db = Sowing::Core::DB.connection
   tables = db.tables
   puts "  ✅ 연결 성공 (테이블 #{tables.size}개: #{tables.sort.join(", ")})"
+
+  # Phase R 마이그레이션 버전 확인 (008/009/010 누락이 흔한 오류 원인).
+  if tables.include?(:schema_info)
+    current_version = db[:schema_info].get(:version).to_i
+    expected_version = Sowing::EXPECTED_DB_VERSION
+    if current_version >= expected_version
+      puts "  ✅ schema_info: version #{current_version} (코드 기대 #{expected_version})"
+    else
+      puts "  ❌ schema_info: version #{current_version} < 코드 기대 #{expected_version}"
+      puts "     누락된 마이그레이션 → bundle exec rake db:migrate"
+      issues << "DB 마이그레이션 버전 미달 (#{current_version} < #{expected_version})"
+    end
+  end
 
   if tables.include?(:entries)
     total = db[:entries].count
     by_mode = db[:entries].group_and_count(:mode).all
     puts "  entries 총 #{total}건"
     by_mode.each { |row| puts "    · #{row[:mode]}: #{row[:count]}건" } unless by_mode.empty?
+
+    # Phase R 신규 컬럼 존재 검증.
+    entries_cols = db.schema(:entries).map(&:first)
+    required_phase_r_cols = {
+      subject: "ADR-016 4축 (migration 008)",
+      archived_at: "ADR-017 Archive (migration 009)",
+      archive_reason: "ADR-017 Archive (migration 009)"
+    }
+    missing_cols = required_phase_r_cols.reject { |col, _| entries_cols.include?(col) }
+    if missing_cols.empty?
+      puts "  ✅ Phase R 컬럼 (subject/archived_at/archive_reason) 모두 존재"
+    else
+      missing_cols.each do |col, desc|
+        puts "  ❌ entries.#{col} 누락 — #{desc}"
+        issues << "entries.#{col} 컬럼 누락"
+      end
+      puts "     → bundle exec rake db:migrate"
+    end
+
+    # subject 4축 분포 (ADR-016).
+    if entries_cols.include?(:subject)
+      subj_dist = db[:entries].exclude(subject: nil).group_and_count(:subject).all
+      if subj_dist.any?
+        puts "  subject 4축 분포:"
+        subj_dist.each { |row| puts "    · #{row[:subject]}: #{row[:count]}건" }
+      end
+    end
+
+    # archived entry 수 (ADR-017).
+    if entries_cols.include?(:archived_at)
+      archived_count = db[:entries].exclude(archived_at: nil).count
+      puts "  📦 보관된 entries: #{archived_count}건" if archived_count > 0
+    end
   else
     puts "  ⚠  entries 테이블 없음 — bundle exec rake db:setup 필요"
   end
@@ -187,7 +233,7 @@ end
 
 # 6. 볼트 무결성 (Phase 2에서 강화)
 puts "\n[볼트 무결성]"
-vault = Sowing::Infrastructure::Paths.vault_dir
+vault = Sowing::Core::Paths.vault_dir
 md_count = Dir.glob(File.join(vault, "**/*.md")).size
 puts "  마크다운 파일 수: #{md_count}"
 
@@ -268,7 +314,7 @@ end
 # 10. 템플릿 (W6)
 puts "\n[템플릿]"
 begin
-  template_repo = Sowing::Repositories::TemplateRepo.new(vault_dir: Sowing::Infrastructure::Paths.vault_dir)
+  template_repo = Sowing::Repositories::TemplateRepo.new(vault_dir: Sowing::Core::Paths.vault_dir)
   templates = template_repo.list
   by_source = templates.group_by(&:source).transform_values(&:size)
   puts "  총 #{templates.size}개 (시스템 #{by_source[:system] || 0} + 사용자 #{by_source[:user] || 0})"
@@ -282,7 +328,7 @@ end
 # 11. 온보딩 / 학습 (W7)
 puts "\n[온보딩 / 학습]"
 begin
-  user_settings = Sowing::Infrastructure::Settings.load
+  user_settings = Sowing::Core::Settings.load
   if user_settings["onboarding_completed"]
     completed_at = user_settings["completed_at"]&.slice(0, 10) || "?"
     name = user_settings["user_name"] || "(미설정)"
@@ -343,7 +389,7 @@ begin
     end
   end
 
-  audit_path = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/audit.log")
+  audit_path = Sowing::Core::Paths.vault_dir.join(".sowing/audit.log")
   if audit_path.exist?
     line_count = audit_path.each_line.count
     actors = audit_path.each_line
@@ -414,7 +460,7 @@ end
 # 15. Tier-1 LLM 합성 (Phase 11)
 puts "\n[Tier-1 LLM 합성 (Phase 11)]"
 begin
-  db = Sowing::Infrastructure::DB.connection
+  db = Sowing::Core::DB.connection
 
   # entities 테이블 (W17-T01)
   if db.table_exists?(:entities) && db.table_exists?(:entity_mentions)
@@ -446,7 +492,7 @@ begin
   end
 
   # 합성 디렉토리 (.sowing/synth/students/) 상태
-  synth_dir = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/synth/students")
+  synth_dir = Sowing::Core::Paths.vault_dir.join(".sowing/synth/students")
   if synth_dir.exist?
     pending = Dir.glob(synth_dir.join("*.md")).size
     puts "  검토 대기 중인 합성 디제스트: #{pending}건 (`/synth` 에서 확인)"
@@ -455,7 +501,7 @@ begin
   end
 
   # 학급 명단 (W17-T03 GapDetector 입력)
-  roster = Sowing::Infrastructure::Settings.load["class_roster"]
+  roster = Sowing::Core::Settings.load["class_roster"]
   if roster.is_a?(Array) && !roster.empty?
     puts "  ✅ class_roster #{roster.size}명 — 대시보드 gap-card 활성"
   else
@@ -463,7 +509,7 @@ begin
   end
 
   # audit synth_* 액션 확인 (Phase 12 fine-tuning preference 데이터)
-  audit_path = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/audit.log")
+  audit_path = Sowing::Core::Paths.vault_dir.join(".sowing/audit.log")
   if audit_path.exist?
     synth_actions = audit_path.each_line
       .lazy
@@ -514,7 +560,7 @@ begin
   end
 
   # 합성 디렉토리 16종 카운트 (Phase 12 4종 + 확장 #1~#12)
-  synth_root = Sowing::Infrastructure::Paths.vault_dir.join(".sowing/synth")
+  synth_root = Sowing::Core::Paths.vault_dir.join(".sowing/synth")
   %w[students reflections patterns contradictions consultations assessments trainings weekly orphans lesson-series tag-clusters seasonal parent-patterns self-patterns learning-progress event-causality].each do |t|
     dir = synth_root.join(t)
     count = dir.exist? ? Dir.glob(dir.join("*.md")).size : 0

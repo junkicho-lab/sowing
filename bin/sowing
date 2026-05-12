@@ -32,7 +32,7 @@ when "memo"
   require_relative "../config/application"
   result = Sowing::UseCases::CreateMemo.new(
     vault_repo: Sowing::Repositories::VaultRepo.new(
-      vault_dir: Sowing::Infrastructure::Paths.vault_dir
+      vault_dir: Sowing::Core::Paths.vault_dir
     ),
     index_repo: Sowing::Repositories::IndexRepo.new
   ).call(body: body)
