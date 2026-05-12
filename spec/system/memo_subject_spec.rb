@@ -21,21 +21,29 @@ RSpec.describe "Memo Subject Picker (Phase 16 P16-T02)", type: :request do
     FileUtils.rm_rf(Sowing::Core::Paths.vault_dir.join("00_Inbox"))
   end
 
-  describe "GET / 의 quick_modal 에 subject select 존재" do
+  # 2026-05-12 — Subject 4축은 이제 chip (data-subject) 으로 입력됨.
+  # 옛 <select name="subject"> dropdown 은 제거됨. POST /memos 가 hidden subject
+  # input 으로 ENUM 수신.
+  describe "GET / 의 quick_modal — 4축 chip" do
     before { get "/" }
 
-    it "subject name 의 select element 노출" do
-      expect(last_response.body).to include('name="subject"')
-      expect(last_response.body).to include("4축 분류")
+    it "hidden subject input (chip 으로 갱신) 노출" do
+      expect(last_response.body).to match(%r{<input type="hidden" name="subject"})
+      expect(last_response.body).to include('data-quick-memo-target="subjectInput"')
     end
 
-    it "4 옵션 + (없음) 모두 노출" do
+    it "4 chip + 일반 chip 모두 노출 (4축 분류)" do
       body = last_response.body
-      expect(body).to include('value="person"')
-      expect(body).to include('value="subject"')
-      expect(body).to include('value="document"')
-      expect(body).to include('value="identity"')
-      expect(body).to include('value=""') # (없음)
+      expect(body).to include("4축 분류")
+      expect(body).to include('data-subject="person"')
+      expect(body).to include('data-subject="subject"')
+      expect(body).to include('data-subject="document"')
+      expect(body).to include('data-subject="identity"')
+      expect(body).to include('data-subject=""') # 일반
+    end
+
+    it "옛 <select> dropdown 미노출" do
+      expect(last_response.body).not_to include('class="quick-modal__subject-select"')
     end
   end
 

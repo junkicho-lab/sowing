@@ -2,13 +2,14 @@
 
 require "rack/test"
 
-# Phase 13 W26-T01 — 글쓰기 subtype 5종 (일반·책·강의·감정·학생).
-# 도메인·use case·DB 변경 0 — client-side JS 가 body 결합. 본 spec 은:
-#   1. /write/{subtype} 라우트 redirect + query param 보존
-#   2. 모달 HTML 에 chip 5개 + slot field 4종 + 감정 18종 chip
-#   3. nav 의 글쓰기 dropdown 에 subtype 진입점 4개
-#   4. 서버 측 POST /memos 는 일반 메모와 동일 — 회귀 0
-RSpec.describe "글쓰기 subtype (Phase 13 W26-T01)", type: :request do
+# Phase 13 W26-T01 의 5 subtype slot 시스템 (책·강의·감정·학생) 은 2026-05-12 에
+# 4축 분류 chip (ADR-016 — 인물·교과·문서·정체성) 으로 교체되었음.
+# 본 spec 은:
+#   1. /write/{subtype} 라우트는 옛 북마크 호환용으로 살아있음
+#   2. 모달 HTML 에 새 4축 chip 5개 (일반 + 4축)
+#   3. 옛 slot field (book/lecture/emotion/student) 미노출 — 회귀 방지
+#   4. POST /memos 는 subject ENUM 수신 (일반 = 미지정)
+RSpec.describe "빠른 메모 모달 — 4축 chip (ADR-016, 2026-05-12)", type: :request do
   include Rack::Test::Methods
 
   def app
@@ -39,52 +40,44 @@ RSpec.describe "글쓰기 subtype (Phase 13 W26-T01)", type: :request do
     end
   end
 
-  describe "빠른 메모 모달 — chip 5개 + slot field 4종" do
-    it "5 subtype chip 모두 표시" do
+  describe "빠른 메모 모달 — 4축 chip 5개 (일반 + 인물/교과/문서/정체성)" do
+    it "5 chip (일반 + 4축) 모두 표시" do
       get "/"
-      %w[general book lecture emotion student].each do |subtype|
-        expect(last_response.body).to match(%r{data-subtype="#{subtype}"})
+      ["", "person", "subject", "document", "identity"].each do |subj|
+        expect(last_response.body).to match(%r{data-subject="#{subj}"})
       end
     end
 
-    it "각 chip 라벨 표시 (일반·책·강의·감정·학생)" do
+    it "각 chip 라벨 표시 (일반·인물·교과·문서·정체성)" do
       get "/"
-      ["⚡ 일반", "📖 책", "🎤 강의", "💭 감정", "👤 학생"].each do |label|
+      ["⚡ 일반", "👤 인물", "📚 교과", "📄 문서", "🪞 정체성"].each do |label|
         expect(last_response.body).to include(label)
       end
     end
 
-    it "slot field 4종 (book/lecture/emotion/student)" do
+    it "hidden subject input 노출 (chip 으로 갱신)" do
       get "/"
-      %w[book lecture emotion student].each do |subtype|
-        expect(last_response.body).to match(%r{data-subtype-slot="#{subtype}"})
+      expect(last_response.body).to match(%r{<input type="hidden" name="subject"})
+      expect(last_response.body).to include('data-quick-memo-target="subjectInput"')
+    end
+
+    it "옛 slot field (book/lecture/emotion/student) 미노출 — 회귀 방지" do
+      get "/"
+      %w[book_title book_page lecture_speaker lecture_topic student_name].each do |slot|
+        expect(last_response.body).not_to include(%(data-slot-key="#{slot}"))
       end
     end
 
-    it "책 slot — book_title + book_page" do
+    it "옛 감정 chip 18종 미노출" do
       get "/"
-      expect(last_response.body).to include('data-slot-key="book_title"')
-      expect(last_response.body).to include('data-slot-key="book_page"')
+      expect(last_response.body).not_to include('data-emotion="설렘"')
+      expect(last_response.body).not_to include('data-emotion="기쁨"')
     end
 
-    it "강의 slot — lecture_speaker + lecture_topic" do
+    it "옛 4축 분류 <select> dropdown 미노출 — chip 으로 교체됨" do
       get "/"
-      expect(last_response.body).to include('data-slot-key="lecture_speaker"')
-      expect(last_response.body).to include('data-slot-key="lecture_topic"')
-    end
-
-    it "감정 slot — 18종 chip + hidden input" do
-      get "/"
-      expect(last_response.body).to include('data-slot-key="emotion"')
-      # 18종 중 대표 8개 검증
-      %w[설렘 기쁨 보람 답답 좌절 슬픔 그리움 기대].each do |emo|
-        expect(last_response.body).to include(%(data-emotion="#{emo}"))
-      end
-    end
-
-    it "학생 slot — student_name" do
-      get "/"
-      expect(last_response.body).to include('data-slot-key="student_name"')
+      expect(last_response.body).not_to include('class="quick-modal__subject-select"')
+      expect(last_response.body).not_to include('class="quick-modal__subject-label"')
     end
   end
 
