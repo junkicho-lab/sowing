@@ -29,7 +29,13 @@
     </form>
 
     <% if @auto_summary %>
-      <% if @auto_summary[:count].positive? %>
+      <% if @auto_summary[:source] == :digest %>
+        <p class="generate-form__auto-result generate-form__auto-result--digest">
+          ✨ <strong><%= h(@auto_summary[:student]) %></strong> 의 학생 디제스트 (Insight 합성) 사용 —
+          <%= h(@auto_summary[:digest_synth_at].strftime("%Y-%m-%d")) %> 합성 ·
+          원본 <%= @auto_summary[:digest_source_count] %>건 기반
+        </p>
+      <% elsif @auto_summary[:count].positive? %>
         <p class="generate-form__auto-result generate-form__auto-result--ok">
           ✅ <strong><%= h(@auto_summary[:student]) %></strong> 관련 entry
           <strong><%= @auto_summary[:count] %>건</strong> 발견 —
@@ -41,6 +47,29 @@
           이름을 다르게 적었거나 (예: "철수" vs "김철수") 아직 기록이 누적되지 않은 경우입니다.
           직접 입력으로 작성하세요.
         </p>
+      <% end %>
+
+      <%# P16-T06 — Insight 학생 디제스트가 있으면 toggle 옵션 노출 %>
+      <% if @existing_digest %>
+        <div class="generate-form__digest-toggle">
+          <% if @auto_summary[:source] == :digest %>
+            <%# 현재 디제스트 사용 중 → 원본으로 돌아가기 %>
+            <a href="/generate/student_record?student=<%= ERB::Util.url_encode(@auto_summary[:student]) %>"
+               class="generate-form__digest-link">
+              ↩ 원본 entries 로 다시 채우기
+            </a>
+          <% else %>
+            <%# 원본 사용 중 → 디제스트로 전환 안내 %>
+            <p class="generate-form__digest-hint">
+              🌱 이 학생의 <strong>합성된 디제스트</strong>가 있습니다
+              (<%= h(@existing_digest.synth_at.strftime("%Y-%m-%d")) %> 생성).
+            </p>
+            <a href="/generate/student_record?student=<%= ERB::Util.url_encode(@auto_summary[:student]) %>&use_synth=1"
+               class="generate-form__digest-link generate-form__digest-link--primary">
+              ✨ 디제스트로 채우기 (curated 결과)
+            </a>
+          <% end %>
+        </div>
       <% end %>
     <% end %>
   </section>

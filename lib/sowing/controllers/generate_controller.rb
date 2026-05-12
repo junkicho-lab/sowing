@@ -58,6 +58,16 @@ module Sowing
           Array(raw).map { |v| v.to_s.strip }.reject(&:empty?)
         end
 
+        # P16-T06 — 학생 이름에 해당하는 Insight 학생 디제스트가 이미 합성되어 있는지 조회.
+        # 있으면 raw entries 보다 우선 사용 가능한 curated 결과.
+        # @return [Sowing::Insight::Synthesis, nil]
+        def find_existing_student_digest(student_name)
+          return nil if student_name.to_s.strip.empty?
+          Sowing::Insight.find("students:#{student_name.strip}")
+        rescue
+          nil # 인덱싱 실패 등 안전 폴백
+        end
+
         # P16-T05 — 학생 이름으로 1년치 entries 자동 수집 → 학생부 textarea 채우기.
         #
         # 분류 휴리스틱 (자유 텍스트 카테고리 + 본문 키워드 기반):
@@ -155,15 +165,34 @@ module Sowing
           @form["date"] = Date.today.iso8601
           @form["academic_year"] = Time.now.year.to_s
 
-          auto = auto_collect_student_entries(student_name)
-          @form["learning_activities"] = auto[:learning_activities]
-          @form["behavioral_observations"] = auto[:behavioral_observations]
-          @auto_summary = {
-            student: student_name,
-            count: auto[:count],
-            learning_count: auto[:learning_activities]&.lines&.count || 0,
-            behavioral_count: auto[:behavioral_observations]&.lines&.count || 0
-          }
+          # P16-T06 — Insight 합성 결과 (학생 디제스트) 가 있으면 별도 표시.
+          # use_synth=1 일 때 합성 결과를 우선 사용 (raw entries 대신).
+          @existing_digest = find_existing_student_digest(student_name)
+          use_synth = params["use_synth"].to_s == "1" && @existing_digest
+
+          if use_synth
+            # 합성 결과의 body 를 learning_activities 에 통째로 — 사용자가 split 가능
+            @form["learning_activities"] = @existing_digest.body
+            @form["behavioral_observations"] = nil
+            @auto_summary = {
+              student: student_name,
+              count: 1,
+              source: :digest,
+              digest_synth_at: @existing_digest.synth_at,
+              digest_source_count: @existing_digest.source_count
+            }
+          else
+            auto = auto_collect_student_entries(student_name)
+            @form["learning_activities"] = auto[:learning_activities]
+            @form["behavioral_observations"] = auto[:behavioral_observations]
+            @auto_summary = {
+              student: student_name,
+              count: auto[:count],
+              source: :entries,
+              learning_count: auto[:learning_activities]&.lines&.count || 0,
+              behavioral_count: auto[:behavioral_observations]&.lines&.count || 0
+            }
+          end
         end
 
         view_name = :"generate/#{type}"
