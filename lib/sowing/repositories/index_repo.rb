@@ -679,7 +679,7 @@ module Sowing
       end
 
       def validate_mode!(mode)
-        return if [:memo, :note, :record].include?(mode)
+        return if [:memo, :note, :record, :plan].include?(mode)
         raise ArgumentError, "지원하지 않는 mode: #{mode.inspect}"
       end
     end
