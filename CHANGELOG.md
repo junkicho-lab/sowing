@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Phase R R4b-followup — Output PDF + DOCX (markdown 미지원 → 3 format 완성)
+(다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
+
+## [0.3.0] - 2026-05-12 — Phase 16 UI 통합 + 생기부 자동화
+
+v0.2.0 의 Phase R Bounded Context 인프라가 비로소 사용자 손에 닿음.
+비전 D 의 4 단계 (쓰기·정리·통찰·출력) 가 UI 로 1:1 매핑됨. 7 commits / 0 spec
+회귀 / 2005 examples / 0 failures.
+
+### 🌱 비전 D 통합 라이프사이클 완성
+
+| 단계 | UI | Phase R BC | 동작 |
+|---|---|---|---|
+| D.1 쓰기 | quick_modal + subject 4축 | Capture | `Capture.create_item(subject:)` |
+| D.2 정리 | 📦 보관 버튼 + /archive | Knowledge | `Knowledge.archive(reason:)` |
+| D.3 통찰 | /synth (Phase 11) | Insight | 18 synthesizers |
+| D.4 출력 | 📋 공식 양식 + 📥 내보내기 + ✨ 디제스트 연계 | Output | `Output.generate(format:)` |
+
+### R4b-followup — Output PDF + DOCX (markdown-only → 3 format 완성)
 
 v0.2.0 의 markdown-only MVP 를 Prawn (PDF) + caracal (DOCX) 로 확장.
 5 templates × 3 formats 모두 작동.
@@ -45,8 +62,77 @@ v0.2.0 의 markdown-only MVP 를 Prawn (PDF) + caracal (DOCX) 로 확장.
 - 갱신: stage_1, stage_4b — NotImplementedError 검증 → 실 binary 검증
 - 1903 → 1944 (+41)
 
-### v0.2.0 의 README "알려진 한계" 갱신
-- ~~PDF / DOCX 출력 — Prawn 한글 + caracal 별도 task~~ → **R4b-followup 에서 완료**
+### Phase 16 — UI 통합 + 생기부 기능 (6 tasks)
+
+**P16-T01: 내보내기 UI**
+- `/records/:id/export?format=markdown|pdf|docx` + `/notes/:id/export?...`
+- record/note show 페이지에 "📥 내보내기" details/summary dropdown
+- 한글 파일명 RFC 5987 (filename*=UTF-8''<encoded>) — 옛 브라우저 ASCII fallback
+
+**P16-T02: Subject 4축 quick_modal**
+- 빠른 메모 모달에 `<select name="subject">` (4 옵션 + 없음)
+  - person 👤 인물 / subject 📚 교과 / document 📄 문서 / identity 🪞 정체성
+- POST /memos 가 subject 파라미터 수신 → `Capture.create_item(subject:)`
+- DB entries.subject ENUM 자동 채움 (Phase R Stage 2 R2-T05 인프라 활용)
+
+**P16-T03: Archive UI**
+- POST /records/:id/archive (사유 입력) / POST /records/:id/unarchive
+- GET /archive — 보관된 entries 통합 목록 (mode 별 아이콘 + 복원 버튼)
+- record show 에 "📦 보관" form + confirm dialog
+- 보관 후 /records 등 일상 페이지 자동 제외 (Phase R Stage 3 R3-T05 활용)
+- 영구 삭제 0 — 30년 보존 (CLAUDE.md 원칙 5)
+- nav 보조 그룹 "···" 에 보관함 진입점
+
+**P16-T04: 공식 양식 생성 UI**
+- GET /generate — 5 카드 landing
+- 5 dedicated form 뷰: student_record / consultation / meeting_minutes /
+  project_proposal / budget_request
+- POST /generate/:template → markdown/pdf/docx 다운로드
+- budget_request 의 line_items 동적 표 (5행 grid)
+- meeting_minutes 의 안건·결정사항 multi-line 입력 자동 split
+- nav 메인 그룹 "📋 공식 양식"
+
+**P16-T05: 생기부 자동 채우기 (끝판왕)**
+- GET /generate/student_record?student=NAME → 1년치 entries 자동 수집
+- `IndexRepo.search_with_filters(q: NAME)` 활용 (한글 비율 자동 라우팅)
+- LEARNING_KEYWORDS (수업·발표·학습·평가 등) → learning_activities textarea
+- BEHAVIORAL_KEYWORDS (친구·관계·태도 등) → behavioral_observations textarea
+- 본문에 학생 이름 포함된 entry 만 (search 위양성 차단)
+- Archive 자동 제외 (졸업 학생 보관본 회상 안 함)
+- 친절한 빈 결과 안내 ("철수 vs 김철수" 이름 변형 힌트)
+
+**P16-T06: Insight 학생 디제스트 직접 연계**
+- 학생 디제스트 합성 결과 존재 시 toggle 노출 (Insight.find("students:NAME"))
+- "✨ 디제스트로 채우기" 보라 버튼 → curated 본문 사용
+- "↩ 원본 entries 로 다시" toggle 로 양방향 전환
+- synth_at·source_count 메타 노출
+- 합성 결과 부재 시 graceful (toggle 미노출, 기본 자동 채움 작동)
+- 4 BC 통합의 완성 — Insight 결과가 Output 양식 form 에 직접 흐름
+
+### Spec (+93)
+
+- spec/system/export_spec.rb (9)
+- spec/system/generate_spec.rb (16)
+- spec/system/generate_auto_fill_spec.rb (9)
+- spec/system/memo_subject_spec.rb (11)
+- spec/system/archive_spec.rb (9)
+- spec/system/generate_digest_integration_spec.rb (7)
+- spec/output/pdf_renderer_spec.rb (14)
+- spec/output/docx_renderer_spec.rb (11)
+- spec/output/font_config_spec.rb (6)
+- 갱신: stage_1, stage_4b — NotImplementedError stub 폐기 → 실 binary 검증
+- 1912 → 2005 examples (+93, +4.9%)
+
+### v0.2.0 README "알려진 한계" 해결
+
+- ~~PDF / DOCX 출력 — Prawn 한글 + caracal 별도 task~~ → **R4b-followup 완료**
+
+### 알려진 한계 (다음 release 후보)
+
+- Pretendard italic 변종 부재 (Regular 로 fallback, 시각 효과 약함)
+- Wikilinks `[[link]]` PDF 렌더 미지원 (plain text)
+- Generate form 의 "🌱 새 디제스트 합성" 버튼 미지원 (LLM 비동기 처리 필요)
+- Domain::Note / NotesController 실제 코드 삭제 (Migration 011) — 호환성 유지로 보류
 
 ## [0.2.0] - 2026-05-12 — Phase R 모듈형 재구조화 (Bounded Context 4 layer)
 
