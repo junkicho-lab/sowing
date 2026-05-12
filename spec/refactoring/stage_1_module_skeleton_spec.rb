@@ -85,9 +85,22 @@ RSpec.describe "Phase R Stage 1 — Bounded Context 골격" do
       expect(Sowing::Output::FORMATS).to eq(%i[markdown pdf docx])
     end
 
-    it ".generate stub" do
-      expect { Sowing::Output.generate(type: :student_record) }
-        .to raise_error(NotImplementedError, /Stage 4b/)
+    it ".generate (markdown) 실 구현 — 빈 locals 으로도 렌더 가능 (Stage 4b R4b MVP)" do
+      result = Sowing::Output.generate(type: :student_record, format: :markdown)
+      expect(result).to be_a(String)
+      expect(result).to include("학생부")
+    end
+
+    it ".generate (pdf/docx) 는 followup 예정 (NotImplementedError 안내)" do
+      expect { Sowing::Output.generate(type: :student_record, format: :pdf) }
+        .to raise_error(NotImplementedError, /Prawn/)
+      expect { Sowing::Output.generate(type: :student_record, format: :docx) }
+        .to raise_error(NotImplementedError, /caracal/)
+    end
+
+    it "type 가 5 종 외이면 ArgumentError" do
+      expect { Sowing::Output.generate(type: :unknown) }
+        .to raise_error(ArgumentError, /type/)
     end
   end
 

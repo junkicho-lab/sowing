@@ -1,0 +1,33 @@
+# 상담 기록
+
+**상담 일시**: <%= consultation_date %><% if consultation_time %> <%= consultation_time %><% end %>
+**상담 대상**: <%= consultee || student_name %>
+**관계**: <%= relationship || "본인" %>
+**상담 방법**: <%= consultation_method || "대면" %>
+**작성자**: <%= teacher_name %>
+
+<% if topic %>
+**주요 주제**: <%= topic %>
+<% end %>
+
+---
+
+## 상담 내용
+
+<%= consultation_content || "(작성 필요)" %>
+
+## 합의 / 후속 조치
+
+<%= follow_up || "(작성 필요)" %>
+
+<% if attachments && !attachments.empty? %>
+## 첨부
+
+<% attachments.each do |a| %>
+- <%= a %>
+<% end %>
+<% end %>
+
+---
+
+<%# 상담부 양식 — 학부모상담 / 학생개별상담 / 진로상담 모두 본 ERB 로 흡수. %>

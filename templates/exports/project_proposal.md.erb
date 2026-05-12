@@ -1,0 +1,43 @@
+# 사업 계획서 — <%= project_title %>
+
+**제출일**: <%= submission_date %>
+**제출자**: <%= proposer || teacher_name %>
+**소속**: <%= department %>
+<% if project_period %>
+**사업 기간**: <%= project_period %>
+<% end %>
+<% if budget_total %>
+**총 예산**: <%= budget_total %>원
+<% end %>
+
+---
+
+## 1. 사업 개요
+
+<%= project_summary || "(작성 필요)" %>
+
+## 2. 목적 및 기대 효과
+
+<%= objectives || "(작성 필요)" %>
+
+## 3. 추진 계획
+
+<%= implementation_plan || "(작성 필요)" %>
+
+<% if milestones && !milestones.empty? %>
+### 주요 마일스톤
+
+<% milestones.each do |m| %>
+- <%= m %>
+<% end %>
+<% end %>
+
+## 4. 예산 계획
+
+<%= budget_breakdown || "(별도 첨부)" %>
+
+## 5. 평가 방안
+
+<%= evaluation_plan || "(작성 필요)" %>
+
+---

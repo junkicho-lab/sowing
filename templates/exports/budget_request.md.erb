@@ -1,0 +1,36 @@
+# 예산 요구서 — <%= request_title %>
+
+**요구일**: <%= request_date %>
+**요구자**: <%= requester || teacher_name %>
+**소속**: <%= department %>
+**회계연도**: <%= fiscal_year %>
+**총 요구액**: <%= total_amount %>원
+
+---
+
+## 1. 요구 사유
+
+<%= rationale || "(작성 필요)" %>
+
+## 2. 산출 내역
+
+| 항목 | 단가 (원) | 수량 | 금액 (원) | 비고 |
+|------|----------|------|----------|------|
+<% (line_items || []).each do |item| %>
+| <%= item[:name] %> | <%= item[:unit_price] %> | <%= item[:quantity] %> | <%= item[:amount] %> | <%= item[:note] %> |
+<% end %>
+| **합계** | | | **<%= total_amount %>** | |
+
+## 3. 집행 계획
+
+<%= execution_plan || "(작성 필요)" %>
+
+<% if attachments && !Array(attachments).empty? %>
+## 4. 첨부 자료
+
+<% Array(attachments).each do |a| %>
+- <%= a %>
+<% end %>
+<% end %>
+
+---

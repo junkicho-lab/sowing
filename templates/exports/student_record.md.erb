@@ -1,0 +1,33 @@
+# 학생부 (생활기록부)
+
+**대상**: <%= student_name %>
+**학년/반**: <%= grade %><%= grade_class ? "학년 #{grade_class}반" : "" %>
+**작성일**: <%= date %>
+**작성자**: <%= teacher_name %>
+
+<% if academic_year %>
+**학년도**: <%= academic_year %>
+<% end %>
+
+---
+
+## 학습 활동
+
+<%= learning_activities || "(작성 필요)" %>
+
+## 행동 특성 및 종합 의견
+
+<%= behavioral_observations || "(작성 필요)" %>
+
+<% if extra_sections && !extra_sections.empty? %>
+<% extra_sections.each do |heading, content| %>
+## <%= heading %>
+
+<%= content %>
+
+<% end %>
+<% end %>
+
+---
+
+<%# 학교별 양식 차이 흡수 — vault/.sowing/templates/exports/student_record.md.erb 로 사용자가 자유 편집 가능 (ADR-018, 게이트 #4 a). %>
