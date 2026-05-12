@@ -1,0 +1,139 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Phase R Stage 1 R1-T07 — Bounded Context 의존성 룰 검증.
+#
+# 4 모듈 의존 그래프 (acyclic, ADR-019):
+#
+#               Output
+#                 ▲
+#                 │
+#        Knowledge ↔ Insight   (같은 layer, 양방향 의존 X — Stage 5 까지 검증)
+#                 ▲
+#                 │
+#               Capture (base)
+#                 ▲
+#                 │
+#                Core
+#
+# 룰:
+#   - Core 는 어디에도 의존하지 않음 (가장 base)
+#   - Capture 는 Core 만 의존
+#   - Knowledge 는 Core + Capture 의존 가능
+#   - Insight 는 Core + Knowledge 의존 가능 (Capture 도 OK)
+#   - Output 은 모두 의존 가능
+#   - Knowledge 와 Insight 간 직접 참조 — 가능 (단방향만)
+#
+# 위반 감지:
+#   - require_relative 또는 require "sowing/{module}" 의 역방향 의존
+#   - Sowing::{Module}::* 의 역방향 namespace 참조
+#
+# 사용:
+#   bin/sowing-arch-check        # 모든 파일 검사
+#   bin/sowing-arch-check --strict  # 1 위반이라도 있으면 exit 1
+#   bin/sowing-arch-check lib/   # 특정 디렉토리만
+
+require "pathname"
+
+ROOT = Pathname.new(__dir__).parent
+LIB = ROOT.join("lib/sowing")
+
+# 모듈 dependency 룰: 모듈 → 허용되는 의존 모듈
+ALLOWED_DEPS = {
+  "core" => [],
+  "capture" => %w[core],
+  "knowledge" => %w[core capture],
+  "insight" => %w[core capture knowledge],
+  "output" => %w[core capture knowledge insight]
+}.freeze
+
+MODULES = ALLOWED_DEPS.keys.freeze
+
+def module_of(path)
+  rel = Pathname.new(path).relative_path_from(LIB).to_s
+  # 1) 디렉토리 내 파일: capture/foo.rb → "capture"
+  if (m = rel.match(%r{\A(\w+)/}))
+    return MODULES.include?(m[1]) ? m[1] : nil
+  end
+  # 2) 모듈 entry 파일: capture.rb → "capture"
+  if (m = rel.match(%r{\A(\w+)\.rb\z}))
+    return MODULES.include?(m[1]) ? m[1] : nil
+  end
+  nil
+end
+
+def detect_violations
+  violations = []
+
+  Pathname.glob(LIB.join("**/*.rb")).each do |file|
+    owner = module_of(file)
+    next unless owner
+
+    content = file.read(encoding: "UTF-8")
+    line_num = 0
+    content.each_line do |line|
+      line_num += 1
+
+      # 참조된 모듈명 후보 — Sowing::{Capture,Knowledge,Insight,Output,Core}
+      MODULES.each do |dep|
+        next if dep == owner
+        next if ALLOWED_DEPS[owner].include?(dep)
+
+        # namespace 참조
+        if line.match?(/Sowing::#{dep.capitalize}\b/)
+          violations << {
+            file: file.relative_path_from(ROOT).to_s,
+            line: line_num,
+            owner: owner,
+            dependency: dep,
+            kind: :namespace,
+            snippet: line.strip
+          }
+        end
+
+        # require_relative / require "sowing/{module}"
+        if line.match?(/require(_relative)?\s+["'].*sowing\/#{dep}/)
+          violations << {
+            file: file.relative_path_from(ROOT).to_s,
+            line: line_num,
+            owner: owner,
+            dependency: dep,
+            kind: :require,
+            snippet: line.strip
+          }
+        end
+      end
+    end
+  end
+
+  violations
+end
+
+def report(violations)
+  if violations.empty?
+    puts "\e[32m✅ arch-check: 모듈 의존성 룰 0 위반\e[0m"
+    puts
+    MODULES.each do |m|
+      allowed = ALLOWED_DEPS[m]
+      puts "  #{m.ljust(12)} → #{allowed.empty? ? "(base, 의존 없음)" : allowed.join(", ")}"
+    end
+    return 0
+  end
+
+  puts "\e[31m❌ arch-check: #{violations.size} 위반\e[0m\n\n"
+  violations.each do |v|
+    puts "  \e[31m#{v[:file]}:#{v[:line]}\e[0m"
+    puts "    \e[33m→ #{v[:snippet]}\e[0m"
+    puts "    의존 위반: #{v[:owner]} → #{v[:dependency]} " \
+         "(#{v[:owner]} 는 #{ALLOWED_DEPS[v[:owner]].join(', ')} 만 의존 가능)"
+    puts
+  end
+  1
+end
+
+strict = ARGV.include?("--strict")
+violations = detect_violations
+exit_code = report(violations)
+
+# strict 가 아니면 위반 있어도 exit 0 (info only)
+exit strict ? exit_code : 0
