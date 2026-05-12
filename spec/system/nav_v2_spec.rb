@@ -31,18 +31,14 @@ RSpec.describe "동사 중심 nav (Phase 13 W25-T01)", type: :request do
       expect(last_response.body.scan(%r{<details class="nav-v2__group}).size).to be >= 5
     end
 
-    it "글쓰기 dropdown — 빠른 메모·필기 + 4 subtype (W26-T01)" do
+    # 글쓰기 메뉴 정비 (사용자 요청, 2026-05-12) — 4 subtype 단축링크 + 필기 항목 제거,
+    # 빠른 기록 + 기록 목록 추가. 옛 /write/:subtype 라우트는 호환용으로 살아있음.
+    it "글쓰기 dropdown — 빠른 메모·빠른 기록 + 메모/기록 목록" do
       get "/"
       expect(last_response.body).to include("⚡ 빠른 메모")
+      expect(last_response.body).to include("⚡ 빠른 기록")
       expect(last_response.body).to include("📂 메모 목록")
-      expect(last_response.body).to include("📝 필기 작성")
-      # W26-T01 추가: 4 subtype 진입점
-      expect(last_response.body).to include("📖 책 기록")
-      expect(last_response.body).to include("🎤 강의·연수")
-      expect(last_response.body).to include("💭 감정 기록")
-      expect(last_response.body).to include("👤 학생 관찰")
-      # 음성 입력은 W26-T02 예정 안내
-      expect(last_response.body).to include("W26-T02")
+      expect(last_response.body).to include("📂 기록 목록")
     end
 
     it "쓴 글 보기 dropdown — 회상 9가지 통합" do

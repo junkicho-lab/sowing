@@ -91,14 +91,10 @@
         <summary>🖊 글쓰기</summary>
         <div class="nav-v2__panel">
           <a href="#" onclick="document.querySelector('[data-quick-memo-target=&quot;dialog&quot;]')?.showModal(); return false;">⚡ 빠른 메모 <kbd>⌘⇧M</kbd></a>
-          <a href="/write/book">📖 책 기록</a>
-          <a href="/write/lecture">🎤 강의·연수</a>
-          <a href="/write/emotion">💭 감정 기록</a>
-          <a href="/write/student">👤 학생 관찰</a>
+          <a href="#" onclick="document.getElementById('quick_record_modal')?.showModal(); return false;">⚡ 빠른 기록</a>
           <hr>
           <a href="/memos">📂 메모 목록</a>
-          <a href="/notes/new">📝 필기 작성</a>
-          <a href="/notes">📂 필기 목록</a>
+          <a href="/records">📂 기록 목록</a>
           <hr>
           <small>🎙 음성 입력 — 빠른 메모 모달 안에서 이용 가능 (Chrome/Edge, ko-KR)</small>
         </div>
@@ -170,6 +166,7 @@
   <main><%= yield %></main>
 
   <%= erb :"memos/_quick_modal", layout: false %>
+  <%= erb :"records/_quick_modal", layout: false %>
   <%= erb :"shared/_quick_search_modal", layout: false %>
 
   <%# Phase 13 W25-T02 — 동사 중심 nav 변경 안내 모달.

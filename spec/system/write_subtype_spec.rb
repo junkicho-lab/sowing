@@ -88,25 +88,27 @@ RSpec.describe "글쓰기 subtype (Phase 13 W26-T01)", type: :request do
     end
   end
 
-  describe "nav 글쓰기 dropdown — 5 subtype 진입점" do
-    it "각 subtype 의 /write/{type} 링크 노출" do
+  # 글쓰기 메뉴 정비 (사용자 요청, 2026-05-12) — 4 subtype 단축링크와 필기 진입점은
+  # 메뉴에서 제거되었으나 /write/:subtype 라우트는 호환용으로 살아있음.
+  # 모달 내부의 subtype chip 은 그대로 유지 (모달 기능 자체는 변함 없음).
+  describe "nav 글쓰기 dropdown — 정비된 메뉴" do
+    it "subtype 단축링크는 메뉴에서 제거됨" do
       get "/"
       %w[/write/book /write/lecture /write/emotion /write/student].each do |path|
-        expect(last_response.body).to include(%(href="#{path}"))
+        expect(last_response.body).not_to include(%(href="#{path}"))
       end
     end
 
-    it "기존 메모/필기 진입점도 유지" do
+    it "필기 진입점도 메뉴에서 제거됨 (/notes 라우트 자체는 호환)" do
       get "/"
-      expect(last_response.body).to include('href="/memos"')
-      expect(last_response.body).to include('href="/notes/new"')
-      expect(last_response.body).to include('href="/notes"')
+      expect(last_response.body).not_to include('href="/notes/new"')
+      # 메뉴의 직접 /notes 링크는 없음 — 다른 곳 (예: edit 페이지 footer) 의 링크는 OK
     end
 
-    it "음성 입력 — W26-T02 예정 안내" do
-      get "/"
-      expect(last_response.body).to include("음성 입력")
-      expect(last_response.body).to include("W26-T02")
+    it "/write/:subtype 라우트는 옛 북마크용으로 살아있음" do
+      get "/write/book"
+      expect(last_response.status).to be_between(302, 303)
+      expect(last_response.location).to include("?write=book")
     end
   end
 

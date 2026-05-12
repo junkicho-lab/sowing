@@ -1,0 +1,60 @@
+<%# Phase 16+ — 빠른 기록 모달. 빠른 메모 와 parallel 한 quick capture.
+    메모와 달리 record 는 title + category 필수 (30_Records/{YYYY}/{category}/ 구조).
+    제출 시 일반 POST /records → 성공 시 새 record show 페이지로 redirect.
+    카테고리 datalist 자동완성 — 매 페이지마다 index_repo.distinct_categories 호출 회피
+    위해 lazy fetch (모달 first open 시 /api/wiki_complete 같은 패턴 — 본 PR 은 단순 분기). %>
+<dialog id="quick_record_modal" class="quick-modal quick-modal--v2 quick-modal--record"
+        aria-labelledby="quick_record_modal_title">
+  <form action="/records" method="post" class="quick-record-form">
+    <header class="quick-modal__header">
+      <h2 id="quick_record_modal_title">📖 빠른 기록</h2>
+      <button type="button" class="quick-modal__close" aria-label="닫기"
+              onclick="this.closest('dialog').close(); return false;">✕</button>
+    </header>
+
+    <div class="quick-record-form__fields">
+      <label class="quick-record-form__field">
+        <span class="quick-record-form__label">제목 <em class="quick-record-form__required">*</em></span>
+        <input type="text" name="title" required autocomplete="off"
+               placeholder="예: 1학기 1단원 정리">
+      </label>
+
+      <label class="quick-record-form__field">
+        <span class="quick-record-form__label">카테고리 <em class="quick-record-form__required">*</em></span>
+        <input type="text" name="category" required autocomplete="off"
+               list="quick_record_category_list"
+               placeholder="예: 수업기록 / 학생기록 / 학교운영 / 교사성장">
+        <%# datalist 는 layout 진입 시점에 채울 수도 있으나, 빈 상태에서도 자유 입력 가능. %>
+        <datalist id="quick_record_category_list">
+          <option value="수업기록">
+          <option value="학생기록">
+          <option value="학교운영">
+          <option value="교사성장">
+          <option value="상담">
+          <option value="평가기록">
+          <option value="학기회고">
+          <option value="연수기록">
+        </datalist>
+      </label>
+
+      <label class="quick-record-form__field">
+        <span class="quick-record-form__label">본문 <em class="quick-record-form__required">*</em></span>
+        <textarea name="body" rows="6" required autocomplete="off"
+                  placeholder="마크다운 가능 — 곧바로 30_Records/{연도}/{카테고리}/ 에 저장됩니다."></textarea>
+      </label>
+
+      <label class="quick-record-form__field">
+        <span class="quick-record-form__label">태그 (선택, 쉼표 구분)</span>
+        <input type="text" name="tags" autocomplete="off"
+               placeholder="수업, 1학년">
+      </label>
+    </div>
+
+    <footer class="quick-modal__footer">
+      <span class="quick-modal__hint">
+        <kbd>Esc</kbd> 취소 · 제출 후 새 기록 페이지로 이동
+      </span>
+      <button type="submit" class="quick-modal__submit">저장</button>
+    </footer>
+  </form>
+</dialog>

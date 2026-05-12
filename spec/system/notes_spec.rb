@@ -171,9 +171,11 @@ RSpec.describe "필기 라우트", type: :request do
   end
 
   describe "내비게이션" do
-    it "헤더의 /notes 진입 링크 (Phase 13 IA — 글쓰기·쓴 글 보기 dropdown)" do
-      get "/"
-      expect(last_response.body).to include('href="/notes"')
+    # 글쓰기 메뉴 정비 (2026-05-12) — 필기 진입점이 메뉴에서 제거됨.
+    # /notes 라우트 자체는 호환용으로 살아있음 (북마크·외부 링크).
+    it "/notes 직접 접근 가능 (북마크 호환)" do
+      get "/notes"
+      expect(last_response.status).to eq(200)
     end
   end
 end
