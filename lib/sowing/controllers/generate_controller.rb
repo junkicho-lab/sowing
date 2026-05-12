@@ -57,6 +57,78 @@ module Sowing
           return [] if raw.nil?
           Array(raw).map { |v| v.to_s.strip }.reject(&:empty?)
         end
+
+        # P16-T05 — 학생 이름으로 1년치 entries 자동 수집 → 학생부 textarea 채우기.
+        #
+        # 분류 휴리스틱 (자유 텍스트 카테고리 + 본문 키워드 기반):
+        #   - 학습 활동: "수업", "발표", "학습", "공부", "성적", "과제" 키워드
+        #   - 행동 특성: "친구", "교우", "관계", "성격", "태도", "리더", "갈등" 키워드
+        #   - 둘 다 매칭이면 학습 우선 (생기부 학습 영역 우대)
+        #   - 둘 다 미매칭이면 행동 특성 (기본값 — 일반 관찰)
+        #
+        # 반환: Hash { learning_activities: String, behavioral_observations: String, count: Integer }
+        def auto_collect_student_entries(student_name, limit: 100)
+          return {learning_activities: nil, behavioral_observations: nil, count: 0} if student_name.to_s.strip.empty?
+
+          repo = Repositories::IndexRepo.new
+          vault_repo_obj = Repositories::VaultRepo.new(vault_dir: Core::Paths.vault_dir)
+
+          # search_with_filters 가 한글 비율 자동 라우팅 (FTS5 vs LIKE).
+          results = repo.search_with_filters(q: student_name, limit: limit)
+          # archived 자동 제외 — IndexRepo.list 와 일관 (R3-T05 ADR-017).
+          results = results.reject(&:archived?)
+          # plan 은 학생부 자료가 아님 — 회상 자료만.
+          results = results.reject { |e| e.mode == :plan }
+
+          learning = []
+          behavioral = []
+
+          results.sort_by(&:created_at).each do |indexed|
+            entry = read_entry_safely(vault_repo_obj, indexed)
+            next if entry.nil?
+            next unless entry.body.include?(student_name) # name 이 body 에 실제 포함됨
+
+            month = indexed.created_at.strftime("%-m월")
+            excerpt = truncate_excerpt(entry.body, student_name, max: 140)
+            bullet = "- (#{month}) #{excerpt}"
+
+            if learning_keyword?(entry.body)
+              learning << bullet
+            else
+              behavioral << bullet
+            end
+          end
+
+          {
+            learning_activities: learning.empty? ? nil : learning.uniq.join("\n"),
+            behavioral_observations: behavioral.empty? ? nil : behavioral.uniq.join("\n"),
+            count: learning.size + behavioral.size
+          }
+        end
+
+        LEARNING_KEYWORDS = %w[수업 발표 학습 공부 성적 과제 단원 평가 토론 시험].freeze
+        BEHAVIORAL_KEYWORDS = %w[친구 교우 관계 성격 태도 리더 갈등 협력 정리 책임].freeze
+
+        def learning_keyword?(text)
+          LEARNING_KEYWORDS.any? { |k| text.include?(k) }
+        end
+
+        # 학생 이름 주변 문맥을 발췌 — name 포함 문장 또는 짧은 라인.
+        def truncate_excerpt(body, student_name, max: 140)
+          body.each_line do |line|
+            next unless line.include?(student_name)
+            stripped = line.strip
+            return stripped.length > max ? "#{stripped[0, max]}…" : stripped
+          end
+          # 줄 단위로 못 찾으면 body 의 앞부분 (이상 케이스 안전망)
+          body.strip[0, max]
+        end
+
+        def read_entry_safely(vault_repo, indexed)
+          vault_repo.read(indexed.path)
+        rescue Errno::ENOENT, ArgumentError
+          nil
+        end
       end
 
       get "/generate" do
@@ -74,6 +146,25 @@ module Sowing
         @page_title = "#{@meta[:label]} 작성"
         @form = {}
         @error = nil
+        @auto_summary = nil
+
+        # P16-T05 — 학생부 자동 채우기: ?student=NAME 가 있으면 entries 자동 수집
+        if type == "student_record" && params["student"].to_s.strip != ""
+          student_name = params["student"].to_s.strip
+          @form["student_name"] = student_name
+          @form["date"] = Date.today.iso8601
+          @form["academic_year"] = Time.now.year.to_s
+
+          auto = auto_collect_student_entries(student_name)
+          @form["learning_activities"] = auto[:learning_activities]
+          @form["behavioral_observations"] = auto[:behavioral_observations]
+          @auto_summary = {
+            student: student_name,
+            count: auto[:count],
+            learning_count: auto[:learning_activities]&.lines&.count || 0,
+            behavioral_count: auto[:behavioral_observations]&.lines&.count || 0
+          }
+        end
 
         view_name = :"generate/#{type}"
         erb view_name, layout: :"layouts/application"

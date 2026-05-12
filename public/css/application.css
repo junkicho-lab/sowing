@@ -1311,6 +1311,75 @@ pre code {
   color: #a02020;
 }
 
+/* Phase 16 P16-T05 — 자동 채우기 위젯 (학생부 전용) */
+.generate-form__auto {
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+  max-width: 760px;
+}
+@media (prefers-color-scheme: dark) {
+  .generate-form__auto {
+    background: linear-gradient(135deg, #1e3a5f 0%, #1e4e7d 100%);
+    border-color: #3b6997;
+  }
+}
+[data-theme="dark"] .generate-form__auto {
+  background: linear-gradient(135deg, #1e3a5f 0%, #1e4e7d 100%);
+  border-color: #3b6997;
+}
+.generate-form__auto-title {
+  margin: 0 0 var(--space-1);
+  font-size: 1.1em;
+  color: var(--color-primary);
+}
+.generate-form__auto-lead {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+.generate-form__auto-form {
+  display: flex;
+  gap: var(--space-1);
+  align-items: stretch;
+}
+.generate-form__auto-form input[type="text"] {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 1em;
+}
+.generate-form__auto-result {
+  margin: var(--space-2) 0 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.92em;
+}
+.generate-form__auto-result--ok {
+  background: #d1fae5;
+  color: #065f46;
+}
+.generate-form__auto-result--empty {
+  background: #fef3c7;
+  color: #92400e;
+}
+@media (prefers-color-scheme: dark) {
+  .generate-form__auto-result--ok {
+    background: #065f46;
+    color: #d1fae5;
+  }
+  .generate-form__auto-result--empty {
+    background: #92400e;
+    color: #fef3c7;
+  }
+}
+
 .generate-form {
   max-width: 760px;
 }

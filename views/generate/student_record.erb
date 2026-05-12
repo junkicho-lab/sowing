@@ -14,6 +14,37 @@
     </div>
   <% end %>
 
+  <%# Phase 16 P16-T05 — 자동 채우기 위젯. 학생 이름으로 1년치 entries 수집. %>
+  <section class="generate-form__auto" aria-labelledby="auto_fill_title">
+    <h2 id="auto_fill_title" class="generate-form__auto-title">📚 1년치 기록에서 자동 채우기</h2>
+    <p class="generate-form__auto-lead">
+      학생 이름을 입력하면 그 동안 작성한 메모·기록·필기 중 해당 학생을 언급한 것들을
+      자동 수집해 아래 폼의 "학습 활동" 과 "행동 특성" 영역에 채워 넣습니다.
+      그 후 자유롭게 편집·삭제 후 제출하세요.
+    </p>
+    <form action="/generate/student_record" method="get" class="generate-form__auto-form">
+      <input type="text" name="student" placeholder="학생 이름 (예: 김철수)"
+             value="<%= h(@auto_summary ? @auto_summary[:student] : "") %>" required>
+      <button type="submit" class="button button--secondary">📥 자동 수집</button>
+    </form>
+
+    <% if @auto_summary %>
+      <% if @auto_summary[:count].positive? %>
+        <p class="generate-form__auto-result generate-form__auto-result--ok">
+          ✅ <strong><%= h(@auto_summary[:student]) %></strong> 관련 entry
+          <strong><%= @auto_summary[:count] %>건</strong> 발견 —
+          학습 활동 <%= @auto_summary[:learning_count] %>건 · 행동 특성 <%= @auto_summary[:behavioral_count] %>건
+        </p>
+      <% else %>
+        <p class="generate-form__auto-result generate-form__auto-result--empty">
+          ℹ️ <strong><%= h(@auto_summary[:student]) %></strong> 이름이 본문에 포함된 entry 가 없습니다.
+          이름을 다르게 적었거나 (예: "철수" vs "김철수") 아직 기록이 누적되지 않은 경우입니다.
+          직접 입력으로 작성하세요.
+        </p>
+      <% end %>
+    <% end %>
+  </section>
+
   <form action="/generate/student_record" method="post" class="generate-form">
     <fieldset class="generate-form__group">
       <legend>기본 정보</legend>
