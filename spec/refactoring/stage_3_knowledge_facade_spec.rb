@@ -183,10 +183,12 @@ RSpec.describe "Sowing::Knowledge Façade (Stage 3 R3-T03~T04)" do
     end
   end
 
-  describe "archive / unarchive (R3-T05 stub)" do
-    it "archive 호출 시 NotImplementedError + ADR-017 안내" do
-      expect { Sowing::Knowledge.archive("x", reason: "졸업") }
-        .to raise_error(NotImplementedError, /ADR-017/)
+  describe "archive / unarchive (R3-T05 실 구현)" do
+    # 본격 archive spec 은 spec/refactoring/stage_3_archive_spec.rb 참조.
+    # 여기서는 Façade 가 응답 가능함만 sanity check.
+    it "archive 가 IndexRepo 위임 (스텁 폐기)" do
+      r = Sowing::Knowledge.create_record(title: "t", body: "b", category: "c")
+      expect(Sowing::Knowledge.archive(r.id, reason: "졸업")).to be(true)
     end
   end
 end

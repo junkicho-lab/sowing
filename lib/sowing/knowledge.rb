@@ -99,15 +99,40 @@ module Sowing
         plan_repo.recent(limit: limit)
       end
 
-      # === Archive (R3-T05 에서 실 구현) ====================================
+      # === Archive (ADR-017, R3-T05) ========================================
 
+      # entry 를 보관 처리. 영구 삭제 0 — 일상 회상에서 자동 제외만.
+      # @param entry_id [String, Sowing::Domain::ValueObjects::Ulid]
+      # @param reason [String] 자유 텍스트 (예: "졸업", "퇴직 부서")
+      # @return [Boolean] 보관 성공 (해당 entry 없으면 false)
       def archive(entry_id, reason:)
-        raise NotImplementedError, "Stage 3 R3-T05 에 구현 (ADR-017 migration 009)"
+        raise ArgumentError, "reason 은 빈 문자열일 수 없습니다" if reason.to_s.strip.empty?
+        index_repo.archive(entry_id, reason: reason)
       end
 
+      # 보관 해제 — 다시 일상 회상에 노출.
       def unarchive(entry_id)
-        raise NotImplementedError, "Stage 3 R3-T05 에 구현"
+        index_repo.unarchive(entry_id)
       end
+
+      # 보관된 entry 목록 (mode 별, /archive 페이지용).
+      # @return [Array<IndexedEntry>] archived_at desc
+      def archived(mode: nil, limit: 50)
+        ds = if mode
+          index_repo.list(mode: mode, limit: limit, include_archived: true)
+        else
+          %i[memo record plan].flat_map do |m|
+            index_repo.list(mode: m, limit: limit, include_archived: true)
+          end
+        end
+        ds.select(&:archived?).sort_by { |e| -e.archived_at.to_i }.first(limit)
+      end
+
+      def index_repo
+        @repo_mutex.synchronize { @index_repo ||= Repositories::IndexRepo.new }
+      end
+
+      attr_writer :index_repo
 
       # === DI 진입점 (테스트 격리·repo 캐싱) ================================
 
@@ -125,6 +150,7 @@ module Sowing
         @repo_mutex.synchronize {
           @record_repo = nil
           @plan_repo = nil
+          @index_repo = nil
         }
       end
     end

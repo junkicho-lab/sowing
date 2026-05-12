@@ -16,7 +16,8 @@ module Sowing
       ENTRY_COLUMNS = [
         :id, :path, :mode, :title, :category, :template, :source, :promoted_from,
         :created_at, :updated_at, :file_mtime, :file_hash, :word_count, :indexed_at,
-        :subject # Phase R Stage 2 R2-T05 (migration 008, ADR-016 4축)
+        :subject, # Phase R Stage 2 R2-T05 (migration 008, ADR-016 4축)
+        :archived_at, :archive_reason # Phase R Stage 3 R3-T05 (migration 009, ADR-017)
       ].freeze
 
       def initialize(db: Core::DB.connection, clock: Time)
@@ -85,21 +86,45 @@ module Sowing
           .all
       end
 
-      # @param mode     [Symbol] :memo, :note, :record
+      # @param mode     [Symbol] :memo, :note, :record, :plan
       # @param category [String, nil] category 컬럼 정확 일치 필터
       # @param limit    [Integer, nil] 가져올 최대 행 수
       # @param offset   [Integer, nil] 건너뛸 행 수
+      # @param include_archived [Boolean] true 면 archived 도 포함 (기본 false, ADR-017 일상 회상에서 제외)
       # @return [Array<IndexedEntry>] created_at 내림차순
-      def list(mode:, category: nil, limit: nil, offset: nil)
+      def list(mode:, category: nil, limit: nil, offset: nil, include_archived: false)
         validate_mode!(mode)
         # 같은 초에 다수 entry가 생성되면 created_at만으로는 ordering이 불안정.
         # ULID id는 lexicographically time-monotonic이므로 보조 정렬로 안정성 확보.
         ds = @db[:entries].where(mode: mode.to_s)
         ds = ds.where(category: category) if category
+        ds = ds.where(archived_at: nil) unless include_archived
         ds = ds.order(Sequel.desc(:created_at), Sequel.desc(:id))
         ds = ds.limit(limit) if limit
         ds = ds.offset(offset) if offset
         ds.map { |row| to_indexed_entry(row) }
+      end
+
+      # ADR-017 — entry 를 보관 처리 (영구 삭제 0, 일상 회상 자동 제외).
+      # @param id [String, Sowing::Domain::ValueObjects::Ulid]
+      # @param reason [String] 자유 텍스트 (예: "졸업한 학생", "퇴직")
+      # @param now [Time] 기록 시각 (테스트 주입용)
+      # @return [Boolean] 행 갱신 여부 (없으면 false)
+      def archive(id, reason:, now: Time.now)
+        updated = @db[:entries].where(id: id.to_s).update(
+          archived_at: now.iso8601,
+          archive_reason: reason.to_s
+        )
+        updated > 0
+      end
+
+      # 보관 해제 — archived_at + archive_reason 모두 NULL 로.
+      def unarchive(id)
+        updated = @db[:entries].where(id: id.to_s).update(
+          archived_at: nil,
+          archive_reason: nil
+        )
+        updated > 0
       end
 
       # @param mode     [Symbol]
@@ -538,6 +563,9 @@ module Sowing
           promoted_from: row[:promoted_from],
           # 4축 String → Symbol (nil 은 그대로). R2-T05 migration 008.
           subject: row[:subject]&.to_sym,
+          # Archive 메타 (R3-T05 migration 009).
+          archived_at: row[:archived_at] ? Time.iso8601(row[:archived_at]) : nil,
+          archive_reason: row[:archive_reason],
           created_at: Time.iso8601(row[:created_at]),
           updated_at: Time.iso8601(row[:updated_at]),
           file_mtime: row[:file_mtime],

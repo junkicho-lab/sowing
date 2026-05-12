@@ -41,18 +41,17 @@ RSpec.describe "Phase R Stage 1 — Bounded Context 골격" do
   end
 
   describe "Knowledge::public_api" do
-    # Stage 3 R3-T03~T04 — create_record / create_plan 실 구현. stub 폐기.
-    # archive / unarchive 만 R3-T05 까지 NotImplementedError stub 유지.
-    it ".create_record / .create_plan 호출 가능 (Stage 3 R3-T04 완료)" do
+    # Stage 3 R3-T03~T05 — 4 메서드 모두 실 구현. stub 폐기.
+    it ".create_record / .create_plan / .archive / .unarchive 모두 호출 가능" do
       expect(Sowing::Knowledge).to respond_to(:create_record)
       expect(Sowing::Knowledge).to respond_to(:create_plan)
+      expect(Sowing::Knowledge).to respond_to(:archive)
+      expect(Sowing::Knowledge).to respond_to(:unarchive)
     end
 
-    it ".archive / .unarchive 만 stub 유지 (R3-T05 에서 실 구현)" do
-      expect { Sowing::Knowledge.archive("id", reason: "졸업") }
-        .to raise_error(NotImplementedError, /ADR-017/)
-      expect { Sowing::Knowledge.unarchive("id") }
-        .to raise_error(NotImplementedError, /Stage 3 R3-T05/)
+    it ".archive 는 reason 필수 (빈 문자열 거부)" do
+      expect { Sowing::Knowledge.archive("x", reason: "") }
+        .to raise_error(ArgumentError, /reason/)
     end
   end
 
