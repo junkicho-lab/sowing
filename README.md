@@ -335,7 +335,8 @@ Tap 저장소 게시 진행 중. Formula 미리보기: [packaging/homebrew/sowin
 |------|------|------|
 | [SETUP.md](SETUP.md) | 개발자 | 개발 환경 설정 |
 | [CLAUDE.md](CLAUDE.md) | Claude Code | 코드 작성 컨벤션 |
-| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | **베타 테스터·신규 사용자** | **사용 설명서 — 캡쳐화면, 메모→필기→기록 흐름, 범주 분류, 16 합성기** |
+| [docs/MANUAL.md](docs/MANUAL.md) | **모든 사용자** | **사용자 매뉴얼 v0.1.8 — 실용 reference (단축키·라우트·트러블슈팅·cheat sheet)** |
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | 베타 테스터·신규 사용자 | 사용 입문서 — 캡쳐화면, 메모→필기→기록 흐름, 범주 분류, 17 합성기 |
 | [docs/BETA_GUIDE.md](docs/BETA_GUIDE.md) | 베타 테스터 | 베타 검증 측정 기준 + 인터뷰 안내 |
 | [docs/BETA_PHASE13_INTERVIEW.md](docs/BETA_PHASE13_INTERVIEW.md) | **베타 진행자** | **Phase 13 (동사 IA + Plan + 자기 거울) 한 학기 후 인터뷰 가이드 — 정량 5종 + 정성 7 질문 + 의사결정 트리** |
 | [docs/REDESIGN_IA.md](docs/REDESIGN_IA.md) | 설계 기여자 | Phase 13 IA 재설계 배경 + 시나리오 검증 |

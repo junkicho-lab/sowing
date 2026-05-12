@@ -4,6 +4,9 @@
 
 ## 📘 먼저 읽어주세요
 
+- **처음 사용**: [USER_GUIDE.md](USER_GUIDE.md) (스토리텔링 + 캡쳐)
+- **참조용 매뉴얼**: [MANUAL.md](MANUAL.md) (단축키·라우트·트러블슈팅·cheat sheet)
+
 **처음 Sowing 을 시작하시는 분**은 [USER_GUIDE.md](USER_GUIDE.md) 를 먼저 읽어주세요.
 캡쳐화면과 함께 **5개 동사 nav** (글쓰기·쓴 글 보기·쓸 글 계획·자기 거울),
 **메모 → 필기 → 기록 → 계획** 4 mode 의 흐름, **범주(카테고리) 중심 분류**,
