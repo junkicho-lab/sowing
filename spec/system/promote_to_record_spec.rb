@@ -43,19 +43,25 @@ RSpec.describe "기록으로 승격 (W3-T07)", type: :request do
     describe "GET /memos/:id/promote_to_record" do
       let!(:id) { create_memo }
 
-      it "200 OK + 폼 + 자유 카테고리 datalist" do
+      # 2026-05-12 갱신 — 카테고리가 자유 텍스트 + datalist → 4축 4 radio button.
+      # 원본 메모 본문은 details 가 아닌 항상 표시 (자동 보기 창).
+      it "200 OK + 4축 radio 카테고리 (자유 텍스트 폐기)" do
         get "/memos/#{id}/promote_to_record"
         expect(last_response).to be_ok
         expect(last_response.body).to include("기록으로 승격")
         expect(last_response.body).to include('id="record_title"')
-        expect(last_response.body).to include('id="record_category"')
-        expect(last_response.body).to include('list="record_categories_datalist"')
+        %w[인물 교과 문서 정체성].each do |label|
+          expect(last_response.body).to match(%r{<input type="radio" name="category" value="#{label}"})
+        end
+        expect(last_response.body).not_to include('id="record_category"') # 옛 text input 미노출
       end
 
-      it "원본 메모 본문 미리보기 details" do
+      it "원본 메모 본문 자동 표시 (details → 항상 보임)" do
         get "/memos/#{id}/promote_to_record"
-        expect(last_response.body).to include("원본 메모 본문 보기")
+        expect(last_response.body).to include("원본 메모")
         expect(last_response.body).to include("오늘 1교시 활기")
+        # 옛 <summary>원본 메모 본문 보기</summary> 폐기 확인
+        expect(last_response.body).not_to include("원본 메모 본문 보기")
       end
 
       it "없는 id → 404" do
@@ -94,11 +100,12 @@ RSpec.describe "기록으로 승격 (W3-T07)", type: :request do
     describe "POST /memos/:id/promote_to_record (검증 실패)" do
       let!(:id) { create_memo }
 
-      it "title 비면 422 + 폼 에코 (datalist 다시 렌더)" do
-        post "/memos/#{id}/promote_to_record", "title" => "", "category" => "수업"
+      it "title 비면 422 + 폼 에코 (4축 radio 다시 렌더)" do
+        post "/memos/#{id}/promote_to_record", "title" => "", "category" => "인물"
         expect(last_response.status).to eq(422)
         expect(last_response.body).to include("제목을 입력")
-        expect(last_response.body).to include('list="record_categories_datalist"')
+        # 4축 radio 가 폼 재렌더에 포함됨
+        expect(last_response.body).to include('value="인물"')
       end
 
       it "category 비면 422" do

@@ -27,19 +27,18 @@ RSpec.describe "Memo Subject Picker (Phase 16 P16-T02)", type: :request do
   describe "GET / 의 quick_modal — 4축 chip" do
     before { get "/" }
 
-    it "hidden subject input (chip 으로 갱신) 노출" do
-      expect(last_response.body).to match(%r{<input type="hidden" name="subject"})
-      expect(last_response.body).to include('data-quick-memo-target="subjectInput"')
+    it "subject native radio (label > radio) 노출 — 2026-05-12 Stimulus 의존 폐기" do
+      # 5 radio (일반 + 4축) — 브라우저 native form 동작으로 subject= 전송.
+      expect(last_response.body).to match(%r{<input type="radio" name="subject" value="person"})
     end
 
-    it "4 chip + 일반 chip 모두 노출 (4축 분류)" do
+    it "5 radio (일반 + 4축) 모두 노출 with 한국어 라벨" do
       body = last_response.body
       expect(body).to include("4축 분류")
-      expect(body).to include('data-subject="person"')
-      expect(body).to include('data-subject="subject"')
-      expect(body).to include('data-subject="document"')
-      expect(body).to include('data-subject="identity"')
-      expect(body).to include('data-subject=""') # 일반
+      ["", "person", "subject", "document", "identity"].each do |v|
+        expect(body).to match(%r{<input type="radio" name="subject" value="#{v}"})
+      end
+      %w[일반 인물 교과 문서 정체성].each { |label| expect(body).to include(label) }
     end
 
     it "옛 <select> dropdown 미노출" do
@@ -106,13 +105,13 @@ RSpec.describe "Memo Subject Picker (Phase 16 P16-T02)", type: :request do
       expect(file).not_to match(/#(인물|교과|문서|정체성)/)
     end
 
-    it "이미 같은 태그가 본문에 있으면 중복 부착 안 함 (멱등)" do
-      post "/memos", body: "본문 #인물", subject: "person"
+    it "이미 같은 '분류: X #X' 라인이 본문에 있으면 중복 부착 안 함 (멱등)" do
+      post "/memos", body: "본문\n\n분류: 인물 #인물", subject: "person"
       expect(last_response.status).to eq(200)
       path = db[:entries].first[:path]
       file = Sowing::Core::Paths.vault_dir.join(path).read
-      # "#인물" 이 두 번이 아니라 한 번만 등장
-      expect(file.scan("#인물").size).to eq(1)
+      # "분류: 인물 #인물" 패턴이 정확히 한 번만 등장
+      expect(file.scan("분류: 인물 #인물").size).to eq(1)
     end
   end
 

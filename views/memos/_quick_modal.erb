@@ -20,38 +20,18 @@
               data-action="click->quick-memo#close">✕</button>
     </header>
 
-    <%# 4축 분류 chip (ADR-016 — person/subject/document/identity) + 일반 (subject 미지정).
-        chip 선택 시 hidden #quick_memo_subject input 갱신 → POST /memos 에 subject param 전송. %>
+    <%# 4축 분류 chip (ADR-016) — native radio button + CSS chip 스타일.
+        JS 의존 0 — 브라우저가 form 제출 시 native 으로 subject= 값 전송.
+        2026-05-12 — 옛 button + Stimulus 방식 폐기 (브라우저 캐시·Stimulus 인식 이슈 회피). %>
     <div class="quick-modal__subtypes" role="radiogroup" aria-label="4축 분류">
-      <button type="button" class="quick-modal__chip quick-modal__chip--active"
-              data-quick-memo-target="chip"
-              data-action="click->quick-memo#selectSubject"
-              data-subject=""
-              role="radio" aria-checked="true">⚡ 일반</button>
-      <button type="button" class="quick-modal__chip"
-              data-quick-memo-target="chip"
-              data-action="click->quick-memo#selectSubject"
-              data-subject="person"
-              role="radio" aria-checked="false">👤 인물</button>
-      <button type="button" class="quick-modal__chip"
-              data-quick-memo-target="chip"
-              data-action="click->quick-memo#selectSubject"
-              data-subject="subject"
-              role="radio" aria-checked="false">📚 교과</button>
-      <button type="button" class="quick-modal__chip"
-              data-quick-memo-target="chip"
-              data-action="click->quick-memo#selectSubject"
-              data-subject="document"
-              role="radio" aria-checked="false">📄 문서</button>
-      <button type="button" class="quick-modal__chip"
-              data-quick-memo-target="chip"
-              data-action="click->quick-memo#selectSubject"
-              data-subject="identity"
-              role="radio" aria-checked="false">🪞 정체성</button>
+      <% [["", "⚡", "일반"], ["person", "👤", "인물"], ["subject", "📚", "교과"],
+          ["document", "📄", "문서"], ["identity", "🪞", "정체성"]].each_with_index do |(value, icon, label), i| %>
+        <label class="quick-modal__chip">
+          <input type="radio" name="subject" value="<%= h(value) %>" <%= "checked" if i.zero? %>>
+          <span><%= icon %> <%= h(label) %></span>
+        </label>
+      <% end %>
     </div>
-
-    <%# chip 으로 갱신되는 hidden subject input — POST /memos 가 subject= 로 수신. %>
-    <input type="hidden" name="subject" value="" data-quick-memo-target="subjectInput">
 
     <textarea name="body"
               class="quick-modal__textarea"

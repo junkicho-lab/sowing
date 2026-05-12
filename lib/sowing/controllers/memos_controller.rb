@@ -97,21 +97,21 @@ module Sowing
       # CreateMemo Use Case 자체는 MCP::Tools::CreateMemo 가 아직 사용 (별도 strangulation).
       #
       # Phase 16 P16-T02 — subject 4축 (ADR-016) 옵셔널 수신.
-      # quick_modal 의 chip 이 hidden subject input 으로 person/subject/document/identity 전달.
+      # quick_modal 의 chip (native radio button) 이 subject 파라미터 전송.
       #
-      # 2026-05-12 — chip 선택 시 body 끝에 #4축한국어라벨 자동 부착.
-      # 예: subject=person → body 끝에 "\n\n#인물" 추가. 검색·시각 인지 보조.
+      # 2026-05-12 — chip 선택 시 body 끝에 "분류: {라벨} #{라벨}" 자동 부착.
+      #   예) subject=person → "...\n\n분류: 인물 #인물"
+      #   분류명 (plain) + 태그 (#) 둘 다 — 검색·시각 인지·태그 인덱싱 모두 지원.
+      #   멱등 — 이미 본문에 같은 패턴 있으면 중복 부착 회피.
       post "/memos" do
         raw_body = params["body"].to_s
         subject_param = params["subject"].to_s
         subject = subject_param.empty? ? nil : subject_param.to_sym
 
-        # 4축 한국어 라벨 자동 태그 (사용자 입력 body 변경 — 의도된 mutation).
         body = if subject && Sowing::Capture::Item::SUBJECT_LABELS.key?(subject)
           label = Sowing::Capture::Item::SUBJECT_LABELS[subject]
-          tag = "##{label}"
-          # 이미 같은 태그가 있으면 중복 부착 회피 (재제출·voice 등에서 빈번).
-          raw_body.include?(tag) ? raw_body : "#{raw_body.rstrip}\n\n#{tag}"
+          line = "분류: #{label} ##{label}"
+          raw_body.include?(line) ? raw_body : "#{raw_body.rstrip}\n\n#{line}"
         else
           raw_body
         end
@@ -174,6 +174,12 @@ module Sowing
       get "/memos/:id/promote_to_record" do
         @memo = find_memo(params["id"])
         halt_with_404(ERROR_MESSAGES[:not_found]) if @memo.nil?
+
+        # 2026-05-12 — 메모의 subject (4축 ENUM) 을 IndexRepo 에서 읽어와
+        # promote 폼의 카테고리 prefill 에 활용. Domain::Memo 는 subject 미보유 →
+        # 별도 변수로 노출.
+        indexed = index_repo.find(params["id"])
+        @memo_subject = indexed&.subject # :person / :subject / :document / :identity / nil
 
         @page_title = "기록으로 승격"
         @form = {

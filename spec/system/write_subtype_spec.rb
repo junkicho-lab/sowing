@@ -41,10 +41,12 @@ RSpec.describe "빠른 메모 모달 — 4축 chip (ADR-016, 2026-05-12)", type:
   end
 
   describe "빠른 메모 모달 — 4축 chip 5개 (일반 + 인물/교과/문서/정체성)" do
-    it "5 chip (일반 + 4축) 모두 표시" do
+    # 2026-05-12 후속 — chip 을 native radio button (<label> > <input type="radio">) 로 교체.
+    # Stimulus 의존 폐기 — 브라우저 form 이 native 으로 subject= 전송.
+    it "5 native radio (일반 + 4축) 모두 표시" do
       get "/"
       ["", "person", "subject", "document", "identity"].each do |subj|
-        expect(last_response.body).to match(%r{data-subject="#{subj}"})
+        expect(last_response.body).to match(%r{<input type="radio" name="subject" value="#{subj}"})
       end
     end
 
@@ -55,10 +57,9 @@ RSpec.describe "빠른 메모 모달 — 4축 chip (ADR-016, 2026-05-12)", type:
       end
     end
 
-    it "hidden subject input 노출 (chip 으로 갱신)" do
+    it "일반 (value='') chip 이 기본 checked" do
       get "/"
-      expect(last_response.body).to match(%r{<input type="hidden" name="subject"})
-      expect(last_response.body).to include('data-quick-memo-target="subjectInput"')
+      expect(last_response.body).to match(%r{<input type="radio" name="subject" value="" checked})
     end
 
     it "옛 slot field (book/lecture/emotion/student) 미노출 — 회귀 방지" do
