@@ -24,7 +24,7 @@ GEM
       metrics (~> 0.12)
       traces (~> 0.18)
     base64 (0.3.0)
-    bigdecimal (4.1.2)
+    bigdecimal (3.3.1)
     byebug (13.0.0)
       reline (>= 0.6.0)
     capybara (3.40.0)
@@ -36,6 +36,10 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
+    caracal (1.4.1)
+      nokogiri (~> 1.6)
+      rubyzip (~> 1.1)
+      tilt (>= 1.4)
     coderay (1.1.3)
     commonmarker (2.8.1-aarch64-linux)
     commonmarker (2.8.1-aarch64-linux-musl)
@@ -155,6 +159,13 @@ GEM
     parser (3.3.11.1)
       ast (~> 2.4.1)
       racc
+    pdf-core (0.10.0)
+    prawn (2.5.0)
+      matrix (~> 0.4)
+      pdf-core (~> 0.10.0)
+      ttfunk (~> 1.8)
+    prawn-table (0.2.2)
+      prawn (>= 1.3.0, < 3.0.0)
     prism (1.9.0)
     pry (0.16.0)
       coderay (~> 1.1)
@@ -166,8 +177,6 @@ GEM
     public_suffix (7.0.5)
     puma (6.6.1)
       nio4r (~> 2.0)
-    r18n-core (6.0.0)
-      bigdecimal (~> 4.0)
     racc (1.8.1)
     rack (3.2.6)
     rack-protection (4.2.1)
@@ -226,6 +235,7 @@ GEM
       rubocop (>= 1.75.0, < 2.0)
       rubocop-ast (>= 1.47.1, < 2.0)
     ruby-progressbar (1.13.0)
+    rubyzip (1.3.0)
     securerandom (0.4.1)
     sequel (5.104.0)
       bigdecimal
@@ -271,6 +281,8 @@ GEM
     tilt (2.7.0)
     timecop (0.9.11)
     traces (0.18.2)
+    ttfunk (1.8.0)
+      bigdecimal (~> 3.1)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     ulid (1.4.0)
@@ -298,6 +310,7 @@ PLATFORMS
 DEPENDENCIES
   async (~> 2.10)
   capybara (~> 3.40)
+  caracal (~> 1.4)
   commonmarker (~> 2.8)
   dry-monads (~> 1.6)
   dry-validation (~> 1.10)
@@ -306,9 +319,10 @@ DEPENDENCIES
   front_matter_parser (~> 1.0)
   listen (~> 3.9)
   mcp (~> 0.15)
+  prawn (~> 2.5)
+  prawn-table (~> 0.2)
   pry-byebug (~> 3.10)
   puma (~> 6.4)
-  r18n-core (~> 6.0)
   rack-protection (~> 4.0)
   rack-test (~> 2.1)
   rackup (~> 2.1)
@@ -333,10 +347,11 @@ CHECKSUMS
   ast (2.4.3) sha256=954615157c1d6a382bc27d690d973195e79db7f55e9765ac7c481c60bdb4d383
   async (2.39.0) sha256=df18730073f2bbb45788077dfa20cb365ecc1b9453969f44de6796b5191a00aa
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
-  bigdecimal (4.1.2) sha256=53d217666027eab4280346fba98e7d5b66baaae1b9c3c1c0ffe89d48188a3fbd
+  bigdecimal (3.3.1) sha256=eaa01e228be54c4f9f53bf3cc34fe3d5e845c31963e7fcc5bedb05a4e7d52218
   bundler (4.0.11) sha256=5bcec0fb78302e48d02ee46f10ee6e6942be647ba5b44a6d1ddfda9a240ce785
   byebug (13.0.0) sha256=d2263efe751941ca520fa29744b71972d39cbc41839496706f5d9b22e92ae05d
   capybara (3.40.0) sha256=42dba720578ea1ca65fd7a41d163dd368502c191804558f6e0f71b391054aeef
+  caracal (1.4.1) sha256=230ff744e79cd8d9aa449bb350aab986c29bbc6b489d54021ac99add6bb3fcfb
   coderay (1.1.3) sha256=dc530018a4684512f8f38143cd2a096c9f02a1fc2459edcfe534787a7fc77d4b
   commonmarker (2.8.1-aarch64-linux) sha256=f855599cc6855f4137d72dcacae9571451075afe6e6c8522eba353df9b81d0bf
   commonmarker (2.8.1-aarch64-linux-musl) sha256=bbc2b3d361403431a5aac737dc86997d3b2843276ef395e7499cf17ad48e1b2c
@@ -402,12 +417,14 @@ CHECKSUMS
   nokogiri (1.19.3-x86_64-linux-musl) sha256=248c906d2166eca5efb56d52fdee5f9a1f51d69a72e2b64fdac647b4ce39ea3f
   parallel (1.28.0) sha256=33e6de1484baf2524792d178b0913fc8eb94c628d6cfe45599ad4458c638c970
   parser (3.3.11.1) sha256=d17ace7aabe3e72c3cc94043714be27cc6f852f104d81aa284c2281aecc65d54
+  pdf-core (0.10.0) sha256=0a5d101e2063c01e3f941e1ee47cbb97f1adfc1395b58372f4f65f1300f3ce91
+  prawn (2.5.0) sha256=f4e20e3b4f30bf5b9ae37dad15eb421831594553aa930b2391b0fa0a99c43cb6
+  prawn-table (0.2.2) sha256=336d46e39e003f77bf973337a958af6a68300b941c85cb22288872dc2b36addb
   prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85
   pry (0.16.0) sha256=d76c69065698ed1f85e717bd33d7942c38a50868f6b0673c636192b3d1b6054e
   pry-byebug (3.12.0) sha256=594e094ae8a8390a7ad4c7b36ae36e13304ed02664c67417d108dc5f7213d1b7
   public_suffix (7.0.5) sha256=1a8bb08f1bbea19228d3bed6e5ed908d1cb4f7c2726d18bd9cadf60bc676f623
   puma (6.6.1) sha256=b9b56e4a4ea75d1bfa6d9e1972ee2c9f43d0883f011826d914e8e37b3694ea1e
-  r18n-core (6.0.0) sha256=d91250e22dec2d55870f7b14568055b9704aa99e77a7dfef950863f57dcbb064
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
   rack (3.2.6) sha256=5ed78e1f73b2e25679bec7d45ee2d4483cc4146eb1be0264fc4d94cb5ef212c2
   rack-protection (4.2.1) sha256=cf6e2842df8c55f5e4d1a4be015e603e19e9bc3a7178bae58949ccbb58558bac
@@ -431,6 +448,7 @@ CHECKSUMS
   rubocop-ast (1.49.1) sha256=4412f3ee70f6fe4546cc489548e0f6fcf76cafcfa80fa03af67098ffed755035
   rubocop-performance (1.26.1) sha256=cd19b936ff196df85829d264b522fd4f98b6c89ad271fa52744a8c11b8f71834
   ruby-progressbar (1.13.0) sha256=80fc9c47a9b640d6834e0dc7b3c94c9df37f08cb072b7761e4a71e22cff29b33
+  rubyzip (1.3.0) sha256=149dd90386c5eef837353b21cd9a0cfd4ec5a07b24ab18f734f546cefb17ace3
   securerandom (0.4.1) sha256=cc5193d414a4341b6e225f0cb4446aceca8e50d5e1888743fac16987638ea0b1
   sequel (5.104.0) sha256=1521819b9204aa7f5c25b29fbb2a609ba3f6a82d2271f34f718e1169d31bf03e
   simplecov (0.22.0) sha256=fe2622c7834ff23b98066bb0a854284b2729a569ac659f82621fc22ef36213a5
@@ -452,6 +470,7 @@ CHECKSUMS
   tilt (2.7.0) sha256=0d5b9ba69f6a36490c64b0eee9f6e9aad517e20dcc848800a06eb116f08c6ab3
   timecop (0.9.11) sha256=41284dc6e5041f2184f781ace766f942108c842f8d8c1386a26e6343decc7542
   traces (0.18.2) sha256=80f1649cb4daace1d7174b81f3b3b7427af0b93047759ba349960cb8f315e214
+  ttfunk (1.8.0) sha256=a7cbc7e489cc46e979dde04d34b5b9e4f5c8f1ee5fc6b1a7be39b829919d20ca
   tzinfo (2.0.6) sha256=8daf828cc77bcf7d63b0e3bdb6caa47e2272dcfaf4fbfe46f8c3a9df087a829b
   ulid (1.4.0) sha256=04e89db22dca21be8c5005e6e98a964fd64d5df18ff17197cd00d27fc5c1d710
   unicode-display_width (3.2.0) sha256=0cdd96b5681a5949cdbc2c55e7b420facae74c4aaf9a9815eee1087cb1853c42

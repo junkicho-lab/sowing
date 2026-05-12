@@ -91,11 +91,20 @@ RSpec.describe "Phase R Stage 1 — Bounded Context 골격" do
       expect(result).to include("학생부")
     end
 
-    it ".generate (pdf/docx) 는 followup 예정 (NotImplementedError 안내)" do
-      expect { Sowing::Output.generate(type: :student_record, format: :pdf) }
-        .to raise_error(NotImplementedError, /Prawn/)
-      expect { Sowing::Output.generate(type: :student_record, format: :docx) }
-        .to raise_error(NotImplementedError, /caracal/)
+    it ".generate (pdf) 도 실 구현 (R4b-followup 완료)" do
+      bytes = Sowing::Output.generate(type: :student_record, format: :pdf,
+        student_name: "테스트", grade: 3, date: "2026-05-12", teacher_name: "T")
+      expect(bytes).to be_a(String)
+      expect(bytes.bytesize).to be > 1000 # PDF 헤더 + 본문
+      expect(bytes[0, 4]).to eq("%PDF") # PDF magic
+    end
+
+    it ".generate (docx) 도 실 구현 (R4b-followup 완료)" do
+      bytes = Sowing::Output.generate(type: :student_record, format: :docx,
+        student_name: "테스트", grade: 3, date: "2026-05-12", teacher_name: "T")
+      expect(bytes).to be_a(String)
+      expect(bytes.bytesize).to be > 1000
+      expect(bytes[0, 2].bytes).to eq([0x50, 0x4B]) # ZIP magic (DOCX = ZIP)
     end
 
     it "type 가 5 종 외이면 ArgumentError" do

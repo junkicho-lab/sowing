@@ -19,12 +19,20 @@ gem "commonmarker", "~> 2.8"
 gem "front_matter_parser", "~> 1.0"
 gem "listen", "~> 3.9"
 
+# === Document Export (Phase R R4b-followup) ===
+# PDF: Prawn + 한글 폰트 (Pretendard 권장, 시스템 폰트 폴백 가능)
+gem "prawn", "~> 2.5"
+gem "prawn-table", "~> 0.2"
+# DOCX: caracal — ruby-native Word 생성
+gem "caracal", "~> 1.4"
+
 # === View Layer ===
 gem "tilt", "~> 2.4"
 gem "erubi", "~> 1.13"
 
 # === i18n ===
-gem "r18n-core", "~> 6.0"
+# Removed r18n-core (~> 6.0) — 미사용 + ttfunk 1.8 (Prawn 2.5) 와 bigdecimal 버전 충돌.
+# 향후 i18n 필요 시 r18n 6 의 bigdecimal ~> 4.0 제약과 prawn ttfunk 호환 해결 필요.
 
 # === Utilities ===
 gem "dry-validation", "~> 1.10"

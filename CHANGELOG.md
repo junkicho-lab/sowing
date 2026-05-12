@@ -7,7 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(다음 릴리스 변경사항 누적용 — 비어 있으면 최근 릴리스가 모두 반영됨.)
+### Phase R R4b-followup — Output PDF + DOCX (markdown 미지원 → 3 format 완성)
+
+v0.2.0 의 markdown-only MVP 를 Prawn (PDF) + caracal (DOCX) 로 확장.
+5 templates × 3 formats 모두 작동.
+
+**핵심 추가**:
+- `Output::PdfRenderer` — commonmarker AST → Prawn DSL walker
+  - Pretendard 한글 폰트 등록 (Regular + Bold)
+  - H1/H2/H3 / paragraph / bold·italic / list / table / hr 모두 지원
+  - prawn-table 통합 (budget_request 행 단가 테이블 렌더)
+- `Output::DocxRenderer` — commonmarker AST → caracal DSL walker
+  - caracal 의 h1~h6 / p / ul / table helper 매핑
+  - 인라인 bold/italic, 시스템 폰트 자동 fallback
+- `Output::FontConfig` — 한글 폰트 resolver
+  - ENV `SOWING_PDF_FONT` > vendored Pretendard > macOS/Linux 시스템 fallback
+  - `FontNotFound` 시 친절한 설치 가이드 메시지
+
+**vendored 폰트 (`vendor/fonts/`)** — 약 5.3 MB:
+- `Pretendard-Regular.ttf` + `Pretendard-Bold.ttf` (SIL OFL-1.1)
+- 시스템 한글 폰트 (AppleGothic·NotoCJK) 의 ttfunk OS/2 table 호환 이슈 회피
+
+**Gemfile 변경**:
+- 추가: `prawn ~> 2.5`, `prawn-table ~> 0.2`, `caracal ~> 1.4`
+- **제거: `r18n-core ~> 6.0`** — 실제 미사용 + bigdecimal 버전 제약이
+  prawn 2.5 (ttfunk 1.8) 와 충돌. 향후 i18n 필요 시 r18n 5.x 또는 다른 gem.
+
+**Façade 변경**:
+- `Sowing::Output.generate(format: :pdf)` — PDF binary 반환 (또는 write_to 시 파일)
+- `Sowing::Output.generate(format: :docx)` — DOCX binary 반환
+- 이전의 `NotImplementedError` stub 폐기
+
+**Spec (+38)**:
+- `spec/output/pdf_renderer_spec.rb` (14): 마크다운 features 5 종 + 5 templates 통합
+- `spec/output/docx_renderer_spec.rb` (11): 동일 features + 5 templates 통합
+- `spec/output/font_config_spec.rb` (6): resolve / available? / ENV override
+- 갱신: stage_1, stage_4b — NotImplementedError 검증 → 실 binary 검증
+- 1903 → 1944 (+41)
+
+### v0.2.0 의 README "알려진 한계" 갱신
+- ~~PDF / DOCX 출력 — Prawn 한글 + caracal 별도 task~~ → **R4b-followup 에서 완료**
+
+## [0.2.0] - 2026-05-12 — Phase R 모듈형 재구조화 (Bounded Context 4 layer)
 
 ## [0.2.0] - 2026-05-12 — Phase R 모듈형 재구조화 (Bounded Context 4 layer)
 

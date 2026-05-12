@@ -89,15 +89,19 @@ RSpec.describe "Sowing::Output Façade (Stage 4b)" do
     end
   end
 
-  describe ".generate — PDF / DOCX (followup 안내)" do
-    it ":pdf → NotImplementedError + Prawn 안내" do
-      expect { Sowing::Output.generate(type: :student_record, format: :pdf) }
-        .to raise_error(NotImplementedError, /Prawn|PDF/)
+  describe ".generate — PDF / DOCX (R4b-followup 완료)" do
+    # 본격적인 binary 출력 spec 은 spec/output/pdf_renderer_spec.rb /
+    # docx_renderer_spec.rb 참조. 여기서는 Façade 가 dispatch 만 검증.
+    it ":pdf — PDF binary 반환 (magic %PDF)" do
+      bytes = Sowing::Output.generate(type: :student_record, format: :pdf,
+        student_name: "T", grade: 1, date: "2026-05-12", teacher_name: "T")
+      expect(bytes[0, 4]).to eq("%PDF")
     end
 
-    it ":docx → NotImplementedError + caracal 안내" do
-      expect { Sowing::Output.generate(type: :student_record, format: :docx) }
-        .to raise_error(NotImplementedError, /caracal|DOCX/)
+    it ":docx — ZIP binary 반환 (DOCX = ZIP container)" do
+      bytes = Sowing::Output.generate(type: :student_record, format: :docx,
+        student_name: "T", grade: 1, date: "2026-05-12", teacher_name: "T")
+      expect(bytes[0, 2].bytes).to eq([0x50, 0x4B])
     end
   end
 

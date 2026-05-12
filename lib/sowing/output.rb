@@ -34,27 +34,28 @@ module Sowing
     @mutex = Mutex.new
 
     class << self
-      # 단일 template 렌더 → 문자열 또는 파일 경로.
+      # 단일 template 렌더 → 문자열, 바이트, 또는 파일 경로.
       # @param type [Symbol] TEMPLATE_TYPES 중 하나
-      # @param format [Symbol] FORMATS 중 하나 (Stage 4b 는 :markdown 만 활성)
+      # @param format [Symbol] FORMATS 중 하나 (markdown/pdf/docx — R4b-followup 완료)
       # @param locals [Hash{Symbol=>Object}] template 변수 (ERB 안에서 메서드로 접근)
-      # @param write_to [Pathname, String, nil] 지정 시 파일 저장 후 path 반환.
-      #   nil 이면 렌더된 문자열 반환.
+      # @param write_to [Pathname, String, nil] 지정 시 파일 저장 후 Pathname 반환.
+      #   nil 이면 markdown 은 String, pdf/docx 는 binary String (ASCII-8BIT) 반환.
       # @return [String, Pathname]
       def generate(type:, format: :markdown, write_to: nil, **locals)
         validate_type!(type)
         validate_format!(format)
 
+        markdown = render_markdown(type, locals)
+
         case format.to_sym
         when :markdown
-          rendered = render_markdown(type, locals)
-          write_to ? write_file(write_to, rendered) : rendered
+          write_to ? write_file(write_to, markdown) : markdown
         when :pdf
-          raise NotImplementedError,
-            "PDF 출력은 Stage 4b followup 예정 (Prawn + 한글 Pretendard 폰트 통합)"
+          bytes = PdfRenderer.new.render(markdown)
+          write_to ? write_binary(write_to, bytes) : bytes
         when :docx
-          raise NotImplementedError,
-            "DOCX 출력은 Stage 4b followup 예정 (caracal gem)"
+          bytes = DocxRenderer.new.render(markdown)
+          write_to ? write_binary(write_to, bytes) : bytes
         end
       end
 
@@ -81,6 +82,14 @@ module Sowing
         abs = Pathname.new(path.to_s).expand_path
         FileUtils.mkdir_p(abs.dirname)
         File.write(abs, content, encoding: "UTF-8")
+        abs
+      end
+
+      def write_binary(path, bytes)
+        require "fileutils"
+        abs = Pathname.new(path.to_s).expand_path
+        FileUtils.mkdir_p(abs.dirname)
+        File.binwrite(abs, bytes)
         abs
       end
 
