@@ -135,6 +135,31 @@ module Sowing
         erb :"notes/show", layout: :"layouts/application"
       end
 
+      # Phase 16 P16-T01 — 기존 필기를 마크다운·PDF·DOCX 로 내보내기 (R4b-followup 활용).
+      get "/notes/:id/export" do
+        note = find_note(params["id"])
+        halt_with_404("필기를 찾을 수 없습니다.") if note.nil?
+
+        format = (params["format"] || "markdown").to_sym
+        halt 400, "지원하지 않는 format: #{format}" unless %i[markdown pdf docx].include?(format)
+
+        markdown = "# #{note.title}\n\n#{note.body}"
+        case format
+        when :markdown
+          content_type "text/markdown; charset=utf-8"
+          attach_filename(note.title, "md")
+          markdown
+        when :pdf
+          content_type "application/pdf"
+          attach_filename(note.title, "pdf")
+          Sowing::Output::PdfRenderer.new.render(markdown)
+        when :docx
+          content_type "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          attach_filename(note.title, "docx")
+          Sowing::Output::DocxRenderer.new.render(markdown)
+        end
+      end
+
       get "/notes/:id/edit" do
         @note = find_note(params["id"])
         halt_with_404("필기를 찾을 수 없습니다.") if @note.nil?

@@ -32,5 +32,20 @@
   <footer class="note-show__footer">
     <a href="/records" class="button button--secondary">← 목록으로</a>
     <a href="/records/<%= h(@record.id) %>/edit" class="button button--primary">편집</a>
+
+    <details class="note-show__export">
+      <summary class="button button--secondary">📥 내보내기</summary>
+      <div class="note-show__export-options" role="menu" aria-label="내보내기 형식">
+        <a href="/records/<%= h(@record.id) %>/export?format=markdown" class="note-show__export-link" role="menuitem">
+          📄 마크다운 (.md)
+        </a>
+        <a href="/records/<%= h(@record.id) %>/export?format=pdf" class="note-show__export-link" role="menuitem">
+          📕 PDF (.pdf)
+        </a>
+        <a href="/records/<%= h(@record.id) %>/export?format=docx" class="note-show__export-link" role="menuitem">
+          📘 워드 (.docx)
+        </a>
+      </div>
+    </details>
   </footer>
 </article>

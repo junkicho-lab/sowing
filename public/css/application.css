@@ -1220,6 +1220,45 @@ pre code {
   margin-top: var(--space-4);
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+/* Phase 16 P16-T01 — 내보내기 dropdown (details/summary native) */
+.note-show__export {
+  position: relative;
+  display: inline-block;
+}
+.note-show__export > summary {
+  cursor: pointer;
+  list-style: none; /* hide default disclosure triangle */
+}
+.note-show__export > summary::-webkit-details-marker {
+  display: none;
+}
+.note-show__export-options {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 180px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 4px 0;
+  z-index: 10;
+}
+.note-show__export-link {
+  display: block;
+  padding: 8px 14px;
+  text-decoration: none;
+  color: var(--color-text);
+  font-size: 0.95em;
+  white-space: nowrap;
+}
+.note-show__export-link:hover,
+.note-show__export-link:focus {
+  background: var(--color-surface, #f5f5f5);
+  color: var(--color-primary);
 }
 
 /* Prose (rendered markdown) */

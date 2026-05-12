@@ -2,6 +2,7 @@
 
 require "sinatra/base"
 require "commonmarker"
+require "erb" # ERB::Util.url_encode (Phase 16 P16-T01 export filename)
 
 module Sowing
   module Controllers
@@ -72,6 +73,18 @@ module Sowing
           settings = Core::Settings.load
           return false unless settings["onboarding_completed"] == true
           settings["ia_v2_seen_at"].nil?
+        end
+
+        # Phase 16 P16-T01 — Content-Disposition: attachment 헤더.
+        # 한글 파일명을 RFC 5987 형식 (filename*=UTF-8''<percent-encoded>) 으로 안전 전송.
+        # 옛 브라우저 호환을 위해 ASCII filename= 도 함께 (한글은 _ 로 치환).
+        def attach_filename(name, extension)
+          safe = name.to_s.gsub(/[\\\/:"*?<>|\n\r]/, "_")
+          ascii = safe.gsub(/[^\w\s.-]+/, "_").strip
+          ascii = "document" if ascii.empty?
+          encoded = ERB::Util.url_encode("#{safe}.#{extension}")
+          response.headers["Content-Disposition"] =
+            %(attachment; filename="#{ascii}.#{extension}"; filename*=UTF-8''#{encoded})
         end
 
         # 옵시디언 호환 마크다운 → HTML.

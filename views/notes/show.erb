@@ -33,6 +33,15 @@
     <span class="note-show__footer-actions">
       <a href="/notes/<%= h(@note.id) %>/promote_to_record" class="button button--secondary" title="이 필기를 영구 보관용 기록으로 키웁니다">📖 기록으로 승격</a>
       <a href="/notes/<%= h(@note.id) %>/edit" class="button button--primary">편집</a>
+
+      <details class="note-show__export">
+        <summary class="button button--secondary">📥 내보내기</summary>
+        <div class="note-show__export-options" role="menu" aria-label="내보내기 형식">
+          <a href="/notes/<%= h(@note.id) %>/export?format=markdown" class="note-show__export-link" role="menuitem">📄 마크다운 (.md)</a>
+          <a href="/notes/<%= h(@note.id) %>/export?format=pdf" class="note-show__export-link" role="menuitem">📕 PDF (.pdf)</a>
+          <a href="/notes/<%= h(@note.id) %>/export?format=docx" class="note-show__export-link" role="menuitem">📘 워드 (.docx)</a>
+        </div>
+      </details>
     </span>
   </footer>
 </article>

@@ -167,6 +167,35 @@ module Sowing
         erb :"records/show", layout: :"layouts/application"
       end
 
+      # Phase 16 P16-T01 — 기존 기록을 마크다운·PDF·DOCX 로 내보내기 (R4b-followup 활용).
+      # 형식: GET /records/:id/export?format=markdown|pdf|docx
+      # 응답: Content-Disposition: attachment; filename*=UTF-8''<encoded>
+      get "/records/:id/export" do
+        record = find_record(params["id"])
+        halt_with_404(ERROR_MESSAGES[:not_found]) if record.nil?
+
+        format = (params["format"] || "markdown").to_sym
+        halt 400, "지원하지 않는 format: #{format}" unless %i[markdown pdf docx].include?(format)
+
+        # 본문은 record 의 title (H1) + body — frontmatter 는 제외 (export 는 깨끗한 본문)
+        markdown = "# #{record.title}\n\n#{record.body}"
+
+        case format
+        when :markdown
+          content_type "text/markdown; charset=utf-8"
+          attach_filename(record.title, "md")
+          markdown
+        when :pdf
+          content_type "application/pdf"
+          attach_filename(record.title, "pdf")
+          Sowing::Output::PdfRenderer.new.render(markdown)
+        when :docx
+          content_type "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          attach_filename(record.title, "docx")
+          Sowing::Output::DocxRenderer.new.render(markdown)
+        end
+      end
+
       get "/records/:id/edit" do
         @record = find_record(params["id"])
         halt_with_404(ERROR_MESSAGES[:not_found]) if @record.nil?
