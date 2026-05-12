@@ -14,6 +14,7 @@ class Sowing::Application
   use Sowing::Controllers::TagsController
   use Sowing::Controllers::SearchController
   use Sowing::Controllers::TemplatesController
+  use Sowing::Controllers::GenerateController # Phase 16 P16-T04 — 공식 양식 생성
   use Sowing::Controllers::GuidesController
   use Sowing::Controllers::SettingsController
   use Sowing::Controllers::SynthController

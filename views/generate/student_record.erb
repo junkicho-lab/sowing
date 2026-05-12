@@ -1,0 +1,112 @@
+<section class="generate-form-page">
+  <header class="generate-form-page__header">
+    <a href="/generate" class="generate-form-page__back">← 양식 목록</a>
+    <h1 class="generate-form-page__title">🎓 생기부 (생활기록부) 작성</h1>
+    <p class="generate-form-page__lead">
+      학생 1명의 학습 활동과 행동 특성 종합 의견을 작성합니다.
+      입력한 내용은 ERB template 으로 렌더되어 마크다운·PDF·DOCX 어느 형식으로도 다운로드 가능.
+    </p>
+  </header>
+
+  <% if @error %>
+    <div class="generate-form-page__error" role="alert">
+      <strong>⚠ 입력 오류:</strong> <%= h(@error) %>
+    </div>
+  <% end %>
+
+  <form action="/generate/student_record" method="post" class="generate-form">
+    <fieldset class="generate-form__group">
+      <legend>기본 정보</legend>
+
+      <label class="generate-form__field">
+        <span class="generate-form__label">학생 이름 <em class="generate-form__required">*</em></span>
+        <input type="text" name="student_name" required
+               value="<%= h(@form["student_name"]) %>"
+               placeholder="예: 김철수">
+      </label>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field generate-form__field--narrow">
+          <span class="generate-form__label">학년</span>
+          <input type="number" name="grade" min="1" max="6"
+                 value="<%= h(@form["grade"]) %>" placeholder="3">
+        </label>
+
+        <label class="generate-form__field generate-form__field--narrow">
+          <span class="generate-form__label">반</span>
+          <input type="number" name="grade_class" min="1" max="20"
+                 value="<%= h(@form["grade_class"]) %>" placeholder="5">
+        </label>
+
+        <label class="generate-form__field generate-form__field--narrow">
+          <span class="generate-form__label">학년도</span>
+          <input type="text" name="academic_year"
+                 value="<%= h(@form["academic_year"] || Time.now.year) %>"
+                 placeholder="2026">
+        </label>
+      </div>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field">
+          <span class="generate-form__label">작성일</span>
+          <input type="date" name="date"
+                 value="<%= h(@form["date"] || Date.today.iso8601) %>">
+        </label>
+
+        <label class="generate-form__field">
+          <span class="generate-form__label">작성자 (담임)</span>
+          <input type="text" name="teacher_name"
+                 value="<%= h(@form["teacher_name"]) %>"
+                 placeholder="이선생">
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>학습 활동</legend>
+      <p class="generate-form__hint">
+        한 학기/학년의 교과 수업 참여·과제 수행·학습 태도를 종합하여 기록.
+        마크다운 문법 사용 가능 (목록·강조 등).
+      </p>
+      <label class="generate-form__field">
+        <textarea name="learning_activities" rows="8"
+                  placeholder="예: 국어 시간에 적극 발표하며 1단원 토론 활동에서 우수한 의견 제시. 모둠 활동에서 리더 역할 자처."><%= h(@form["learning_activities"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>행동 특성 및 종합 의견</legend>
+      <p class="generate-form__hint">
+        교우 관계, 학교생활 태도, 인성 측면의 종합 의견.
+      </p>
+      <label class="generate-form__field">
+        <textarea name="behavioral_observations" rows="8"
+                  placeholder="예: 친구들과 잘 어울리며 갈등 상황에서 중재자 역할. 정리정돈을 솔선수범하여 학급 환경 개선에 기여."><%= h(@form["behavioral_observations"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="generate-form__group generate-form__group--format">
+      <legend>출력 형식</legend>
+      <div class="generate-form__format-options">
+        <label class="generate-form__format-option">
+          <input type="radio" name="format" value="markdown" checked>
+          <span>📄 마크다운 (.md) — 옵시디언 편집용</span>
+        </label>
+        <label class="generate-form__format-option">
+          <input type="radio" name="format" value="pdf">
+          <span>📕 PDF (.pdf) — 인쇄·제출용</span>
+        </label>
+        <label class="generate-form__format-option">
+          <input type="radio" name="format" value="docx">
+          <span>📘 워드 (.docx) — 학교 서식 변환용</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="generate-form__actions">
+      <button type="submit" class="button button--primary generate-form__submit">
+        ✨ 생성 + 다운로드
+      </button>
+    </div>
+  </form>
+</section>

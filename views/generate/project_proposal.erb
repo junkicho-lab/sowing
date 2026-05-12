@@ -1,0 +1,93 @@
+<section class="generate-form-page">
+  <header class="generate-form-page__header">
+    <a href="/generate" class="generate-form-page__back">← 양식 목록</a>
+    <h1 class="generate-form-page__title">📑 사업계획서 작성</h1>
+    <p class="generate-form-page__lead">교육 사업·프로그램 기획 (목적·추진·예산·평가).</p>
+  </header>
+
+  <% if @error %>
+    <div class="generate-form-page__error" role="alert"><strong>⚠ 입력 오류:</strong> <%= h(@error) %></div>
+  <% end %>
+
+  <form action="/generate/project_proposal" method="post" class="generate-form">
+    <fieldset class="generate-form__group">
+      <legend>사업 기본 정보</legend>
+
+      <label class="generate-form__field">
+        <span class="generate-form__label">사업명</span>
+        <input type="text" name="project_title" value="<%= h(@form["project_title"]) %>" placeholder="독서 인증제 운영">
+      </label>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field">
+          <span class="generate-form__label">제출일</span>
+          <input type="date" name="submission_date" value="<%= h(@form["submission_date"] || Date.today.iso8601) %>">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">소속</span>
+          <input type="text" name="department" value="<%= h(@form["department"]) %>" placeholder="국어과">
+        </label>
+      </div>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field">
+          <span class="generate-form__label">제출자</span>
+          <input type="text" name="proposer" value="<%= h(@form["proposer"]) %>" placeholder="이선생">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">사업 기간</span>
+          <input type="text" name="project_period" value="<%= h(@form["project_period"]) %>" placeholder="2026.03 ~ 2026.12">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">총 예산 (원)</span>
+          <input type="text" name="budget_total" value="<%= h(@form["budget_total"]) %>" placeholder="500,000">
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>사업 개요</legend>
+      <label class="generate-form__field">
+        <textarea name="project_summary" rows="5" placeholder="사업의 배경·필요성·핵심 활동 요약"><%= h(@form["project_summary"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>목적 및 기대 효과</legend>
+      <label class="generate-form__field">
+        <textarea name="objectives" rows="5" placeholder="학생·학교·지역에 끼칠 효과"><%= h(@form["objectives"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>추진 계획</legend>
+      <label class="generate-form__field">
+        <textarea name="implementation_plan" rows="6" placeholder="추진 절차·방법·예상 활동"><%= h(@form["implementation_plan"]) %></textarea>
+      </label>
+
+      <label class="generate-form__field">
+        <span class="generate-form__label">주요 마일스톤 (한 줄에 하나)</span>
+        <textarea name="milestones" rows="4" placeholder="3월: 사업 시작&#10;6월: 1차 중간 평가&#10;12월: 최종 보고"><%= h(@form["milestones"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>예산 계획 / 평가 방안</legend>
+      <label class="generate-form__field">
+        <span class="generate-form__label">예산 계획</span>
+        <textarea name="budget_breakdown" rows="4" placeholder="항목별 예산 (별도 첨부도 가능)"><%= h(@form["budget_breakdown"]) %></textarea>
+      </label>
+
+      <label class="generate-form__field">
+        <span class="generate-form__label">평가 방안</span>
+        <textarea name="evaluation_plan" rows="4" placeholder="성과 측정 방법·지표"><%= h(@form["evaluation_plan"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <%= erb :"generate/_format_radio", locals: {form: @form} %>
+
+    <div class="generate-form__actions">
+      <button type="submit" class="button button--primary generate-form__submit">✨ 생성 + 다운로드</button>
+    </div>
+  </form>
+</section>

@@ -1,0 +1,17 @@
+<fieldset class="generate-form__group generate-form__group--format">
+  <legend>출력 형식</legend>
+  <div class="generate-form__format-options">
+    <label class="generate-form__format-option">
+      <input type="radio" name="format" value="markdown" <%= (form["format"] || "markdown") == "markdown" ? "checked" : "" %>>
+      <span>📄 마크다운 (.md)</span>
+    </label>
+    <label class="generate-form__format-option">
+      <input type="radio" name="format" value="pdf" <%= form["format"] == "pdf" ? "checked" : "" %>>
+      <span>📕 PDF (.pdf)</span>
+    </label>
+    <label class="generate-form__format-option">
+      <input type="radio" name="format" value="docx" <%= form["format"] == "docx" ? "checked" : "" %>>
+      <span>📘 워드 (.docx)</span>
+    </label>
+  </div>
+</fieldset>

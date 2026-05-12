@@ -1,0 +1,84 @@
+<section class="generate-form-page">
+  <header class="generate-form-page__header">
+    <a href="/generate" class="generate-form-page__back">← 양식 목록</a>
+    <h1 class="generate-form-page__title">📋 회의록 작성</h1>
+    <p class="generate-form-page__lead">교과·학년·전체 회의 의사록 (안건·논의·결정사항).</p>
+  </header>
+
+  <% if @error %>
+    <div class="generate-form-page__error" role="alert"><strong>⚠ 입력 오류:</strong> <%= h(@error) %></div>
+  <% end %>
+
+  <form action="/generate/meeting_minutes" method="post" class="generate-form">
+    <fieldset class="generate-form__group">
+      <legend>회의 정보</legend>
+
+      <label class="generate-form__field">
+        <span class="generate-form__label">회의 제목</span>
+        <input type="text" name="meeting_title" value="<%= h(@form["meeting_title"]) %>" placeholder="3학년 교과협의회">
+      </label>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field">
+          <span class="generate-form__label">일시</span>
+          <input type="date" name="meeting_date" value="<%= h(@form["meeting_date"] || Date.today.iso8601) %>">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">시간</span>
+          <input type="time" name="meeting_time" value="<%= h(@form["meeting_time"]) %>">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">장소</span>
+          <input type="text" name="location" value="<%= h(@form["location"]) %>" placeholder="교사회의실">
+        </label>
+      </div>
+
+      <label class="generate-form__field">
+        <span class="generate-form__label">참석자 (쉼표 또는 줄바꿈으로 구분)</span>
+        <textarea name="attendees" rows="2" placeholder="김교사, 이교사, 박교사"><%= h(@form["attendees"]) %></textarea>
+      </label>
+
+      <label class="generate-form__field">
+        <span class="generate-form__label">불참 (선택)</span>
+        <textarea name="absent_members" rows="1" placeholder="최교사"><%= h(@form["absent_members"]) %></textarea>
+      </label>
+
+      <label class="generate-form__field">
+        <span class="generate-form__label">기록자</span>
+        <input type="text" name="recorder" value="<%= h(@form["recorder"]) %>" placeholder="이선생">
+      </label>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>안건 (한 줄에 하나)</legend>
+      <label class="generate-form__field">
+        <textarea name="agenda" rows="4" placeholder="1단원 평가 방안&#10;체험학습 일정&#10;예산 확정"><%= h(@form["agenda"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>논의 내용</legend>
+      <label class="generate-form__field">
+        <textarea name="discussion" rows="8" placeholder="회의 논의 흐름·각 안건별 발언 요지 (마크다운 가능)"><%= h(@form["discussion"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>결정 사항 (한 줄에 하나)</legend>
+      <label class="generate-form__field">
+        <textarea name="decisions" rows="4" placeholder="1단원 평가는 수행평가 60% + 지필 40%&#10;체험학습은 5월 둘째 주"><%= h(@form["decisions"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <label class="generate-form__field">
+      <span class="generate-form__label">다음 회의</span>
+      <input type="text" name="next_meeting" value="<%= h(@form["next_meeting"]) %>" placeholder="5월 20일 14시">
+    </label>
+
+    <%= erb :"generate/_format_radio", locals: {form: @form} %>
+
+    <div class="generate-form__actions">
+      <button type="submit" class="button button--primary generate-form__submit">✨ 생성 + 다운로드</button>
+    </div>
+  </form>
+</section>

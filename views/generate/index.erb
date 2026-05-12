@@ -1,0 +1,22 @@
+<section class="generate-landing">
+  <header class="generate-landing__header">
+    <h1 class="generate-landing__title">📋 공식 양식 생성</h1>
+    <p class="generate-landing__lead">
+      1년 동안 모은 raw 기록을 학교가 원하는 공식 양식으로 변환합니다.
+      마크다운·PDF·DOCX 모두 다운로드 가능. 학교별 양식 차이는
+      <code>vault/.sowing/templates/exports/</code> 의 ERB 파일을 직접 편집하여 흡수하세요.
+    </p>
+  </header>
+
+  <ul class="generate-landing__grid">
+    <% @templates.each do |type, meta| %>
+      <li class="generate-card">
+        <a href="/generate/<%= h(type) %>" class="generate-card__link">
+          <span class="generate-card__icon" aria-hidden="true"><%= meta[:icon] %></span>
+          <h2 class="generate-card__label"><%= h(meta[:label]) %></h2>
+          <p class="generate-card__description"><%= h(meta[:description]) %></p>
+        </a>
+      </li>
+    <% end %>
+  </ul>
+</section>

@@ -1223,6 +1223,200 @@ pre code {
   flex-wrap: wrap;
 }
 
+/* Phase 16 P16-T04 — 공식 양식 생성 페이지 */
+.generate-landing__header {
+  text-align: center;
+  margin-bottom: var(--space-5);
+}
+.generate-landing__title {
+  font-size: 2rem;
+  margin-bottom: var(--space-2);
+  color: var(--color-primary);
+}
+.generate-landing__lead {
+  color: var(--color-text-muted);
+  max-width: 640px;
+  margin: 0 auto;
+}
+.generate-landing__lead code {
+  background: var(--color-surface, #f5f5f5);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+.generate-landing__grid {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-3);
+}
+.generate-card {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.generate-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+.generate-card__link {
+  display: block;
+  padding: var(--space-3);
+  text-decoration: none;
+  color: var(--color-text);
+}
+.generate-card__icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: var(--space-1);
+}
+.generate-card__label {
+  font-size: 1.1rem;
+  margin: var(--space-1) 0;
+  color: var(--color-primary);
+}
+.generate-card__description {
+  color: var(--color-text-muted);
+  font-size: 0.92em;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.generate-form-page__header {
+  margin-bottom: var(--space-4);
+}
+.generate-form-page__back {
+  display: inline-block;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+.generate-form-page__back:hover {
+  color: var(--color-primary);
+}
+.generate-form-page__title {
+  color: var(--color-primary);
+  margin: var(--space-1) 0;
+}
+.generate-form-page__lead {
+  color: var(--color-text-muted);
+}
+.generate-form-page__error {
+  background: #fff3f3;
+  border: 1px solid #f5c6c6;
+  border-radius: 6px;
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  color: #a02020;
+}
+
+.generate-form {
+  max-width: 760px;
+}
+.generate-form__group {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.generate-form__group legend {
+  padding: 0 var(--space-1);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.generate-form__hint {
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+  margin: 0 0 var(--space-2);
+}
+.generate-form__field {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+.generate-form__field--narrow {
+  flex: 0 1 auto;
+  min-width: 120px;
+}
+.generate-form__label {
+  display: block;
+  font-size: 0.92em;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+.generate-form__required {
+  color: #d04040;
+  font-style: normal;
+}
+.generate-form__field input[type="text"],
+.generate-form__field input[type="number"],
+.generate-form__field input[type="date"],
+.generate-form__field input[type="time"],
+.generate-form__field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  font-size: 1em;
+  font-family: inherit;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.generate-form__field textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+.generate-form__row {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.generate-form__row > .generate-form__field {
+  flex: 1 1 200px;
+}
+.generate-form__format-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.generate-form__format-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+.generate-form__format-option:hover {
+  background: var(--color-surface, #f5f5f5);
+}
+.generate-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+.generate-form__submit {
+  font-size: 1.05em;
+  padding: var(--space-2) var(--space-4);
+}
+.generate-form__line-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.generate-form__line-item {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+  gap: var(--space-1);
+}
+.generate-form__line-item input {
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 0.92em;
+}
+
 /* Phase 16 P16-T01 — 내보내기 dropdown (details/summary native) */
 .note-show__export {
   position: relative;

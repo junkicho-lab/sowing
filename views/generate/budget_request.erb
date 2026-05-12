@@ -1,0 +1,87 @@
+<section class="generate-form-page">
+  <header class="generate-form-page__header">
+    <a href="/generate" class="generate-form-page__back">← 양식 목록</a>
+    <h1 class="generate-form-page__title">💰 예산요구서 작성</h1>
+    <p class="generate-form-page__lead">교과·학년 예산 신청 (항목별 산출 + 집행 계획).</p>
+  </header>
+
+  <% if @error %>
+    <div class="generate-form-page__error" role="alert"><strong>⚠ 입력 오류:</strong> <%= h(@error) %></div>
+  <% end %>
+
+  <form action="/generate/budget_request" method="post" class="generate-form">
+    <fieldset class="generate-form__group">
+      <legend>요구 기본 정보</legend>
+
+      <label class="generate-form__field">
+        <span class="generate-form__label">요구 제목</span>
+        <input type="text" name="request_title" value="<%= h(@form["request_title"]) %>" placeholder="도서 구입 예산">
+      </label>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field">
+          <span class="generate-form__label">요구일</span>
+          <input type="date" name="request_date" value="<%= h(@form["request_date"] || Date.today.iso8601) %>">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">회계연도</span>
+          <input type="text" name="fiscal_year" value="<%= h(@form["fiscal_year"] || Time.now.year.to_s) %>">
+        </label>
+      </div>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field">
+          <span class="generate-form__label">요구자</span>
+          <input type="text" name="requester" value="<%= h(@form["requester"]) %>" placeholder="이선생">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">소속</span>
+          <input type="text" name="department" value="<%= h(@form["department"]) %>" placeholder="국어과">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">총 요구액 (원)</span>
+          <input type="text" name="total_amount" value="<%= h(@form["total_amount"]) %>" placeholder="500000">
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>요구 사유</legend>
+      <label class="generate-form__field">
+        <textarea name="rationale" rows="5" placeholder="예산이 필요한 배경·교육적 효과"><%= h(@form["rationale"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>산출 내역 (line_items)</legend>
+      <p class="generate-form__hint">
+        항목을 한 줄씩 추가하세요. 합계는 자동으로 표 마지막 행에 노출됩니다.
+        (수량·단가는 텍스트로 — 마크다운 표에서 그대로 렌더됨)
+      </p>
+      <div class="generate-form__line-items" id="lineItems">
+        <% (Array(@form["line_items"]) + [{}, {}, {}]).first(5).each_with_index do |item, i| %>
+          <div class="generate-form__line-item">
+            <input type="text" name="line_items[<%= i %>][name]" value="<%= h(item["name"]) %>" placeholder="항목명">
+            <input type="text" name="line_items[<%= i %>][unit_price]" value="<%= h(item["unit_price"]) %>" placeholder="단가">
+            <input type="text" name="line_items[<%= i %>][quantity]" value="<%= h(item["quantity"]) %>" placeholder="수량">
+            <input type="text" name="line_items[<%= i %>][amount]" value="<%= h(item["amount"]) %>" placeholder="금액">
+            <input type="text" name="line_items[<%= i %>][note]" value="<%= h(item["note"]) %>" placeholder="비고">
+          </div>
+        <% end %>
+      </div>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>집행 계획</legend>
+      <label class="generate-form__field">
+        <textarea name="execution_plan" rows="5" placeholder="언제·어떻게 집행할지 — 분기별 사용 계획"><%= h(@form["execution_plan"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <%= erb :"generate/_format_radio", locals: {form: @form} %>
+
+    <div class="generate-form__actions">
+      <button type="submit" class="button button--primary generate-form__submit">✨ 생성 + 다운로드</button>
+    </div>
+  </form>
+</section>

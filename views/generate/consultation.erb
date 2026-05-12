@@ -1,0 +1,81 @@
+<section class="generate-form-page">
+  <header class="generate-form-page__header">
+    <a href="/generate" class="generate-form-page__back">← 양식 목록</a>
+    <h1 class="generate-form-page__title">🤝 상담부 작성</h1>
+    <p class="generate-form-page__lead">학부모·학생·진로 상담 기록을 공식 양식으로 작성합니다.</p>
+  </header>
+
+  <% if @error %>
+    <div class="generate-form-page__error" role="alert"><strong>⚠ 입력 오류:</strong> <%= h(@error) %></div>
+  <% end %>
+
+  <form action="/generate/consultation" method="post" class="generate-form">
+    <fieldset class="generate-form__group">
+      <legend>상담 정보</legend>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field">
+          <span class="generate-form__label">상담 일자</span>
+          <input type="date" name="consultation_date" value="<%= h(@form["consultation_date"] || Date.today.iso8601) %>">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">시간</span>
+          <input type="time" name="consultation_time" value="<%= h(@form["consultation_time"]) %>">
+        </label>
+      </div>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field">
+          <span class="generate-form__label">상담 대상</span>
+          <input type="text" name="consultee" value="<%= h(@form["consultee"]) %>" placeholder="김철수 학부모">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">관련 학생 (선택)</span>
+          <input type="text" name="student_name" value="<%= h(@form["student_name"]) %>" placeholder="김철수">
+        </label>
+      </div>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field">
+          <span class="generate-form__label">관계</span>
+          <input type="text" name="relationship" value="<%= h(@form["relationship"] || "학부모") %>" placeholder="학부모/본인/형제">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">상담 방법</span>
+          <input type="text" name="consultation_method" value="<%= h(@form["consultation_method"] || "대면") %>" placeholder="대면/전화/이메일">
+        </label>
+      </div>
+
+      <div class="generate-form__row">
+        <label class="generate-form__field">
+          <span class="generate-form__label">주요 주제</span>
+          <input type="text" name="topic" value="<%= h(@form["topic"]) %>" placeholder="진로 / 학습 / 교우관계">
+        </label>
+        <label class="generate-form__field">
+          <span class="generate-form__label">상담자 (담임)</span>
+          <input type="text" name="teacher_name" value="<%= h(@form["teacher_name"]) %>" placeholder="이선생">
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>상담 내용</legend>
+      <label class="generate-form__field">
+        <textarea name="consultation_content" rows="10" placeholder="상담 진행 흐름·논의 내용·학부모 의견 등 (마크다운 가능)"><%= h(@form["consultation_content"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="generate-form__group">
+      <legend>합의 / 후속 조치</legend>
+      <label class="generate-form__field">
+        <textarea name="follow_up" rows="5" placeholder="다음 상담 일정·학생 지원 계획·합의 사항"><%= h(@form["follow_up"]) %></textarea>
+      </label>
+    </fieldset>
+
+    <%= erb :"generate/_format_radio", locals: {form: @form} %>
+
+    <div class="generate-form__actions">
+      <button type="submit" class="button button--primary generate-form__submit">✨ 생성 + 다운로드</button>
+    </div>
+  </form>
+</section>
