@@ -15,7 +15,8 @@ module Sowing
     class IndexRepo
       ENTRY_COLUMNS = [
         :id, :path, :mode, :title, :category, :template, :source, :promoted_from,
-        :created_at, :updated_at, :file_mtime, :file_hash, :word_count, :indexed_at
+        :created_at, :updated_at, :file_mtime, :file_hash, :word_count, :indexed_at,
+        :subject # Phase R Stage 2 R2-T05 (migration 008, ADR-016 4축)
       ].freeze
 
       def initialize(db: Core::DB.connection, clock: Time)
@@ -491,6 +492,9 @@ module Sowing
           template: entry.template,
           source: maybe_attr(entry, :source),
           promoted_from: maybe_attr(entry, :promoted_from),
+          # Capture::Item 만 subject 보유 (Memo/Note/Record/Plan 은 nil 반환).
+          # Symbol → String 변환 (DB 컬럼 TEXT).
+          subject: maybe_attr(entry, :subject)&.to_s,
           created_at: entry.created_at.iso8601,
           updated_at: entry.updated_at.iso8601,
           file_mtime: file_mtime.to_i,
@@ -532,6 +536,8 @@ module Sowing
           template: row[:template],
           source: row[:source],
           promoted_from: row[:promoted_from],
+          # 4축 String → Symbol (nil 은 그대로). R2-T05 migration 008.
+          subject: row[:subject]&.to_sym,
           created_at: Time.iso8601(row[:created_at]),
           updated_at: Time.iso8601(row[:updated_at]),
           file_mtime: row[:file_mtime],

@@ -6,14 +6,15 @@ module Sowing
     # 본문(body)은 마크다운 파일에만 있으므로 본 클래스에 포함되지 않는다.
     # 풀 도메인 객체가 필요하면 caller가 vault_repo.read(path)로 별도 조회한다.
     #
-    # mode: Symbol (:memo/:note/:record)
+    # mode: Symbol (:memo/:note/:record/:plan)
+    # subject: Symbol or nil (:person/:subject/:document/:identity, ADR-016 — Phase R Stage 2 R2-T05)
     # tags: Array<String> (TagSet 정책으로 정규화된 정렬된 태그)
     # created_at, updated_at, indexed_at: Time
     # file_mtime: Integer (Unix epoch seconds)
     IndexedEntry = Data.define(
       :id, :path, :mode, :title, :category, :template, :source, :promoted_from,
       :created_at, :updated_at, :file_mtime, :file_hash, :word_count, :indexed_at,
-      :tags
+      :tags, :subject
     )
   end
 end

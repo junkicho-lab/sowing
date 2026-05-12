@@ -14,7 +14,7 @@ namespace :db do
     require "sequel/core"
     Sequel.extension :migration
     Sowing.boot_db!
-    Sequel::Migrator.run(Sowing::Infrastructure::DB.connection, "db/migrations")
+    Sequel::Migrator.run(Sowing::Core::DB.connection, "db/migrations")
     puts "✅ Migration 완료"
   end
 
@@ -23,8 +23,8 @@ namespace :db do
     require "sequel/core"
     Sequel.extension :migration
     Sowing.boot_db!
-    current = Sequel::Migrator.get_current_migration_version(Sowing::Infrastructure::DB.connection)
-    Sequel::Migrator.run(Sowing::Infrastructure::DB.connection, "db/migrations", target: current - 1)
+    current = Sequel::Migrator.get_current_migration_version(Sowing::Core::DB.connection)
+    Sequel::Migrator.run(Sowing::Core::DB.connection, "db/migrations", target: current - 1)
     puts "↩️  Rollback 완료"
   end
 
@@ -32,7 +32,7 @@ namespace :db do
   task :reset do
     require "fileutils"
     Sowing.boot_paths!
-    db_path = Sowing::Infrastructure::Paths.db_path
+    db_path = Sowing::Core::Paths.db_path
     if File.exist?(db_path)
       FileUtils.rm(db_path)
       puts "🗑  #{db_path} 삭제"
@@ -44,7 +44,7 @@ namespace :db do
   desc "초기 셋업 (디렉토리 + 마이그레이션)"
   task :setup do
     Sowing.boot_paths!
-    Sowing::Infrastructure::Paths.ensure_data_dirs!
+    Sowing::Core::Paths.ensure_data_dirs!
     Rake::Task["db:migrate"].invoke
     puts "✅ Setup 완료"
   end
@@ -54,9 +54,9 @@ namespace :vault do
   desc "전체 볼트 재인덱싱 (ConsistencyCheck 활용 — 인덱스 wipe 후 재구축)"
   task :reindex do
     Sowing.boot!
-    coordinator = Sowing::Sync::Coordinator.new(vault_dir: Sowing::Infrastructure::Paths.vault_dir)
+    coordinator = Sowing::Sync::Coordinator.new(vault_dir: Sowing::Core::Paths.vault_dir)
     summary = Sowing::Sync::ConsistencyCheck.new(
-      vault_dir: Sowing::Infrastructure::Paths.vault_dir,
+      vault_dir: Sowing::Core::Paths.vault_dir,
       index_repo: Sowing::Repositories::IndexRepo.new,
       coordinator: coordinator
     ).run
