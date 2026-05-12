@@ -155,10 +155,24 @@ RSpec.describe "메모 → 필기 승격 (W3-T06)", type: :request do
   end
 
   describe "메모 카드의 승격 링크" do
-    it "/memos 목록 카드에 promote 링크가 있다" do
+    # 글쓰기 nav 정비 (2026-05-12) 와 동기화 — 카드의 📝 필기 승격 아이콘은 제거됨.
+    # /memos/:id/promote_to_note 라우트는 호환용으로 살아있음 (직접 URL).
+    it "/memos 목록 카드에 기록 승격 (📖) 링크가 있다" do
       id = create_memo
       get "/memos"
-      expect(last_response.body).to include("/memos/#{id}/promote_to_note")
+      expect(last_response.body).to include("/memos/#{id}/promote_to_record")
+    end
+
+    it "/memos 목록 카드에 필기 승격 (📝) 아이콘은 없음" do
+      id = create_memo
+      get "/memos"
+      expect(last_response.body).not_to include("/memos/#{id}/promote_to_note")
+    end
+
+    it "/memos/:id/promote_to_note 라우트는 직접 URL 로 접근 가능 (호환)" do
+      id = create_memo
+      get "/memos/#{id}/promote_to_note"
+      expect(last_response.status).to eq(200)
     end
   end
 end
