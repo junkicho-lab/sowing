@@ -1079,12 +1079,125 @@ Claude Code 사용 시 작업 ID로 지시하면 명확합니다 (예: `claude "
 
 ---
 
-## Phase 2 이후 (Week 25~)
+## Phase R: 비전 기반 모듈형 재구조화 (W33~W40, 8주, v0.2.0)
 
-EVALUATION.md §3 의 Phase 13~16 후보 (Phase 13 동사 IA 후의 후속):
+**계기**: 사용자 비전 (`docs/MVP_VISION.md` A~E) — 30년 교사 경험·통찰
+기록·전달. 현재 v0.1.8 은 A·B·C·E.1 충족, D·E.2·E.3·C(이관) 부족.
+
+**HOW**: `docs/REFACTORING_BLUEPRINT.md` — 4 Bounded Context + Strangler
+Fig + 9 합의 게이트.
+
+**합의 결정** (Stage 0 5건 완료, `docs/REFACTORING_DECISIONS.md`):
+- #1 Note 폐기 (Knowledge::Record 흡수, ADR-015)
+- #2 Subject 4축 enum: person·subject·document·identity (ADR-016)
+- #3 Export 5종 모두 MVP (ADR-018)
+- #4 Note 만 폐기, 다른 모두 유지
+- #5 8주 완전 (Strangler Fig 완주)
+
+**ADR 신규 5건**: ADR-015 ~ ADR-019
+
+---
+
+### Stage 0: 합의 게이트 (W33 진입 전, 완료 2026-05-12)
+
+- ✅ 5 게이트 결정 (#1~#5)
+- ✅ REFACTORING_BLUEPRINT.md (10 섹션, 682 lines)
+- ✅ REFACTORING_DECISIONS.md (결정 trace)
+- ✅ ADR-015 ~ ADR-019 정식 등록
+- ⏭ git tag pre-stage-1 (롤백 anchor)
+
+### Stage 1 (R1): 모듈 골격 + Façade (W33, 1주)
+
+- R1-T01 `lib/sowing/core/` 디렉토리 + 기존 `infrastructure/` 이전 (rename)
+- R1-T02 `lib/sowing/capture/public_api.rb` (Façade stub)
+- R1-T03 `lib/sowing/knowledge/public_api.rb`
+- R1-T04 `lib/sowing/insight/public_api.rb`
+- R1-T05 `lib/sowing/output/public_api.rb` (빈 모듈)
+- R1-T06 Zeitwerk inflector 갱신 (`config/application.rb`)
+- R1-T07 `bin/sowing-arch-check` 신규 (의존성 룰 자동 검증)
+- R1-T08 spec: 각 public_api 호출 + arch-check pass
+- **검증**: 1674 spec 통과 + arch-check 0 위반
+
+### Stage 2 (R2): Capture 이전 + Subject migration (W34, 1주)
+
+- R2-T01 `Capture::Domain::Item` 신설 (Memo 1:1 이전)
+- R2-T02 `Capture::Repository::CaptureRepo`
+- R2-T03 `Capture::UseCase::CreateItem`
+- R2-T04 `Capture::Controller::CaptureController` + `/memos` 마운트
+- R2-T05 `Memo → Capture::Item` alias (Strangler Fig)
+- R2-T06 **마이그레이션 008**: `entries.subject` column (nullable)
+- R2-T07 spec ~20 (Capture 모듈)
+- R2-T08 arch-check + commit 시리즈 완료
+
+### Stage 3 (R3): Knowledge + Archive + Subject UI (W35~W36, 1.5주)
+
+- R3-T01 `Knowledge::Domain::Record` 신설 (Note 흡수 + subject)
+- R3-T02 `Knowledge::Domain::Plan` 신설 (+ subject)
+- R3-T03 `Knowledge::Repository::*` (RecordRepo·PlanRepo·ArchiveRepo)
+- R3-T04 ~~`Reference` 도메인~~ (게이트 #1 B 결정으로 삭제)
+- R3-T05 **`Knowledge::UseCase::ArchiveEntry`** + `UnarchiveEntry`
+- R3-T06 **마이그레이션 009**: `entries.archived_at` + `archive_reason` (ADR-017)
+- R3-T07 `Knowledge::Controller::ArchiveController` + `/archive` 페이지
+- R3-T08 검색·합성기·view_recent — `archived_at IS NULL` 필터
+- R3-T09 일괄 archive UI (학생별·학년도별)
+- R3-T10 Subject × 연도 매트릭스 (카테고리 × 연도 옆)
+- R3-T11 `bin/sowing reclassify` — 카테고리 → subject 자동 제안
+- R3-T12 spec ~60
+
+### Stage 4a (R4a): Insight namespace 이전 (W37, 1주)
+
+- R4a-T01 `Insight::Domain::Synthesis` 통합 도메인
+- R4a-T02 17 합성기 → `Insight::Synthesizer::*` namespace (logic 0 변경)
+- R4a-T03 `Insight::Repository::SynthesisRepo`
+- R4a-T04 `Insight::Controller::InsightController` (= 기존 SynthController)
+- R4a-T05 기존 17 합성기 spec 그대로 통과 (행위 보존)
+
+### Stage 4b (R4b): Output Template 5종 + PDF/DOCX (W38~W39, 2주, 게이트 #3 c)
+
+- R4b-T01 `Output::Domain::ExportTemplate` + `ExportJob`
+- R4b-T02 5 ERB template (`10_Templates/exports/`):
+  - student_record.erb (생기부)
+  - consultation.erb (상담부)
+  - meeting_minutes.erb (회의록)
+  - project_proposal.erb (사업계획서)
+  - budget_request.erb (예산요구서)
+- R4b-T03 ~ R4b-T07: 5 use case (`GenerateStudentRecord` 등)
+- R4b-T08 `Output::Exporter::{Markdown,Pdf,Docx}Exporter` (Strategy)
+- R4b-T09 `Output::Controller::ExportController` + `/export` 페이지
+- R4b-T10 spec ~80 (template 별 16 case)
+- **합의 게이트 #8**: 5 template 양식 검증 (베타 1명)
+
+### Stage 5 (R5): 폐기 + 검증 + v0.2.0 출시 (W40, 1주)
+
+- R5-T01 Note 폐기: 20_Notes/{cat}/*.md → 30_Records/{YYYY}/{cat}/*.md 마이그레이션
+- R5-T02 옛 namespace alias 제거 (Memo → Capture::Item 통합)
+- R5-T03 `lib/sowing/{controllers,repositories,use_cases,domain}/` 폴더 — 모듈로 이전 확인 + 제거
+- R5-T04 마이그레이션 010 (선택): `entries.subject` NOT NULL (모든 데이터 분류 후)
+- R5-T05 `bin/sowing-doctor` 검사 항목 갱신
+- R5-T06 USER_GUIDE.md / MANUAL.md / MVP_VISION.md v0.2.0 갱신
+- R5-T07 CHANGELOG.md [0.2.0] 섹션
+- R5-T08 version.rb 0.1.x → 0.2.0
+- R5-T09 release-check 통과
+- R5-T10 **합의 게이트 #9** → tag v0.2.0 + GitHub Release
+
+### 🎯 Phase R 마일스톤 (v0.2.0, 2026-07-07)
+
+- 비전 A·B·C·D·E 모두 충족
+- Note 폐기, Subject 4축, Archive, Export 5종
+- spec 1674 → ~2000 (+~300)
+- 4 Bounded Context (Capture·Knowledge·Insight·Output)
+- arch-check 0 위반
+- ADR-015 ~ ADR-019 5건 정식
+- 베타 인터뷰 (2026-08-12) 직전 1개월 안정화
+
+---
+
+## Phase 2 이후 (Week 41+, v0.2.0 출시 이후)
+
+EVALUATION.md §3 의 Phase 13~16 후보:
 - iOS 동반 앱 (SwiftUI, read-mostly, MCP 클라이언트) — Phase 9 MCP 서버 검증 후 가치 명확해지면
 - W8 deferred 작업 정식 진행: Tebako 빌드 검증, macOS DMG codesign·notarize, Windows Inno Setup, Linux AppImage, 베타 테스터 5명
-- 다크 모드, 단축키 사용자 정의, 다국어 (i18n 인프라 활용)
+- 다국어 (i18n 인프라 활용 — r18n 영문 추가, Phase 14 W29~W31 PoC 완료)
 - 모바일 웹 UX 개선
 
 ---

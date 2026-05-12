@@ -129,90 +129,115 @@ Stage 3 R3-T11 (reclassify 도구) 가 위 매핑으로 제안 → 사용자 일
 
 ---
 
-## 게이트 #3: Export 5종 우선순위 (PENDING)
+## 게이트 #3: Export 5종 우선순위
 
-**Stage 0 미합의**.
+**결정일**: 2026-05-12
+**결정**: **c — 5종 모두 MVP 포함** (비전 E.3 완전 충족, v0.2.0 +1주)
 
-사용자 결정 필요:
+### 5 Template 모두 Stage 4b 에 포함
+
+| Template | enum | 입력 | 출력 양식 |
+|---|---|---|---|
+| 📝 생기부 | `student_record` | 학생 mention + 학기 entries | 행동·교과·창체 영역별 |
+| 💬 상담부 | `consultation` | 학부모 상담 + 학생 mention | 학생별 면담 이력 + 다음 준비 |
+| 📑 회의록 | `meeting_minutes` | 회의 카테고리 + 날짜 | 일시·참석자·안건·결정·후속 |
+| 💼 사업계획서 | `project_proposal` | 사업 카테고리 | 목표·일정·예산·기대효과 |
+| 💰 예산요구서 | `budget_request` | 사업 + 비용 mention | 항목·단가·총액·근거 |
+
+### 작업 분해 (Stage 4b 확장)
+
+기존 권장 (P0 2종) 에서 5종 전체로 → Stage 4b 작업 +1 주.
+
+R4b-T01 ~ R4b-T05: 각 use case + ERB template + PDF/DOCX export
+R4b-T06: spec ~80 (template 별 16 case)
+
+### 트레이드오프
+
+- ✅ **비전 E.3 완전 충족** — 5 용도 모두 day 1 출시
+- ✅ **양식 학교별 차이** — ERB template 사용자 편집 가능
+- ⚠ **양식 검증 부담** — 5 template 모두 학교 실무 양식과 일치 검증 필요
+- ⚠ **Stage 4b 가 8주 일정의 핵심 — 1주 추가** = 총 8주
+
+→ #5 게이트의 C (8주) 와 정합.
+
+---
+
+## 게이트 #4: 기존 mode 폐기 가능성
+
+**결정일**: 2026-05-12
+**결정**: **a — Note 만 폐기**, 다른 mode·기능 모두 유지
+
+### 최종 mode 매트릭스
+
+| Mode | v0.1.8 → v0.2.0 | 비고 |
+|---|---|---|
+| 💭 Memo | **유지** (`Capture::Item`) | rename 만 |
+| 📝 Note | **폐기** (`Knowledge::Record` 흡수) | 게이트 #1 |
+| 📖 Record | **유지** (`Knowledge::Record`) | + subject + archive |
+| 🗓 Plan | **유지** (`Knowledge::Plan`) | + subject + archive |
+| 🌱 Synth (17종) | **유지** (`Insight::Synthesizer::*`) | namespace 이전 |
+| 📋 Template (12 자유) | **유지** | 사용자 정의 영역 |
+| 🎓 Tutorial | **유지** | 베타 후 v0.2.x 에서 단축 검토 |
+| 🪄 Onboarding | **유지** | 동일 |
+| (신규) | `Output::Template` 5종 | Export 양식 |
+
+### 트레이드오프
+
+- ✅ **변경 최소화** — Note 만 폐기, 다른 사용자 친숙한 영역 유지
+- ✅ **자유 템플릿 12종 그대로** — 사용자 학교별 양식 정의 영역
+- ⚠ **10_Templates/ 와 Output::Template 의 공존** — 명명 헷갈림 가능
+  - 해결: `10_Templates/exports/*.erb` 로 Output 만 분리 (Stage 4b R4b-T02)
+  - 기존 12 자유 템플릿은 `10_Templates/` 루트에 그대로
+
+---
+
+## 게이트 #5: 기간 추정
+
+**결정일**: 2026-05-12
+**결정**: **C — 8주 완전 (Strangler Fig 완주)** + Export 5종 → 실질 **8주**
+
+### 일정 (확정)
+
+| Week | 날짜 | Stage | 핵심 |
+|---|---|---|---|
+| W33 | 2026-05-19 | Stage 0 완료 + Stage 1 (R1) | 모듈 골격 + Façade |
+| W34 | 2026-05-26 | Stage 2 (R2) | Capture 이전 + Subject migration |
+| W35 | 2026-06-02 | Stage 3 (R3) 진입 | Knowledge·Record·Plan 이전 |
+| W36 | 2026-06-09 | Stage 3 계속 | Archive + Subject UI + reclassify |
+| W37 | 2026-06-16 | Stage 4a (R4a) | Insight 17 합성기 namespace |
+| W38 | 2026-06-23 | Stage 4b (R4b) 진입 | Output Template 5종 (생기부·상담부) |
+| W39 | 2026-06-30 | Stage 4b 계속 | 회의록·사업계획서·예산요구서 + PDF/DOCX |
+| W40 | 2026-07-07 | Stage 5 (R5) — **v0.2.0 출시** | 폐기 + 검증 + tag push |
+
+### 베타 인터뷰 시점 정합
 
 ```
-P0 (MVP 필수):  ?? 종
-P1 (MVP+1):    ?? 종
-P2 (MVP+2):    ?? 종
+2026-07-07  v0.2.0 출시 (Phase R 완료)
+2026-07-08  ~ 2026-08-11  안정화·hotfix·문서 정비 (5주)
+2026-08-12  베타 인터뷰 시작 (5명, v0.2.0 기준)
+2026-08-16  인터뷰 마감
+2026-08-25  Phase 18+ 진입 결정
 ```
 
-권장 옵션:
+### 트레이드오프
 
-| Template | 사용자 권장 우선순위 | 이유 |
-|---|---|---|
-| 📝 생기부 | **P0** | 매 학기말 의무, 베타 테스터 핵심 needs |
-| 💬 상담부 | **P0** | 매 학기 진행, 학생별 누적 |
-| 📑 회의록 | P1 | 학교 양식 차이 큼, 학기 1~2회 |
-| 💼 사업계획서 | P1 | 연 1회 큰 문서, 양식 표준화 어려움 |
-| 💰 예산요구서 | P2 | 사업계획서 후속, 양식 차이 더 큼 |
-
-권장 결정:
-- **P0 = 생기부 + 상담부** (학생 중심)
-- **P1 = 회의록 + 사업계획서** (학교 운영)
-- **P2 = 예산요구서** (선택)
-
-→ Stage 4b (Output) 의 use case 5개 중 2개만 MVP, 3개는 v0.2.0 후 추가 출시.
+- ✅ **완전 모듈형** — 옛 코드 제거, 기술 부채 0
+- ✅ **베타 인터뷰 5주 전 출시** — 안정화 시간 충분
+- ✅ **Strangler Fig 완주** — 단계적 검증 가능
+- ⚠ **개발 압박** — 8주 단일 개발자 (Claude + 사용자) full speed 필요
+- ⚠ **Stage 4b 5종 → 모두 출시** — 양식 검증 압박 (베타 1인 검토 필수)
 
 ---
 
-## 게이트 #4: 기존 mode 폐기 가능성 (PENDING)
+## Stage 0 합의 완료 — 다음 단계
 
-**Stage 0 미합의**.
+5 게이트 모두 합의됨. 다음 작업 순서:
 
-게이트 #1 의 B 결정으로 Note 는 폐기 확정. 추가 검토:
-
-| Mode | 현재 사용 | 폐기 검토 |
-|---|---|---|
-| 💭 Memo (00_Inbox) | ✅ 매일 입력 | 유지 (Capture::Item) |
-| 📝 Note (20_Notes) | 사용자 결정 B | **폐기** (Knowledge::Record 흡수) |
-| 📖 Record (30_Records) | ✅ 30년 누적 | 유지 (Knowledge::Record) |
-| 🗓 Plan (40_Plans) | ✅ 미래 계획 | 유지 (Knowledge::Plan) |
-| 🌱 합성 (.sowing/synth) | ✅ 17종 | 유지 (Insight::Synthesis) |
-| 📋 Template (10_Templates) | 자유 마크다운 | 유지 + Output::Template 확장 |
-
-추가 폐기 후보 (사용자 의견 필요):
-- ❓ `10_Templates/` 의 기존 12 자유 템플릿 — Output::Template 5종으로 통합 vs 별도 유지?
-- ❓ Tutorial mode — 베타 후엔 단축할 수 있음?
-- ❓ Onboarding 마법사 — 새 mode 가 단순해지면?
-
-권장:
-- **Note 만 폐기** — 다른 mode 모두 유지
-- **10_Templates/** 의 자유 템플릿은 별도 유지 (사용자 정의 영역)
-- Tutorial·Onboarding 은 v0.2.0 후 검토
-
----
-
-## 게이트 #5: 기간 추정 6주 vs 8주 (PENDING)
-
-**Stage 0 미합의**.
-
-권장 분기:
-
-| 시나리오 | 기간 | 트레이드오프 |
-|---|---|---|
-| **A. 6주 (최소)** | Phase R3 + R4b 만 (사용자 가치 직접) | Phase R1·R2·R4a 의 순수 리팩토링 생략. v0.2.0 출시 빠름 but 기술 부채 잔존. |
-| **B. 7주 (균형)** | Phase R3 + R4b + R1 (모듈 골격) | Bounded Context 만 도입, 옛 Memo·Record 그대로. |
-| **C. 8주 (완전)** | Phase R1~R5 모두 (Strangler Fig 완주) | 완전 모듈형, 옛 코드 제거. 기술 부채 0. |
-
-권장:
-- 베타 인터뷰 (2026-08-12) 직전 v0.2.0 출시 가능 — 8주 완전 진행 시 2026-07-07 출시 → 1개월 안정화 기간 확보
-- **C (8주)** 권장 — 완전 모듈형 + 안정화 시간 충분
-
----
-
-## 합의 미합 상태 — 다음 단계
-
-남은 3 게이트 (#3·#4·#5) 답변 받으면:
-
-1. 본 문서 갱신 (PENDING → 결정)
-2. **ADR-015 ~ ADR-019** 정식 초안 작성 (docs/DECISIONS.md)
-3. `git tag pre-stage-1` (롤백 anchor)
-4. Stage 1 첫 commit `[R1-T01] core/ 디렉토리 신설`
+1. ✅ 본 문서 (REFACTORING_DECISIONS.md) 5건 모두 기록
+2. **ADR-015 ~ ADR-019** 정식 등록 (docs/DECISIONS.md)
+3. ROADMAP.md 에 Phase R (W33~W40) 항목 추가
+4. `git tag pre-stage-1` 롤백 anchor
+5. Stage 1 진입 — `[R1-T01] core/ 디렉토리 신설`
 
 ---
 
@@ -222,6 +247,6 @@ P2 (MVP+2):    ?? 종
 |---|---|---|
 | 2026-05-12 | #1 Note 정체성 | **B** — Note 폐기, Knowledge::Record 로 흡수 |
 | 2026-05-12 | #2 Subject 4축 enum | `person · subject · document · identity` (충돌 의식 + 가이드라인) |
-| pending | #3 Export 우선순위 | — |
-| pending | #4 추가 폐기 mode | — |
-| pending | #5 기간 6/7/8주 | — |
+| 2026-05-12 | #3 Export 우선순위 | **c** — 5종 모두 MVP (Stage 4b +1 주) |
+| 2026-05-12 | #4 추가 폐기 mode | **a** — Note 만 폐기, 다른 모두 유지 |
+| 2026-05-12 | #5 기간 | **C** — 8주 완전 (Strangler Fig 완주, v0.2.0 = 2026-07-07) |

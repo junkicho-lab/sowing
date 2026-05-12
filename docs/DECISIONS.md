@@ -537,6 +537,275 @@ Phase 1~12 (W1~W24) 의 누적 기능을 평면 nav 10항목 (`홈 메모 필기
 
 ---
 
+## ADR-015: Note mode 폐기 — Knowledge::Record 로 흡수
+
+**상태**: Accepted (2026-05-12)
+
+**컨텍스트**
+
+사용자 비전 (MVP_VISION §B) 의 입력 자료 4종 = 메모·공부·보고서·계획서.
+"공부" 와 "보고서" 의 경계가 사용자 의도상 모호 — 둘 다 정리·체계.
+현재 Sowing v0.1.8 은 4 mode (Memo·Note·Record·Plan) — Note 가 어디에
+위치하는지 사용자 의도 불명.
+
+옵션 검토:
+- A. Note 유지 → Knowledge::Reference (공부) + Knowledge::Record (보고) 분리
+- B. **Note 폐기 → Knowledge::Record 로 흡수**
+- C. Note 유지 → Knowledge::Reference 로 통일 (자료 + 정리)
+
+**결정**
+
+옵션 B. Note 폐기. 기존 `Note` 도메인을 `Knowledge::Record` 로 흡수.
+
+v0.2.0 부터 3 명사 mode (`Capture::Item` + `Knowledge::Record` +
+`Knowledge::Plan`) + Synth + Template.
+
+**근거**
+
+- 사용자 비전과 정합 (4 입력 자료가 Memo·Reference·Report·Plan 으로 명시
+  안 되어 있음 — 사용자 본인은 메모·자료·보고서·계획서 로 표현)
+- 옵션 A 는 도메인 객체 1개 추가 — Bounded Context 복잡도 증가
+- 옵션 C 는 의미 변경만 — rename 부담은 같지만 가치 약함
+- B 가 가장 단순 + 사용자 비전 정합
+
+**결과**
+
+✅
+- 4 mode → 3 mode (Memo·Record·Plan + 합성·Output)
+- 사용자 UX 진입점 단순화 ('필기 작성' → '기록 작성' 으로 통합)
+
+⚠
+- 기존 20_Notes/{카테고리}/*.md 파일 → 30_Records/{YYYY}/{카테고리}/*.md
+  로 이전 마이그레이션 필요
+- Stage 5 폐기 단계까지 `Note` 는 alias 로 작동 (Strangler Fig)
+- 기존 사용자 노트 마이그레이션 — 자동 변환 + 사용자 검토 단계 필수
+
+**구현 메모**
+
+- Phase R3 (Stage 3) 의 R3-T03 `Knowledge::Domain::Reference` 옵션 삭제
+- Phase R5 (Stage 5) 의 R5-T01 에 Note 폴더 마이그레이션 + alias 제거
+- 마이그레이션: 모든 note row 의 mode='note' → 'record' (DB) + 파일 이동 (vault)
+- 결정 trace: [docs/REFACTORING_DECISIONS.md#게이트-1](REFACTORING_DECISIONS.md)
+
+---
+
+## ADR-016: Subject 4축 제약 분류 도입
+
+**상태**: Accepted (2026-05-12)
+
+**컨텍스트**
+
+사용자 비전 D — 판단 기준 4축 (인물·교과·계획서·정체성). 현재 Sowing
+v0.1.8 은 자유 카테고리만 (사용자 정의 문자열, 예: 'lessons'·'수업회고'
+·'상담' 등). 4축 명시 분류가 없어 모든 출력 (E.2 주제별·E.3 용도별) 의
+기반이 약함.
+
+**결정**
+
+모든 entry (Memo·Record·Plan·Synth) 에 `subject` 메타데이터 추가.
+4 enum 값 (`person · subject · document · identity`) 으로 제약.
+
+자유 카테고리 (소분류) 는 그대로 유지 — `subject` 는 상위 4축, `category`
+는 하위 자유 분류. 두 축 공존.
+
+**근거**
+
+- 비전 D 직접 충족 — 4 분류 명시
+- 출력 (E.2 주제별 / E.3 용도별) 의 기반
+- 자유 카테고리 와 별도 — 사용자 선택 영역 축소 없음
+- nullable — 기존 데이터 호환 (Stage 5 후 NOT NULL 고려)
+
+**결과**
+
+✅
+- 비전 D·E.2·E.3 의 도메인 기반 확보
+- Subject × 연도 매트릭스 (기존 카테고리 × 연도 옆 추가)
+- /view/recent 의 4 subject chip 필터
+- Output Template (생기부·상담부 등) 의 자동 입력 수집 기반
+
+⚠
+- **명명 충돌 의식**: 'Subject 4축' (개념) vs `:subject` (enum 값 — 교과 의미)
+  - 코드: 상수 `CURRICULUM_SUBJECT = :subject` 권장
+  - 문서: 한글 "교과" + enum 키 병기
+  - URL: `?subject=person|subject|document|identity`
+- 기존 entry 의 `subject = NULL` 그대로 작동 — UI 에 "미분류" 표시
+
+**구현 메모**
+
+- Phase R2 (Stage 2) 의 R2-T06 마이그레이션 008: `entries.subject` column
+- Phase R3 (Stage 3) 의 R3-T11 reclassify 도구 — 카테고리 → subject 자동 제안
+  매핑:
+  - 학생기록·상담·학생관찰 → `:person`
+  - 수업·수업회고·평가·도덕 → `:subject`
+  - 회의·행사·사업·학급운영 → `:document`
+  - 학기회고·자기회고·교육철학 → `:identity`
+- 결정 trace: [docs/REFACTORING_DECISIONS.md#게이트-2](REFACTORING_DECISIONS.md)
+
+---
+
+## ADR-017: Archive 메타데이터 — active vs archived 이분
+
+**상태**: Accepted (2026-05-12)
+
+**컨텍스트**
+
+사용자 비전 C — 처리 흐름 5단계 중 "대상학생·학년도 지나면 **이관**".
+30년 누적이 무거워지면 일상 회상이 압도됨.
+
+옵션 검토:
+- 폴더 분리 (`Archived/`): 옵시디언 호환 좋지만 폴더 구조 변경 큼
+- 메타데이터 (`archived_at` timestamp): 폴더 그대로, 필터로 분리
+
+**결정**
+
+`entries.archived_at` (ISO8601) + `archive_reason` (text) 컬럼 추가.
+폴더 구조 변경 없음 (옵시디언 호환 유지).
+
+**근거**
+
+- 폴더 변경 0 — 옵시디언 vault 그대로
+- `WHERE archived_at IS NULL` 한 줄로 일상 회상 필터
+- archive 보존 — 옛 자료 검색 가능 (`?include_archived=1`)
+- 졸업·학년종료·사업종료 등 사유 (`archive_reason`) 분류
+
+**결과**
+
+✅
+- 일상 UX 무거워짐 0 — 검색·합성기·view_recent 모두 `IS NULL` 필터
+- 30년 누적 시 자연스러운 정리 흐름
+- 명시적 unarchive 가능 (사용자 클릭, ADR-013)
+- 보관함 (`/archive`) 페이지 — archive 검색·복원 전용
+
+⚠
+- 모든 query 에 `archived_at IS NULL` 추가 — 누락 위험 (linter 또는 default scope?)
+- 일괄 archive 동작의 안전성 (잘못 archive 하면 사용자 혼란)
+  - 완화: 학생별·학년도별 archive 시 명시 confirm + 일괄 unarchive UI
+
+**구현 메모**
+
+- Phase R3 (Stage 3) R3-T05 ~ R3-T09
+- 마이그레이션 009: `entries.archived_at` + `archive_reason` + index
+- IndexRepo 의 모든 일상 query 에 `IS NULL` 필터
+- audit log 에 archive/unarchive 명시 기록 (ADR-013)
+- 결정 trace: [docs/REFACTORING_DECISIONS.md#게이트-1](REFACTORING_DECISIONS.md)
+
+---
+
+## ADR-018: Template-based Export — 사용자 편집 가능 ERB 5종
+
+**상태**: Accepted (2026-05-12)
+
+**컨텍스트**
+
+사용자 비전 E.3 — 용도별 출력 5종 (생기부·상담부·회의록·사업계획서·예산
+요구서). 학교별·연도별 양식 차이 큼 — hardcoded ERB 는 부적합.
+
+**결정**
+
+`10_Templates/exports/*.erb` 사용자 편집 가능 ERB template. 5종 모두 MVP
+포함 (게이트 #3 c). 출력 형식 3종: Markdown (default) / PDF (Prawn) /
+DOCX (caracal).
+
+**근거**
+
+- 학교별 양식 차이 — 사용자가 ERB 직접 편집
+- 한글 폰트 (Pretendard) Prawn 호환 확인됨
+- DOCX 는 caracal — ruby native, 외부 도구 (LibreOffice) 불필요
+- 5종 모두 MVP 포함 — 비전 E.3 완전 충족 (게이트 #3 c)
+
+**결과**
+
+✅
+- 학교별·연도별 양식 차이 자체 흡수
+- v0.2.0 day 1 에 5 용도 모두 출력 가능
+- Markdown 출력 → 옵시디언·iA Writer 등 외부 도구로 추가 편집
+
+⚠
+- 5 template 양식 검증 부담 — 베타 1명 검토 필수 (게이트 #8)
+- Prawn 한글 폰트 packaging — 배포 크기 +5MB 정도
+- 사용자가 ERB 편집 잘못하면 export 실패 — error 핸들링 + 디폴트 폴백
+
+**구현 메모**
+
+- Phase R4b (Stage 4b) — Week 38~39
+- `10_Templates/exports/` 5 ERB 파일
+- `Output::Exporter::{Markdown,Pdf,Docx}Exporter` — Strategy 패턴
+- `/export` 페이지 — 5 template 선택 chip + 입력 폼 (학생·날짜·사업명 등)
+- spec ~80 (template 별 16 case)
+- 결정 trace: [docs/REFACTORING_DECISIONS.md#게이트-3](REFACTORING_DECISIONS.md)
+
+---
+
+## ADR-019: Bounded Context 4 모듈 — Strangler Fig 패턴
+
+**상태**: Accepted (2026-05-12)
+
+**컨텍스트**
+
+Phase 1~14 동안 누적된 `lib/sowing/{controllers,repositories,use_cases,
+domain,infrastructure}/` 평면 구조. v0.2.0 의 비전 충족 (Subject 4축·
+Archive·Export 5종) 추가 시 평면 구조 복잡도 한계.
+
+Eric Evans 의 Bounded Context (DDD) 로 4 모듈 분리. Martin Fowler 의
+Strangler Fig 패턴으로 점진 이전.
+
+**결정**
+
+4 Bounded Context 모듈:
+
+1. **Capture** (포착) — Memo → CaptureItem
+2. **Knowledge** (지식) — Record·Plan + Archive
+3. **Insight** (통찰) — 17 합성기·자기 거울
+4. **Output** (출력) — Template Export 5종
+
+의존 방향 (acyclic):
+
+```
+              Output
+                ▲
+                │
+       Knowledge ↔ Insight
+                ▲
+                │
+              Capture (base)
+```
+
+모듈 간 인터페이스: 각 모듈의 `public_api.rb` Façade. 내부 클래스 직접
+참조 금지.
+
+8주 Strangler Fig: 새 모듈 옆에 짓고, 라우트 점진 이전, Stage 5 에 옛
+코드 제거.
+
+**근거**
+
+- DDD Bounded Context — 비전 A~E 의 도메인 경계 명확
+- Strangler Fig — 한 번에 갈아엎지 않음, 가역성 확보
+- 의존 acyclic — 단방향, 양방향 의존 금지 (`bin/sowing-arch-check` 자동 검증)
+- Façade 패턴 — 모듈 간 결합도 낮춤
+
+**결과**
+
+✅
+- 비전 A~E 명시 도메인 경계
+- 새 기능 추가 시 어느 모듈인지 명확
+- 모듈 단독 spec 가능 (다른 모듈 mock)
+- `bin/sowing-arch-check` 자동 검증
+
+⚠
+- 8주 작업 — 단일 개발자 (Claude + 사용자) full speed
+- 마이그레이션 008·009 위험 — vault 백업 + Feature Flag 필수
+- Strangler Fig 중간 상태 (옛+새 공존) 복잡 — 각 stage 끝 release-check 통과 의무
+
+**구현 메모**
+
+- Phase R1~R5 (W33~W40, 2026-05-19 ~ 2026-07-07)
+- 사용자 합의 게이트 9개 — Stage 0 5건 완료, 6~9 진행 중 확인
+- 9 (final v0.2.0) 합의 없으면 v0.1.9 부분 출시 옵션
+- 상세 청사진: [docs/REFACTORING_BLUEPRINT.md](REFACTORING_BLUEPRINT.md)
+- 합의 trace: [docs/REFACTORING_DECISIONS.md](REFACTORING_DECISIONS.md)
+
+---
+
 ## 새 ADR 추가 가이드
 
 새 결정을 기록할 때:
