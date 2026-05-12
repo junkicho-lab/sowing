@@ -335,7 +335,8 @@ Tap 저장소 게시 진행 중. Formula 미리보기: [packaging/homebrew/sowin
 |------|------|------|
 | [SETUP.md](SETUP.md) | 개발자 | 개발 환경 설정 |
 | [CLAUDE.md](CLAUDE.md) | Claude Code | 코드 작성 컨벤션 |
-| [docs/MVP_VISION.md](docs/MVP_VISION.md) | **운영자·기여자** | **비전 vs 현재 gap 분석 + MVP (Subject 4축·Archive·Export Templates) — Phase 15~17 로드맵** |
+| [docs/MVP_VISION.md](docs/MVP_VISION.md) | 운영자·기여자 | 비전 vs 현재 gap 분석 + MVP (Subject 4축·Archive·Export Templates) — WHAT |
+| [docs/REFACTORING_BLUEPRINT.md](docs/REFACTORING_BLUEPRINT.md) | **운영자·기여자** | **모듈형 재구조화 청사진 (Phase R1~R5, 6~8주) — HOW (Strangler Fig + 4 Bounded Context + 9 합의 게이트)** |
 | [docs/MANUAL.md](docs/MANUAL.md) | 모든 사용자 | 사용자 매뉴얼 v0.1.8 — 실용 reference (단축키·라우트·트러블슈팅·cheat sheet) |
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | 베타 테스터·신규 사용자 | 사용 입문서 — 캡쳐화면, 메모→필기→기록 흐름, 범주 분류, 17 합성기 |
 | [docs/BETA_GUIDE.md](docs/BETA_GUIDE.md) | 베타 테스터 | 베타 검증 측정 기준 + 인터뷰 안내 |
