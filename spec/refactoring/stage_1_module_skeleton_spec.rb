@@ -61,9 +61,16 @@ RSpec.describe "Phase R Stage 1 — Bounded Context 골격" do
       expect(Sowing::Insight::SYNTHESIZER_TYPES).to include("self-mirror")
     end
 
-    it ".generate / .pending_count / .accept / .reject stub" do
-      expect { Sowing::Insight.generate(type: "students") }.to raise_error(NotImplementedError)
-      expect { Sowing::Insight.pending_count }.to raise_error(NotImplementedError)
+    it ".generate / .pending_count / .accept / .reject 모두 호출 가능 (Stage 4a R4a 완료)" do
+      expect(Sowing::Insight).to respond_to(:generate)
+      expect(Sowing::Insight).to respond_to(:pending_count)
+      expect(Sowing::Insight).to respond_to(:accept)
+      expect(Sowing::Insight).to respond_to(:reject)
+    end
+
+    it "type 검증 — SYNTHESIZER_TYPES 밖이면 ArgumentError" do
+      expect { Sowing::Insight.generate(type: "unknown") }
+        .to raise_error(ArgumentError, /type/)
     end
   end
 
